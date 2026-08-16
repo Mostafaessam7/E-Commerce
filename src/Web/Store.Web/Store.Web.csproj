@@ -43,6 +43,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Store.Web-2856d657-a198-45ba-8fbf-849e49dda1e9</UserSecretsId>
   </PropertyGroup>
 
 </Project>

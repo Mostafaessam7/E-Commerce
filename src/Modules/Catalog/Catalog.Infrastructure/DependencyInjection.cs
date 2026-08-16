@@ -30,6 +30,14 @@ public static class DependencyInjection
         services.AddScoped<IRequestHandler<SearchProductsQuery, ProductSearchResultDto>, SearchProductsQueryHandler>();
         services.AddScoped<IRequestHandler<GetProductVariantSnapshotQuery, ProductVariantSnapshotDto>, GetProductVariantSnapshotQueryHandler>();
 
+        // Admin (Phase 11)
+        services.AddScoped<IRequestHandler<GetProductByIdQuery, ProductDetailsDto>, GetProductByIdQueryHandler>();
+        services.AddScoped<IRequestHandler<UpdateProductCommand, Unit>, UpdateProductCommandHandler>();
+        services.AddScoped<IRequestHandler<AddProductVariantCommand, Guid>, AddProductVariantCommandHandler>();
+        services.AddScoped<IRequestHandler<PublishProductCommand, Unit>, PublishProductCommandHandler>();
+        services.AddScoped<IRequestHandler<ArchiveProductCommand, Unit>, ArchiveProductCommandHandler>();
+        services.AddScoped<IRequestHandler<DeleteProductCommand, Unit>, DeleteProductCommandHandler>();
+
         return services;
     }
 }

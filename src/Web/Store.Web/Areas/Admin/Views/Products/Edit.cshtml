@@ -1,0 +1,82 @@
+@model ProductDetailsDto
+@{
+    ViewData["Title"] = $"Edit {Model.Name}";
+}
+
+<h1>@Model.Name <span class="admin-badge">@Model.Status</span></h1>
+
+<div class="row" style="display:flex; gap: 40px; flex-wrap: wrap;">
+    <form asp-action="Edit" method="post" style="max-width: 560px; flex: 1;">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" name="Id" value="@Model.Id" />
+
+        <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input name="Name" class="form-control" value="@Model.Name" required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Short Description</label>
+            <input name="ShortDescription" class="form-control" value="@Model.ShortDescription" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea name="Description" class="form-control" rows="5">@Model.Description</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-dark">Save</button>
+    </form>
+
+    <div style="flex: 1; min-width: 280px;">
+        <h5>Variants</h5>
+        <table class="admin-table mb-3">
+            <thead><tr><th>SKU</th><th>Price</th><th>Sale Price</th></tr></thead>
+            <tbody>
+            @foreach (var variant in Model.Variants)
+            {
+                <tr>
+                    <td>@variant.Sku</td>
+                    <td>@variant.Price.ToString("0.00") @variant.Currency</td>
+                    <td>@(variant.SalePrice?.ToString("0.00") ?? "—")</td>
+                </tr>
+            }
+            @if (Model.Variants.Count == 0)
+            {
+                <tr><td colspan="3">No variants yet — a product needs at least one to be published.</td></tr>
+            }
+            </tbody>
+        </table>
+
+        <form asp-action="AddVariant" method="post" class="mb-4">
+            <input type="hidden" name="ProductId" value="@Model.Id" />
+            <div class="mb-2"><input name="Sku" class="form-control" placeholder="SKU" required /></div>
+            <div class="mb-2"><input name="Price" type="number" step="0.01" class="form-control" placeholder="Price" required /></div>
+            <div class="mb-2"><input name="Currency" class="form-control" value="EGP" required /></div>
+            <div class="mb-2"><input name="SalePrice" type="number" step="0.01" class="form-control" placeholder="Sale price (optional)" /></div>
+            <button type="submit" class="btn btn-outline-dark btn-sm">Add Variant</button>
+        </form>
+
+        <h5>Status</h5>
+        <div class="d-flex gap-2">
+            @if (Model.Status != "Active")
+            {
+                <form asp-action="Publish" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-success btn-sm">Publish</button>
+                </form>
+            }
+            @if (Model.Status != "Archived")
+            {
+                <form asp-action="Archive" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-secondary btn-sm">Archive</button>
+                </form>
+            }
+            <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this product?');">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>

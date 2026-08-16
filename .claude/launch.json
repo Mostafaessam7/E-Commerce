@@ -4,8 +4,9 @@
     {
       "name": "store-web",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "src/Web/Store.Web", "--launch-profile", "http"],
-      "port": 5203
+      "runtimeArgs": ["run", "--project", "src/Web/Store.Web", "--launch-profile", "https"],
+      "port": 7012,
+      "url": "https://localhost:7012"
     }
   ]
 }

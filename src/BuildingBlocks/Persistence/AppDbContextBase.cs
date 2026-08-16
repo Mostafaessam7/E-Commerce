@@ -56,7 +56,15 @@ public abstract class AppDbContextBase : DbContext
 
         var message = new OutboxMessage(
             id: integrationEvent.EventId,
-            type: eventType.FullName ?? eventType.Name,
+            // AssemblyQualifiedName, not just FullName: Store.Worker's OutboxProcessingService
+            // resolves this back to a Type via Type.GetType(...), which only auto-loads the
+            // declaring assembly (if it isn't already JIT-loaded in that process) when given the
+            // assembly-qualified form — a bare FullName can only be found by scanning already-
+            // loaded assemblies, which silently fails for an event type nothing in the worker's
+            // executed code path happened to touch yet. Reproduced for real: PaymentSucceededIntegrationEvent
+            // was unresolvable because ProcessWebhookCommandHandler (the only code referencing it)
+            // never runs inside Store.Worker.
+            type: eventType.AssemblyQualifiedName ?? eventType.FullName ?? eventType.Name,
             content: JsonSerializer.Serialize(integrationEvent, eventType),
             occurredOnUtc: integrationEvent.OccurredOnUtc);
 

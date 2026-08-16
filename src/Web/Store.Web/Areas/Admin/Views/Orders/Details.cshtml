@@ -1,0 +1,71 @@
+@model OrderDto
+@{
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
+}
+
+<h1>Order @Model.OrderNumber <span class="admin-badge">@Model.Status</span> <span class="admin-badge">@Model.PaymentStatus</span></h1>
+
+<table class="admin-table mb-4">
+    <thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
+    <tbody>
+    @foreach (var item in Model.Items)
+    {
+        <tr>
+            <td>@item.ProductName</td>
+            <td>@item.Sku</td>
+            <td>@item.Quantity</td>
+            <td>@item.UnitPrice.ToString("0.00")</td>
+            <td>@item.LineTotal.ToString("0.00")</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<p>
+    Subtotal: @Model.Subtotal.ToString("0.00") @Model.Currency<br />
+    Shipping: @Model.ShippingCost.ToString("0.00")<br />
+    Tax: @Model.Tax.ToString("0.00")<br />
+    Discount: @Model.Discount.ToString("0.00")<br />
+    <strong>Total: @Model.Total.ToString("0.00") @Model.Currency</strong>
+</p>
+
+<h5>Actions</h5>
+<div class="d-flex gap-2 flex-wrap">
+    @if (Model.Status == "Pending")
+    {
+        <form asp-action="Confirm" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-dark btn-sm">Confirm</button>
+        </form>
+    }
+    @if (Model.Status == "Confirmed")
+    {
+        <form asp-action="StartProcessing" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-dark btn-sm">Start Processing</button>
+        </form>
+    }
+    @if (Model.Status == "Processing")
+    {
+        <form asp-action="Ship" method="post" class="d-flex gap-1">
+            <input type="hidden" name="OrderId" value="@Model.Id" />
+            <input type="text" name="TrackingNumber" class="form-control form-control-sm" placeholder="Tracking # (optional)" />
+            <button type="submit" class="btn btn-dark btn-sm">Mark Shipped</button>
+        </form>
+    }
+    @if (Model.Status == "Shipped")
+    {
+        <form asp-action="Deliver" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-dark btn-sm">Mark Delivered</button>
+        </form>
+    }
+    @if (Model.Status is "Pending" or "Confirmed" or "Processing")
+    {
+        <form asp-action="Cancel" method="post" class="d-flex gap-1" onsubmit="return confirm('Cancel this order?');">
+            <input type="hidden" name="OrderId" value="@Model.Id" />
+            <input type="text" name="Reason" class="form-control form-control-sm" placeholder="Cancellation reason" required />
+            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Order</button>
+        </form>
+    }
+</div>

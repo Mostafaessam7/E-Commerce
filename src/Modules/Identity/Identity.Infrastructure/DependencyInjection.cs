@@ -59,6 +59,9 @@ public static class DependencyInjection
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddHostedService<PermissionRoleSeeder>();
+        // Must start after PermissionRoleSeeder (the "Admin" role must exist first) — the generic
+        // host starts IHostedServices in registration order, so this registration must stay below.
+        services.AddHostedService<AdminUserBootstrapper>();
 
         return services;
     }

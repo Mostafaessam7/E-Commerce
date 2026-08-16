@@ -1,0 +1,55 @@
+@model StockSearchResultDto
+@{
+    ViewData["Title"] = "Stock";
+}
+
+<h1>Stock</h1>
+
+<table class="admin-table mb-4">
+    <thead>
+        <tr>
+            <th>Product Variant Id</th>
+            <th>On Hand</th>
+            <th>Reserved</th>
+            <th>Available</th>
+            <th>Low Stock Threshold</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.Items)
+    {
+        <tr>
+            <td><code>@item.ProductVariantId</code></td>
+            <td>@item.QuantityOnHand</td>
+            <td>@item.QuantityReserved</td>
+            <td>@item.AvailableQuantity @(item.IsOutOfStock ? "(out of stock)" : "")</td>
+            <td>@item.LowStockThreshold</td>
+            <td>
+                <form asp-action="Adjust" method="post" class="d-flex gap-1">
+                    <input type="hidden" name="ProductVariantId" value="@item.ProductVariantId" />
+                    <input type="number" name="NewQuantityOnHand" class="form-control form-control-sm" style="width:90px" value="@item.QuantityOnHand" required />
+                    <input type="text" name="Reason" class="form-control form-control-sm" placeholder="Reason" required />
+                    <button type="submit" class="btn btn-dark btn-sm">Adjust</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@if (Model.TotalCount == 0)
+{
+    <p>No stock is tracked yet.</p>
+}
+
+<nav>
+    @{
+        var totalPages = (int)Math.Ceiling(Model.TotalCount / (double)Model.PageSize);
+    }
+    @for (var p = 1; p <= totalPages; p++)
+    {
+        <a asp-action="Index" asp-route-page="@p" class="@(p == Model.Page ? "fw-bold" : "")">@p</a>
+        <text> </text>
+    }
+</nav>

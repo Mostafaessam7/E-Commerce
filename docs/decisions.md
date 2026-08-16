@@ -237,3 +237,52 @@ passed). Sequential execution is the correct default for integration tests
 against one shared external resource — parallelism there buys speed at the
 cost of exactly this class of flakiness.
 Status: Accepted (Phase 9).
+
+---
+**ADR-020**
+Decision: `Store.Worker`'s Outbox processor is a generic `OutboxProcessingService<TContext>`
+(`Persistence.Outbox`) — one instance per module context, registered via
+`services.AddOutboxProcessor<TContext>()` — paired with an in-process `IEventBus`
+(`EventBus.InProcessEventBus`, resolves `IIntegrationEventHandler<TEvent>` from DI and invokes
+whatever's registered). Both live in existing BuildingBlocks (Persistence/EventBus), not a new one.
+Reason: every module's `AppDbContextBase` already has an identical `OutboxMessages` table
+(ADR-005/008) — a generic-over-`TContext` processor means adding a new module's outbox to the
+worker later is one `AddXModule` + one `AddOutboxProcessor<XDbContext>()` line, not a bespoke
+poller per module. "In-process" (not a real broker) matches the Phase 1 `IEventBus` doc comment's
+promise for a modular monolith on one deployable — swapping to a real broker later is a new
+`IEventBus` implementation, not an Application/Domain change anywhere.
+Real bug found: `AppDbContextBase.EnqueueOutboxMessage` originally stored `eventType.FullName`;
+the processor's `Type.GetType`/assembly-scan couldn't resolve `Payments.Contracts.PaymentSucceededIntegrationEvent`
+because that assembly had never actually been JIT-loaded inside the worker process (a
+`ProjectReference` alone doesn't load an assembly — .NET loads lazily on first real use, and
+nothing in the worker's executed code path happened to touch that type). Fixed by storing
+`AssemblyQualifiedName` instead — `Type.GetType(...)` given that form loads the declaring assembly
+itself if needed, not just search already-loaded ones. Verified against the real dev DB: all
+pending Ordering/Payments outbox rows (some pre-dating the fix) processed with zero errors after
+the change.
+Status: Accepted (Phase 10).
+
+---
+**ADR-021**
+Decision: the Admin panel (Phase 11) is a `Store.Web` Area (`Areas/Admin`), not a separate
+deployable or module — thin controllers dispatching the same `ICommand`/`IQuery` types the
+storefront uses, gated per-action with `[Authorize(Policy = Permissions.X)]` (never role-name
+checks — same rule as everywhere else). Every write action is a wrapper one step removed from an
+existing aggregate behavior method (`Product.Publish()`, `Order.Cancel()`,
+`StockItem.AdjustTo()`) — no new business rules were invented for the admin panel, only new
+callers of rules that already existed. New read-side query interfaces
+(`Ordering.Application.Checkout.IOrderQueries`, `Inventory.Application.Stock.IStockQueries`) mirror
+`Catalog.Application.Products.IProductQueries`'s existing write/read split rather than introducing
+a different pattern for admin listings.
+The layout is a small hand-written stylesheet (`wwwroot/admin/admin.css`) on top of the storefront's
+already-loaded Bootstrap bundle — deliberately *not* a curated subset of the `admin-ecomus`
+ThemeForest template the way Phase 5 curated the storefront theme. Reason: admin-ecomus integration
+is a comparable-sized effort to Phase 5's storefront curation for zero functional difference at
+this stage; a minimal but real, working panel now is worth more than a half-integrated template.
+Revisit if/when the visual polish is actually requested.
+A dev-only `AdminUserBootstrapper` (`Identity.Infrastructure.Seeding`) creates one pre-confirmed
+admin user from `Identity:DefaultAdmin:Email`/`Password` config *if set* — mirrors
+`PermissionRoleSeeder`'s "safe to run every startup, does nothing if not configured" shape, but
+unlike the webhook secret, these are real login credentials: never put them in `appsettings.json`,
+User Secrets/environment variables only (see docs/security.md).
+Status: Accepted (Phase 11).

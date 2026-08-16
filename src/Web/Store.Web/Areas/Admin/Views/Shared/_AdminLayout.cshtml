@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@(ViewData["Title"] is not null ? $"{ViewData["Title"]} - Admin" : "Admin")</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="~/ecomus/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/admin/admin.css" />
+</head>
+<body>
+    <div class="admin-shell">
+        <aside class="admin-sidebar">
+            <div class="admin-brand">ECommerce Admin</div>
+            <nav class="admin-nav">
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                <a asp-area="Admin" asp-controller="Products" asp-action="Index">Products</a>
+                <a asp-area="Admin" asp-controller="Orders" asp-action="Index">Orders</a>
+                <a asp-area="Admin" asp-controller="Stock" asp-action="Index">Stock</a>
+            </nav>
+            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="admin-logout">
+                <button type="submit" class="admin-logout-btn">Sign out</button>
+            </form>
+        </aside>
+
+        <main class="admin-main">
+            @if (TempData["Success"] is string success)
+            {
+                <div class="admin-alert admin-alert-success">@success</div>
+            }
+            @if (TempData["Error"] is string error)
+            {
+                <div class="admin-alert admin-alert-error">@error</div>
+            }
+
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/ecomus/js/bootstrap.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

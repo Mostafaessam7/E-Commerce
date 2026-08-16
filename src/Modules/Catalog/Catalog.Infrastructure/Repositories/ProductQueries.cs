@@ -75,7 +75,11 @@ internal sealed class ProductQueries : IProductQueries
 
     public async Task<ProductSearchResultDto> SearchAsync(ProductSearchCriteria criteria, CancellationToken cancellationToken = default)
     {
-        var query = _db.Products.AsNoTracking().Where(p => p.Status == ProductStatus.Active);
+        var query = _db.Products.AsNoTracking();
+        if (!criteria.IncludeAllStatuses)
+        {
+            query = query.Where(p => p.Status == ProductStatus.Active);
+        }
 
         if (!string.IsNullOrWhiteSpace(criteria.SearchTerm))
         {
@@ -106,6 +110,7 @@ internal sealed class ProductQueries : IProductQueries
             MinSalePrice = p.Variants.Where(v => v.SalePrice != null).Select(v => (decimal?)v.SalePrice!.Amount).Min(),
             Currency = p.Variants.Select(v => v.Price.Currency).FirstOrDefault(),
             PrimaryImageUrl = p.Images.Where(i => i.IsPrimary).Select(i => i.Url).FirstOrDefault(),
+            Status = p.Status,
         });
 
         if (criteria.MinPrice is decimal min)
@@ -131,7 +136,7 @@ internal sealed class ProductQueries : IProductQueries
         var items = await projected
             .Skip((criteria.Page - 1) * criteria.PageSize)
             .Take(criteria.PageSize)
-            .Select(p => new ProductSummaryDto(p.Id, p.Name, p.Slug, p.MinPrice, p.MinSalePrice, p.Currency, p.PrimaryImageUrl))
+            .Select(p => new ProductSummaryDto(p.Id, p.Name, p.Slug, p.MinPrice, p.MinSalePrice, p.Currency, p.PrimaryImageUrl, p.Status.ToString()))
             .ToListAsync(cancellationToken);
 
         return new ProductSearchResultDto(items, totalCount, criteria.Page, criteria.PageSize);

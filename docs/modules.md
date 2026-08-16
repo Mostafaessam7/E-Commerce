@@ -110,5 +110,26 @@ usage exists yet — add rows here the moment one does).
 - Dependencies: BuildingBlocks only.
 
 ---
+## Store.Web's Admin area (Phase 11 — not a module)
+Not one of the 10 modules — `Areas/Admin` inside `Store.Web`, the composition root, same as the
+storefront controllers. Thin controllers per module (`ProductsController`, `OrdersController`,
+`StockController`) dispatch existing/new commands through the same `IDispatcher` the storefront
+uses; new Application-layer surface added specifically for it:
+- `Catalog.Application.Products`: `UpdateProductCommand`, `AddProductVariantCommand`,
+  `PublishProductCommand`, `ArchiveProductCommand`, `DeleteProductCommand`, `GetProductByIdQuery`
+  (any status, unlike the storefront's Active-only `GetProductBySlugQuery`), plus
+  `ProductSearchCriteria.IncludeAllStatuses` on the existing `SearchProductsQuery`.
+- `Ordering.Application.Checkout`: `ConfirmOrderCommand`/`StartProcessingOrderCommand`/
+  `ShipOrderCommand`/`DeliverOrderCommand`/`CancelOrderCommand` (thin wrappers over `Order`'s
+  existing named transition methods), `IOrderQueries`/`SearchOrdersQuery` for the admin list.
+- `Inventory.Application.Stock`: `AdjustStockCommand` (wraps `StockItem.AdjustTo`),
+  `IStockQueries`/`SearchStockQuery` for the admin list.
+
+Authorization: `[Authorize(Policy = Permissions.X)]` per action (`Permissions` catalog, Security
+BB) — never role-name checks. `Identity.Infrastructure.Seeding.AdminUserBootstrapper` is a
+dev-only, opt-in (config-gated) hosted service that creates one pre-confirmed admin user; see
+ADR-021 and docs/security.md.
+
+---
 No module has domain/application code yet as of Phase 1 — this file describes
 intended ownership to guide Phase 4+ implementation, not current code.

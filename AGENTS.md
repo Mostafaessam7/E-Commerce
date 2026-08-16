@@ -52,6 +52,12 @@ tests/{UnitTests,IntegrationTests,ArchitectureTests,EndToEndTests}
   `DbUpdateConcurrencyException`? Check `tests/IntegrationTests/xunit.runner.json` exists and is
   copied to output — those tests share one real DB and must run sequentially, not in parallel
   (ADR-019).
+- Adding a new integration event and it never seems to get dispatched by `Store.Worker`? Check
+  `AppDbContextBase.EnqueueOutboxMessage` is storing `AssemblyQualifiedName` (it is, don't change
+  it back to `FullName`) — see ADR-020.
+- Admin panel work: `[Authorize(Policy = Permissions.X)]` per action, never
+  `[Authorize(Roles = "Admin")]` — ADR-021. New admin commands should be a thin wrapper one step
+  removed from an existing aggregate method, not a new business rule.
 
 Module details (responsibility/owns/contracts/deps): `docs/modules.md`.
 

@@ -45,8 +45,29 @@
   guarded transitions (`MarkSucceeded`/`MarkFailed` no-op with a `Result.Failure` once already
   resolved) are defense-in-depth on top of the ledger, not a replacement for it.
 
+## Account controller + Admin panel authorization (Phase 11)
+
+- `Store.Web/Controllers/AccountController.cs`: `[AllowAnonymous]`, Login/Logout/AccessDenied only
+  (no Register/ForgotPassword UI yet — not needed until self-service customer accounts are
+  scheduled). `Login` calls `IIdentityService.LoginAsync`; the cookie's `LoginPath`/`AccessDeniedPath`
+  (Identity's `DependencyInjection.cs`) already point here, so any `[Authorize]`-gated page redirects
+  to it automatically, `returnUrl` and all.
+- Admin area (`Areas/Admin`) controllers are gated with `[Authorize(Policy = Permissions.X)]` per
+  action, never `[Authorize(Roles = "Admin")]` — same rule as everywhere else in this codebase; the
+  "Admin" role is just the one role `PermissionRoleSeeder` happens to grant every permission to,
+  not something authorization code checks by name.
+- `Identity.Infrastructure.Seeding.AdminUserBootstrapper` (ADR-021): dev-only, opt-in hosted
+  service. Reads `Identity:DefaultAdmin:Email`/`Password` from configuration; does nothing if
+  either is unset. **These are real login credentials — set them via `dotnet user-secrets` (or an
+  environment variable in a real deployment), never in `appsettings.json`**, unlike Payments'
+  `WebhookSecret` (that one really is a fake value safe to commit; this one is not). Local dev:
+  ```bash
+  dotnet user-secrets set "Identity:DefaultAdmin:Email" "admin@example.com" --project src/Web/Store.Web
+  dotnet user-secrets set "Identity:DefaultAdmin:Password" "<a-real-password>" --project src/Web/Store.Web
+  ```
+
 ## Not yet built
 
-Register/Login/ForgotPassword/ResetPassword UI + controllers (Account controller), 2FA, social
-login, Admin authentication area — these consume `IIdentityService` when Store.Web gets its
-Account controller (Phase 5+ territory, not yet scheduled).
+Register/ForgotPassword/ResetPassword self-service UI, 2FA, social login — `IIdentityService`
+already has the methods (`RegisterAsync`/`GeneratePasswordResetTokenAsync`/`ResetPasswordAsync`),
+just no controller actions/views yet.

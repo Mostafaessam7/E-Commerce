@@ -27,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<ICartRepository, CartRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderingUnitOfWork, OrderingUnitOfWork>();
+        services.AddScoped<IOrderQueries, OrderQueries>();
 
         services.AddScoped<IRequestHandler<GetOrCreateCartCommand, CartDto>, GetOrCreateCartCommandHandler>();
         services.AddScoped<IRequestHandler<AddCartItemCommand, CartDto>, AddCartItemCommandHandler>();
@@ -40,6 +41,14 @@ public static class DependencyInjection
         services.AddScoped<IRequestHandler<PlaceOrderCommand, Guid>, PlaceOrderCommandHandler>();
         services.AddScoped<IRequestHandler<GetOrderQuery, OrderDto>, GetOrderQueryHandler>();
         services.AddScoped<IRequestHandler<MarkOrderAsPaidCommand, Unit>, MarkOrderAsPaidCommandHandler>();
+
+        // Admin (Phase 11)
+        services.AddScoped<IRequestHandler<SearchOrdersQuery, OrderSearchResultDto>, SearchOrdersQueryHandler>();
+        services.AddScoped<IRequestHandler<ConfirmOrderCommand, Unit>, ConfirmOrderCommandHandler>();
+        services.AddScoped<IRequestHandler<StartProcessingOrderCommand, Unit>, StartProcessingOrderCommandHandler>();
+        services.AddScoped<IRequestHandler<ShipOrderCommand, Unit>, ShipOrderCommandHandler>();
+        services.AddScoped<IRequestHandler<DeliverOrderCommand, Unit>, DeliverOrderCommandHandler>();
+        services.AddScoped<IRequestHandler<CancelOrderCommand, Unit>, CancelOrderCommandHandler>();
 
         return services;
     }

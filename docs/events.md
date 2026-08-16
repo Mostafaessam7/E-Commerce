@@ -14,14 +14,20 @@ for cross-module communication.
 Concrete events live in the publishing module's `*.Contracts` project so
 consumers depend only on the DTO shape, never the publisher's Domain/Application.
 
-## Outbox (Phase 2 write-side, Phase 10 processor)
+## Outbox (write-side: Phase 2, processor: Phase 10)
 
 Publishing an integration event writes an OutboxMessage row in the same DB
 transaction as the change that caused it — never publish directly after
-`SaveChangesAsync`. `Store.Worker` polls unprocessed rows and dispatches
-through `IEventBus`, marking `ProcessedAtUtc`. At-least-once delivery:
-`IIntegrationEventHandler` implementations must be idempotent (dedupe on
-`EventId`).
+`SaveChangesAsync`. `Store.Worker` runs one `Persistence.Outbox.OutboxProcessingService<TContext>`
+per module context that enqueues events (currently `OrderingDbContext`, `PaymentsDbContext` —
+`AddOutboxProcessor<TContext>()`), polling unprocessed rows and dispatching through
+`EventBus.InProcessEventBus` (resolves `IIntegrationEventHandler<TEvent>` from DI, in-process —
+ADR-020), marking `ProcessedOnUtc`. At-least-once delivery: `IIntegrationEventHandler`
+implementations must be idempotent (dedupe on `EventId`) — no handlers are registered yet (no
+consumer module reacts to an event yet), so today the processor just marks every row processed.
+`OutboxMessage.Type` stores the event's `AssemblyQualifiedName`, not just `FullName` — required
+for `Type.GetType(...)` to load the declaring assembly if the worker process hasn't already
+touched it (see ADR-020's real bug).
 
 ## Naming convention
 

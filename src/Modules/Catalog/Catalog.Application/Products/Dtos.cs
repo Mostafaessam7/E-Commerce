@@ -27,7 +27,8 @@ public sealed record ProductSummaryDto(
     decimal? MinPrice,
     decimal? MinSalePrice,
     string? Currency,
-    string? PrimaryImageUrl);
+    string? PrimaryImageUrl,
+    string Status);
 
 public sealed record ProductSearchCriteria(
     string? SearchTerm = null,
@@ -38,7 +39,11 @@ public sealed record ProductSearchCriteria(
     bool? FeaturedOnly = null,
     int Page = 1,
     int PageSize = 20,
-    ProductSortOrder SortBy = ProductSortOrder.Newest);
+    ProductSortOrder SortBy = ProductSortOrder.Newest,
+    /// <summary>Storefront search always leaves this false (Active-only). The admin product list
+    /// sets it true to see Draft/Archived products too — same query, same DTO shape, one extra
+    /// filter toggle instead of a parallel admin-only query stack.</summary>
+    bool IncludeAllStatuses = false);
 
 public enum ProductSortOrder
 {

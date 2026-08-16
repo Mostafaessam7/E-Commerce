@@ -195,6 +195,16 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletableEntity
         _images.Add(new ProductImage(Guid.NewGuid(), url, altText, _images.Count, isPrimary));
     }
 
+    public Result UpdateDetails(string name, string? shortDescription, string? description)
+    {
+        Guard.Against.NullOrWhiteSpace(name, nameof(name));
+
+        Name = name;
+        ShortDescription = shortDescription;
+        Description = description;
+        return Result.Success();
+    }
+
     public void SetSeo(string? metaTitle, string? metaDescription, string? canonicalUrl = null) =>
         Seo = SeoMetadata.Create(metaTitle, metaDescription, canonicalUrl);
 

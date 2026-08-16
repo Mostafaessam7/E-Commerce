@@ -24,10 +24,15 @@ public static class DependencyInjection
 
         services.AddScoped<IStockItemRepository, StockItemRepository>();
         services.AddScoped<IInventoryUnitOfWork, InventoryUnitOfWork>();
+        services.AddScoped<IStockQueries, StockQueries>();
 
         services.AddScoped<IRequestHandler<ReserveStockCommand, Unit>, ReserveStockCommandHandler>();
         services.AddScoped<IRequestHandler<ReleaseStockCommand, Unit>, ReleaseStockCommandHandler>();
         services.AddScoped<IRequestHandler<GetStockQuery, StockLevelDto>, GetStockQueryHandler>();
+
+        // Admin (Phase 11)
+        services.AddScoped<IRequestHandler<AdjustStockCommand, Unit>, AdjustStockCommandHandler>();
+        services.AddScoped<IRequestHandler<SearchStockQuery, StockSearchResultDto>, SearchStockQueryHandler>();
 
         return services;
     }
