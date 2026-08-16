@@ -4,6 +4,7 @@
     <Project Path="src/BuildingBlocks/EventBus/EventBus.csproj" />
     <Project Path="src/BuildingBlocks/Infrastructure/Infrastructure.csproj" />
     <Project Path="src/BuildingBlocks/Observability/Observability.csproj" />
+    <Project Path="src/BuildingBlocks/Persistence/Persistence.csproj" />
     <Project Path="src/BuildingBlocks/Security/Security.csproj" />
     <Project Path="src/BuildingBlocks/SharedKernel/SharedKernel.csproj" />
   </Folder>

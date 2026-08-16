@@ -60,7 +60,7 @@ public sealed class DependencyRuleTests
     [Fact]
     public void Infrastructure_projects_reference_only_their_own_module_plus_sanctioned_building_blocks()
     {
-        var sanctionedBuildingBlocks = new[] { "SharedKernel", "EventBus", "Observability", "Security", "Infrastructure" };
+        var sanctionedBuildingBlocks = new[] { "SharedKernel", "EventBus", "Observability", "Security", "Infrastructure", "Persistence" };
 
         foreach (var module in Modules)
         {

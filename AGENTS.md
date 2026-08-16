@@ -19,13 +19,15 @@ via transactional Outbox). No microservices. Full rationale: `docs/architecture.
 ## Solution structure
 
 ```
-src/BuildingBlocks/  SharedKernel, EventBus, Observability, Security, Infrastructure
+src/BuildingBlocks/  SharedKernel, EventBus, Observability, Security, Infrastructure, Persistence
 src/Modules/{Catalog,Inventory,Ordering,Payments,Customers,Identity,Promotions,Shipping,Reviews,Notifications}/
     each: *.Domain / *.Application / *.Infrastructure / *.Contracts
 src/Web/Store.Web       composition root, MVC
 src/Workers/Store.Worker  background host (Outbox processor from Phase 10)
 tests/{UnitTests,IntegrationTests,ArchitectureTests,EndToEndTests}
 ```
+(`Persistence` = EF Core-dependent shared code; referenced by `*.Infrastructure`
+only, never `*.Application` — ADR-008.)
 
 Module details (responsibility/owns/contracts/deps): `docs/modules.md`.
 

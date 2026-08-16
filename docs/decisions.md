@@ -61,3 +61,30 @@ Decision: Solution uses the `.slnx` format, not classic `.sln`.
 Reason: .NET 10 SDK's `dotnet new sln` default; `dotnet sln`/`dotnet build`
 both support it natively.
 Status: Accepted.
+
+---
+**ADR-008**
+Decision: Added a 6th BuildingBlock, `Persistence`, holding EF Core-dependent
+shared code (`AppDbContextBase`, `OutboxMessage`, `AuditingInterceptor`,
+soft-delete filter). Referenced only by `*.Infrastructure` projects, never
+`*.Application`.
+Reason: The original 5-building-block list (SharedKernel/EventBus/
+Observability/Security/Infrastructure) had nowhere to put shared EF Core code
+without either (a) adding an EF Core PackageReference to the existing
+`Infrastructure` BB — which `*.Application` also references for
+`IDateTimeProvider`, transitively leaking EF Core into every module's
+Application layer and violating the "Application must stay EF Core-free" rule
+(`TypeDependencyTests`) — or (b) duplicating ~150 lines of interceptor/outbox
+boilerplate across all 10 modules. A dedicated building block avoids both.
+Status: Accepted.
+
+---
+**ADR-009**
+Decision: `ApplicationUser`/`ApplicationRole` (ASP.NET Core Identity types)
+live in `Identity.Infrastructure`, not `Identity.Domain`. `Identity.Application`
+defines `IIdentityService` instead of exposing `UserManager`/`SignInManager`.
+Reason: `IdentityUser<TKey>` is a framework type; Domain must stay
+dependency-free (same rule as every other module). Auth flows here are
+inherently an infrastructure concern (UserManager owns the actual rules), so
+Identity.Domain is intentionally near-empty for now.
+Status: Accepted (Phase 3).

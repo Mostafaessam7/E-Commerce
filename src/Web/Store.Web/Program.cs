@@ -1,3 +1,4 @@
+using Identity.Infrastructure;
 using Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Observability;
@@ -25,7 +26,7 @@ builder.Services.AddProblemDetails();
 // builder.Services.AddOrderingModule(builder.Configuration);
 // builder.Services.AddPaymentsModule(builder.Configuration);
 // builder.Services.AddCustomersModule(builder.Configuration);
-// builder.Services.AddIdentityModule(builder.Configuration);
+builder.Services.AddIdentityModule(builder.Configuration);
 // builder.Services.AddPromotionsModule(builder.Configuration);
 // builder.Services.AddShippingModule(builder.Configuration);
 // builder.Services.AddReviewsModule(builder.Configuration);
@@ -52,6 +53,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();

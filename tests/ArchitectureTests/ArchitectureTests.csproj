@@ -69,6 +69,7 @@
     <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Infrastructure\Shipping.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Web\Store.Web\Store.Web.csproj" />
     <ProjectReference Include="..\..\src\Workers\Store.Worker\Store.Worker.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Persistence\Persistence.csproj" />
   </ItemGroup>
 
 </Project>
