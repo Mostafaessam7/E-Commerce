@@ -328,7 +328,7 @@ namespace Catalog.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal?>("WeightKg")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,3)");
 
                     b.HasKey("Id");
 

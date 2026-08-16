@@ -1,10 +1,9 @@
 using Infrastructure;
+using Inventory.Contracts;
 using Messaging;
 using SharedKernel.Results;
 
 namespace Inventory.Application.Stock;
-
-public sealed record ReleaseStockCommand(Guid ProductVariantId, int Quantity, Guid? ReferenceId) : ICommand<Unit>;
 
 public sealed class ReleaseStockCommandHandler : IRequestHandler<ReleaseStockCommand, Unit>
 {

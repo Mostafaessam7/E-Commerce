@@ -1,4 +1,5 @@
 using Catalog.Application.Products;
+using Catalog.Contracts;
 using Catalog.Domain;
 using Catalog.Domain.ValueObjects;
 using Catalog.Infrastructure.Persistence;
@@ -11,6 +12,22 @@ internal sealed class ProductQueries : IProductQueries
     private readonly CatalogDbContext _db;
 
     public ProductQueries(CatalogDbContext db) => _db = db;
+
+    public async Task<ProductVariantSnapshotDto?> GetVariantSnapshotAsync(Guid productVariantId, CancellationToken cancellationToken = default) =>
+        await _db.Products
+            .AsNoTracking()
+            .SelectMany(p => p.Variants, (p, v) => new { Product = p, Variant = v })
+            .Where(x => x.Variant.Id == productVariantId)
+            .Select(x => new ProductVariantSnapshotDto(
+                x.Variant.Id,
+                x.Product.Id,
+                x.Product.Name,
+                x.Variant.Sku,
+                x.Variant.Price.Amount,
+                x.Variant.SalePrice != null ? x.Variant.SalePrice.Amount : null,
+                x.Variant.Price.Currency,
+                x.Product.Status == ProductStatus.Active && x.Variant.IsActive))
+            .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<ProductDetailsDto?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {

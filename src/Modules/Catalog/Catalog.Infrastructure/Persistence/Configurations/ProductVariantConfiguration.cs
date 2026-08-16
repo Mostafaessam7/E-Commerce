@@ -15,6 +15,7 @@ public sealed class ProductVariantConfiguration : IEntityTypeConfiguration<Produ
         builder.HasIndex(v => v.Sku).IsUnique();
         builder.Property(v => v.Barcode).HasMaxLength(100);
         builder.Property(v => v.ImageUrl).HasMaxLength(500);
+        builder.Property(v => v.WeightKg).HasColumnType("decimal(10,3)");
 
         builder.OwnsOne(v => v.Price, price =>
         {

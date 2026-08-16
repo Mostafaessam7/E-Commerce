@@ -30,30 +30,34 @@ public sealed class DependencyRuleTests
     }
 
     [Fact]
-    public void Contracts_projects_reference_only_SharedKernel_and_EventBus()
+    public void Contracts_projects_reference_only_SharedKernel_EventBus_and_Messaging()
     {
         foreach (var module in Modules)
         {
             var contracts = Find($"{module}.Contracts");
 
-            contracts.References.Should().BeSubsetOf(["SharedKernel", "EventBus"],
-                because: $"{contracts.Name} is the module's public surface and must stay free of Domain/Application/Infrastructure types");
+            contracts.References.Should().BeSubsetOf(["SharedKernel", "EventBus", "Messaging"],
+                because: $"{contracts.Name} is the module's public surface and must stay free of Domain/Application/Infrastructure types. " +
+                         "Messaging is allowed here (not just Application) because commands/queries meant for cross-module dispatch " +
+                         "(ICommand<T>/IQuery<T>) are defined in Contracts, not Application — see ADR-014.");
         }
     }
 
     [Fact]
-    public void Application_projects_reference_only_their_own_module_plus_sanctioned_building_blocks()
+    public void Application_projects_reference_only_sanctioned_building_blocks_own_Domain_and_any_modules_Contracts()
     {
         var sanctionedBuildingBlocks = new[] { "SharedKernel", "EventBus", "Security", "Infrastructure", "Messaging" };
 
         foreach (var module in Modules)
         {
             var application = Find($"{module}.Application");
-            var allowed = sanctionedBuildingBlocks.Append($"{module}.Domain").Append($"{module}.Contracts");
 
-            application.References.Should().BeSubsetOf(allowed,
-                because: $"{application.Name} may only depend on its own Domain/Contracts and shared building blocks — " +
-                         "never another module's Domain, Application, or Infrastructure, and never Web/Worker");
+            application.References.Should().OnlyContain(
+                r => sanctionedBuildingBlocks.Contains(r) || r == $"{module}.Domain" || r.EndsWith(".Contracts", StringComparison.Ordinal),
+                because: $"{application.Name} may depend on its own Domain, shared building blocks, and ANY module's *.Contracts " +
+                         "(ADR-014 — that's the sanctioned way to call another module synchronously, via IDispatcher + that " +
+                         "module's Contracts-defined commands/queries) — never another module's Domain, Application, or " +
+                         "Infrastructure directly, and never Web/Worker");
         }
     }
 

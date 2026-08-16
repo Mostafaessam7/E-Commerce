@@ -1,4 +1,5 @@
 using Catalog.Application.Products;
+using Catalog.Contracts;
 using Catalog.Infrastructure.Persistence;
 using Messaging;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IRequestHandler<CreateProductCommand, Guid>, CreateProductCommandHandler>();
         services.AddScoped<IRequestHandler<GetProductBySlugQuery, ProductDetailsDto>, GetProductBySlugQueryHandler>();
         services.AddScoped<IRequestHandler<SearchProductsQuery, ProductSearchResultDto>, SearchProductsQueryHandler>();
+        services.AddScoped<IRequestHandler<GetProductVariantSnapshotQuery, ProductVariantSnapshotDto>, GetProductVariantSnapshotQueryHandler>();
 
         return services;
     }

@@ -139,3 +139,53 @@ sides); a custom `==` operator compiles to a method call instead, which EF
 cannot translate and throws "could not be translated". `.Equals(...)` is
 unaffected and remains the way to compare value objects in C# code.
 Status: Accepted (Phase 4).
+
+---
+**ADR-014**
+Decision: commands/queries meant for cross-module dispatch (another module
+calling through the shared `IDispatcher`, not just Store.Web) live in the
+*publishing* module's `*.Contracts` project, not its `*.Application` project.
+The handler implementation still lives in `*.Application`/`*.Infrastructure`
+as usual. `Contracts` may now reference `Messaging` (for `ICommand<T>`/
+`IQuery<T>`), and `*.Application` may reference *any* module's `*.Contracts`
+(ArchitectureTests updated accordingly) — but never another module's Domain/
+Application/Infrastructure directly.
+Reason: Ordering's checkout needs synchronous, real-time reads from Catalog
+(current price/availability) and a synchronous write to Inventory (reserve
+stock) — the Outbox/integration-events path is fire-and-forget/eventually
+consistent, wrong for "does this exist and is there stock, right now, before
+I place this order". `Contracts` was already the sanctioned "public surface"
+a module exposes to others (docs/architecture.md, Phase 1); this just extends
+that surface to include dispatchable requests, not only DTOs/events. Moved as
+the first real instance: `ReserveStockCommand`/`ReleaseStockCommand`
+(Inventory.Contracts) and `GetProductVariantSnapshotQuery`
+(Catalog.Contracts). `Messaging.Unit` (no-return-value marker) also moved
+from Inventory.Application to Messaging itself once a second module needed it.
+Status: Accepted (Phase 7/8).
+
+---
+**ADR-015**
+Decision: a module's Application-layer command/query namespace must never be
+named exactly after one of that module's own Domain entity types (e.g. not
+`Ordering.Application.Cart` when `Ordering.Domain.Cart` exists) — use a
+distinguishing form instead (`Ordering.Application.Carts`, plural).
+Reason: C# resolves an unqualified identifier against enclosing/sibling
+namespaces before it falls back to `using`-imported types. A file in
+`Ordering.Application.Abstractions` referencing `Cart` (intending
+`Ordering.Domain.Cart` via `using Ordering.Domain;`) instead silently bound to
+the sibling namespace `Ordering.Application.Cart`, failing with "'Cart' is a
+namespace but is used like a type". Not a style preference — the original
+name is a real compile break waiting to happen the moment such a file is
+touched from a different namespace context.
+Status: Accepted (Phase 7/8).
+
+---
+**ADR-016**
+Decision: checkout tax is a flat placeholder rate (14%, a constant in
+`PlaceOrderCommandHandler`), not a configurable or rule-based calculation.
+Reason: no Tax module/config exists among the fixed 10 modules and Section 4
+only mentions "VAT/Tax configuration" in passing. A real implementation needs
+a real requirement (per-category rates? per-region?) that hasn't been given
+yet — a flat constant is honest about being a placeholder and easy to find/
+replace later, versus building a rate-lookup abstraction speculatively.
+Status: Accepted (Phase 7/8) — revisit if/when tax rules are specified.

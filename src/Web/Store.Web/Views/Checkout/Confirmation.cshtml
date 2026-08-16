@@ -1,0 +1,43 @@
+@model OrderDto
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+<section class="flat-spacing">
+    <div class="container" style="max-width:720px">
+        <div class="text-center mb-5">
+            <h1 class="fs-28 fw-6">Thank you — order placed!</h1>
+            <p class="text-muted">Order number: <strong>@Model.OrderNumber</strong></p>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr><th>Product</th><th>Qty</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ProductName <span class="text-muted fs-14">(@item.Sku)</span></td>
+                        <td>@item.Quantity</td>
+                        <td>@item.LineTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="text-end">
+            <div>Subtotal: @Model.Subtotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+            <div>Shipping: @Model.ShippingCost.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+            <div>Tax: @Model.Tax.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+            <div class="fs-20 fw-6 mt-2">Total: @Model.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+        </div>
+
+        <div class="mt-4">
+            <span class="badge bg-warning text-dark">Status: @Model.Status</span>
+            <span class="badge bg-secondary">Payment: @Model.PaymentStatus</span>
+        </div>
+
+        @* Payment isn't wired yet (Phase 9) — the order sits at PaymentStatus=Pending until then. *@
+    </div>
+</section>

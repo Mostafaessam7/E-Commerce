@@ -1,24 +1,9 @@
 using Infrastructure;
-using Inventory.Domain;
+using Inventory.Contracts;
 using Messaging;
 using SharedKernel.Results;
 
 namespace Inventory.Application.Stock;
-
-/// <summary>
-/// Reserves stock for one order line at checkout. <see cref="ReferenceId"/> is typically the
-/// OrderId — kept as a plain Guid, not a reference to Ordering's aggregate (see module boundary
-/// rules).
-/// </summary>
-public sealed record ReserveStockCommand(Guid ProductVariantId, int Quantity, Guid? ReferenceId) : ICommand<Unit>;
-
-/// <summary>Marker for "no meaningful return value" — <see cref="Messaging.IRequestHandler{TRequest,TResponse}"/>
-/// always needs a TResponse, and a command whose only interesting outcome is success/failure
-/// still needs one to flow through the same Result&lt;T&gt; pipeline as every other request.</summary>
-public readonly record struct Unit
-{
-    public static readonly Unit Value = default;
-}
 
 public sealed class ReserveStockCommandHandler : IRequestHandler<ReserveStockCommand, Unit>
 {

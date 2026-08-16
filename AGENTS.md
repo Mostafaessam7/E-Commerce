@@ -38,6 +38,16 @@ tests/{UnitTests,IntegrationTests,ArchitectureTests,EndToEndTests}
   `AppDbContextBase`) — don't re-litigate, just know why (ADR-012) if a save mysteriously throws
   a concurrency exception with nothing else writing to the row.
 
+## Other gotchas
+
+- Never name an Application-layer command/query namespace after a Domain entity in the same
+  module (e.g. not `Ordering.Application.Cart` next to `Ordering.Domain.Cart`) — C# resolves
+  unqualified identifiers against sibling namespaces before `using` imports; use the plural or
+  another distinguishing form — ADR-015.
+- Need a synchronous cross-module read/write (not "eventually", *right now*)? That's ADR-014:
+  define the command/query in the target module's `*.Contracts`, dispatch it via the shared
+  `IDispatcher` — never reference another module's Application/Domain/Infrastructure directly.
+
 Module details (responsibility/owns/contracts/deps): `docs/modules.md`.
 
 ## Module boundary rules (enforced by ArchitectureTests, do not violate)

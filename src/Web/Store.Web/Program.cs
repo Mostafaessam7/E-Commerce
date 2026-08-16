@@ -3,6 +3,7 @@ using Identity.Infrastructure;
 using Infrastructure;
 using Inventory.Infrastructure;
 using Messaging;
+using Ordering.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Observability;
 using Security;
@@ -27,7 +28,7 @@ builder.Services.AddMessagingCore();
 //
 builder.Services.AddCatalogModule(builder.Configuration);
 builder.Services.AddInventoryModule(builder.Configuration);
-// builder.Services.AddOrderingModule(builder.Configuration);
+builder.Services.AddOrderingModule(builder.Configuration);
 // builder.Services.AddPaymentsModule(builder.Configuration);
 // builder.Services.AddCustomersModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration);

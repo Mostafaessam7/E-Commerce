@@ -27,11 +27,23 @@ usage exists yet — add rows here the moment one does).
   `SharedKernel.Exceptions.ConflictException` (HTTP 409), not a raw EF exception.
 
 ## Ordering
-- Responsibility: cart → checkout → order lifecycle, order aggregate.
-- Owns: Order, OrderItem, OrderStatusHistory.
-- Does not own: payment processing, shipping cost calculation logic.
-- Public contracts: none yet (will publish `OrderPlacedIntegrationEvent` etc.).
-- Dependencies: BuildingBlocks only.
+- Responsibility: cart → checkout → order lifecycle. Owns both `Cart` and `Order` — no separate
+  "Cart" module exists in the fixed 10; they're tightly coupled (a Cart becomes an Order at
+  checkout) and the master plan pairs them as one phase (7+8).
+- Owns: `Cart`/`CartItem` (guest via AnonymousId or customer via CustomerId, mergeable at login),
+  `Order`/`OrderItem`/`OrderStatusHistoryEntry` (Status/PaymentStatus/FulfillmentStatus, each only
+  mutable through named domain methods — `MarkAsPaid()`, `Cancel()`, etc., never a public setter).
+- Does not own: actual payment processing (Payments, not built), shipping rate calculation
+  (Shipping, not built — checkout takes a shipping cost as input for now), tax rules (a flat
+  placeholder rate lives in `PlaceOrderCommandHandler`, see docs/decisions.md).
+- Public contracts: `OrderPlacedIntegrationEvent` (`Ordering.Contracts`), enqueued via the Outbox
+  when `PlaceOrderCommand` succeeds.
+- Dependencies: BuildingBlocks + **Catalog.Contracts and Inventory.Contracts** (ADR-014) — the
+  first module doing real cross-module reads: `GetProductVariantSnapshotQuery` (re-validate price/
+  availability) and `ReserveStockCommand`/`ReleaseStockCommand` (reserve at checkout, release on
+  partial-failure compensation), all via the shared `IDispatcher`. DB schema: `ordering`.
+- Application: `Ordering.Application.Carts` (Get/AddItem/RemoveItem/UpdateQuantity/ApplyCoupon/
+  Merge/GetCart) and `Ordering.Application.Checkout` (`PlaceOrderCommand`, `GetOrderQuery`).
 
 ## Payments
 - Responsibility: payment gateway abstraction, transactions, refunds, webhooks.

@@ -1,0 +1,65 @@
+@model CartDto
+@{
+    ViewData["Title"] = "Your Cart";
+}
+
+<section class="flat-spacing">
+    <div class="container">
+        <h1 class="fs-28 fw-6 mb-4">Your Cart</h1>
+
+        @if (Model.Items.Count == 0)
+        {
+            <div class="text-center py-5">
+                <p class="text-muted">Your cart is empty.</p>
+                <a asp-controller="Shop" asp-action="Index" class="tf-btn btn-fill radius-3 mt-3">Continue shopping</a>
+            </div>
+        }
+        else
+        {
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-6">@item.ProductName</div>
+                                <div class="text-muted fs-14">@item.Sku</div>
+                            </td>
+                            <td>@item.UnitPrice.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                            <td style="max-width:120px">
+                                <form method="post" asp-controller="Cart" asp-action="UpdateQuantity" class="d-flex gap-2">
+                                    <input type="hidden" name="cartItemId" value="@item.Id" />
+                                    <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control form-control-sm" style="width:70px" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
+                                </form>
+                            </td>
+                            <td>@item.LineTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
+                            <td>
+                                <form method="post" asp-controller="Cart" asp-action="Remove">
+                                    <input type="hidden" name="cartItemId" value="@item.Id" />
+                                    <button type="submit" class="btn btn-sm btn-link text-danger">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="d-flex justify-content-end">
+                <div class="text-end">
+                    <div class="fs-20 fw-6">Subtotal: @Model.Subtotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+                    <a asp-controller="Checkout" asp-action="Index" class="tf-btn btn-fill radius-3 mt-3">Proceed to checkout<i class="icon icon-arrow1-top-left"></i></a>
+                </div>
+            </div>
+        }
+    </div>
+</section>

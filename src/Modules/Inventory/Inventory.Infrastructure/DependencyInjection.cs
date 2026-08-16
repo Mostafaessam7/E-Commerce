@@ -1,4 +1,5 @@
 using Inventory.Application.Stock;
+using Inventory.Contracts;
 using Inventory.Infrastructure.Persistence;
 using Inventory.Infrastructure.Repositories;
 using Messaging;
