@@ -1,0 +1,38 @@
+<Project>
+
+  <!--
+    Shared MSBuild properties for every project in the solution.
+    A project-level PropertyGroup declared inside a .csproj is evaluated AFTER
+    this file is imported, so any value repeated there simply wins with the
+    same value — nothing here needs to be stripped from generated .csproj files.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Correctness over convenience: nullable + analyzer warnings are real bugs. -->
+    <WarningsAsErrors>Nullable</WarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+
+    <!-- Arabic + English content/currency/dates are a Phase-1 requirement (see localization). -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <Company>ECommerce</Company>
+    <Product>ECommerce Platform</Product>
+    <Authors>ECommerce Engineering</Authors>
+
+    <!-- CA1848 (LoggerMessage delegates) is a micro-optimization not worth the boilerplate
+         everywhere; opt individual hot paths back in later if profiling calls for it. -->
+    <NoWarn>$(NoWarn);CS1591;CA1848</NoWarn>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>

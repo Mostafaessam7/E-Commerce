@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NetArchTest.Rules" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BuildingBlocks\EventBus\EventBus.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Observability\Observability.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Security\Security.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\Catalog.Application\Catalog.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\Catalog.Contracts\Catalog.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\Catalog.Domain\Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\Customers.Application\Customers.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\Customers.Contracts\Customers.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\Customers.Domain\Customers.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\Customers.Infrastructure\Customers.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\Identity.Application\Identity.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\Identity.Contracts\Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\Identity.Domain\Identity.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\Identity.Infrastructure\Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Inventory\Inventory.Application\Inventory.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Inventory\Inventory.Contracts\Inventory.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Inventory\Inventory.Domain\Inventory.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Inventory\Inventory.Infrastructure\Inventory.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\Notifications.Application\Notifications.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\Notifications.Contracts\Notifications.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\Notifications.Domain\Notifications.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Notifications\Notifications.Infrastructure\Notifications.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ordering\Ordering.Application\Ordering.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ordering\Ordering.Contracts\Ordering.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ordering\Ordering.Domain\Ordering.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ordering\Ordering.Infrastructure\Ordering.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Payments.Application\Payments.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Payments.Contracts\Payments.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Payments.Domain\Payments.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Payments.Infrastructure\Payments.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\Promotions.Application\Promotions.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\Promotions.Contracts\Promotions.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\Promotions.Domain\Promotions.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\Promotions.Infrastructure\Promotions.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.Application\Reviews.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.Contracts\Reviews.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.Domain\Reviews.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.Infrastructure\Reviews.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Application\Shipping.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Contracts\Shipping.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Domain\Shipping.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Infrastructure\Shipping.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Web\Store.Web\Store.Web.csproj" />
+    <ProjectReference Include="..\..\src\Workers\Store.Worker\Store.Worker.csproj" />
+  </ItemGroup>
+
+</Project>

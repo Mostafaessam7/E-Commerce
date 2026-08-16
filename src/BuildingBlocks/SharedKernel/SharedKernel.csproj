@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- CA1716: `Error` is the deliberate, conventional name for the Result-pattern failure type
+         (Section 13's Result/Error pair) across the .NET ecosystem; renaming it to avoid the
+         reserved-word collision in other CLR languages would make it less recognizable, not more. -->
+    <NoWarn>$(NoWarn);CA1716</NoWarn>
+  </PropertyGroup>
+
+</Project>

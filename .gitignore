@@ -1,0 +1,43 @@
+## .NET
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Rider / VS / VSCode
+.vs/
+.vscode/
+.idea/
+*.DotSettings.user
+
+## Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+
+## Secrets (never commit — use User Secrets / env vars / secret store)
+**/appsettings.Production.json
+**/appsettings.*.local.json
+*.pfx
+*.key
+.env
+.env.*
+
+## Logs
+*.log
+logs/
+
+## Docker
+.docker/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Node (frontend tooling, if used for template asset build)
+node_modules/
