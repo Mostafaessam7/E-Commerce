@@ -1,8 +1,9 @@
 # Modules
 
 Format per module: Responsibility / Owns / Does not own / Public contracts / Dependencies.
-All modules currently depend only on BuildingBlocks (no cross-module Contracts
-usage exists yet — add rows here the moment one does).
+Most modules still depend only on BuildingBlocks — Ordering and Payments are the exceptions
+(ADR-014's cross-module Contracts dispatch, see their sections below); add a Dependencies line
+like theirs the moment another module gains one.
 
 ## Catalog
 - Responsibility: products, categories, brands, attributes/variants, search/listing.
@@ -76,10 +77,21 @@ usage exists yet — add rows here the moment one does).
 
 ## Identity
 - Responsibility: authentication, roles, permissions (ASP.NET Core Identity).
-- Owns: ApplicationUser, roles, permission claims.
-- Does not own: customer profile data.
-- Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Owns: `ApplicationUser`/`ApplicationRole` (`IdentityUser<Guid>`/`IdentityRole<Guid>` —
+  framework-coupled, so they live in `Identity.Infrastructure`, not `Identity.Domain`), permission
+  claims.
+- Does not own: customer profile data (Customers, not built).
+- Public contracts: none yet (no cross-module consumer exists — `IIdentityService` is consumed
+  directly by `Store.Web/Controllers/AccountController.cs`, not through Contracts, since nothing
+  outside the composition root needs it).
+- Dependencies: BuildingBlocks only. DB schema: `identity`.
+- Application: `Identity.Application.Abstractions.IIdentityService` — Register/Login/Logout/
+  ConfirmEmail/GeneratePasswordResetToken/ResetPassword, all returning `Result`/`Result<T>`, kept
+  free of `UserManager`/`SignInManager` (implemented by `IdentityService` in Infrastructure).
+- Infrastructure extras: `PermissionRoleSeeder` (idempotently grants an "Admin" role every
+  `Permissions.*` claim, never creates a user) and `AdminUserBootstrapper` (dev-only, opt-in via
+  `Identity:DefaultAdmin:Email`/`Password` config — creates one pre-confirmed admin user, ADR-021)
+  — both `IHostedService`s registered in `AddIdentityModule`. Full detail: docs/security.md.
 
 ## Promotions
 - Responsibility: coupons, discount rules.
@@ -131,5 +143,7 @@ dev-only, opt-in (config-gated) hosted service that creates one pre-confirmed ad
 ADR-021 and docs/security.md.
 
 ---
-No module has domain/application code yet as of Phase 1 — this file describes
-intended ownership to guide Phase 4+ implementation, not current code.
+As of Phase 14: Catalog, Inventory, Ordering, Payments, and Identity have real Domain/Application/
+Infrastructure code (sections above). Customers, Promotions, Shipping, Reviews, and Notifications
+are still placeholders — their sections above describe intended ownership only, guiding whichever
+phase builds them next, not current code.

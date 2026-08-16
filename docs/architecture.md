@@ -14,23 +14,28 @@ transactional Outbox for cross-module communication.
   rules. No framework dependencies. Depends only on `SharedKernel`.
 - **Application**: use cases (commands/queries/handlers), orchestrates Domain,
   defines the interfaces Infrastructure implements (`I{Module}UnitOfWork`,
-  repository interfaces if needed). Depends on own Domain/Contracts +
-  `Security`, `Infrastructure`(BB), `EventBus`.
+  repository interfaces if needed). Depends on own Domain, sanctioned BuildingBlocks
+  (`Security`, `Infrastructure`, `Messaging`, `EventBus`), and **any module's** `*.Contracts`
+  (ADR-014 — the sanctioned way to call another module synchronously; never that module's
+  Domain/Application/Infrastructure directly).
 - **Infrastructure**: EF Core `DbContext`, entity configurations, repository
   implementations, external service clients. Depends on own Application +
   `Observability`.
-- **Contracts**: the module's public surface for other modules — DTOs and
-  integration event records other modules' Application layers may reference.
-  Depends only on `SharedKernel` + `EventBus`.
+- **Contracts**: the module's public surface for other modules — DTOs, integration event records,
+  and (ADR-014) dispatchable commands/queries other modules' Application layers may reference.
+  Depends only on `SharedKernel` + `EventBus` + `Messaging` (the last one specifically so it can
+  host `ICommand<T>`/`IQuery<T>` types, not just plain DTOs).
 
 ## Dependency rules (enforced by `tests/ArchitectureTests`)
 
 ```
 SharedKernel (zero deps)
   ↑
-Domain / Contracts / EventBus
+Domain / EventBus / Messaging
   ↑
-Application → Security, Infrastructure(BB), EventBus
+Contracts → SharedKernel, EventBus, Messaging
+  ↑
+Application → own Domain, Security, Infrastructure(BB), EventBus, Messaging, ANY module's Contracts
   ↑
 Infrastructure → Observability
   ↑
@@ -38,18 +43,30 @@ Store.Web / Store.Worker (composition root)
 ```
 
 No module references another module's Domain/Application/Infrastructure —
-only that module's `*.Contracts`. Nothing below the composition root
-references `Store.Web` or `Store.Worker`.
+only that module's `*.Contracts`, and only from Application (ADR-014). Nothing below the
+composition root references `Store.Web` or `Store.Worker`.
 
 ## Module communication
 
-- **In-process, cross-module read**: Application layer references another
-  module's `*.Contracts` DTOs (no such usage exists yet as of Phase 2/3 — add
-  only when a real need appears).
-- **Cross-module side effect**: publish an `IIntegrationEvent` via `IEventBus`,
-  written to the Outbox in the same DB transaction as the triggering change.
-  Consuming module's Application layer implements
-  `IIntegrationEventHandler<TEvent>`, idempotently (see `docs/events.md`).
+Two mechanisms, for different needs — don't reach for the wrong one (docs/events.md elaborates on
+telling them apart):
+
+- **Synchronous cross-module call** (ADR-014, first used Phase 7/8): one module's Application
+  layer dispatches a command/query defined in *another* module's `*.Contracts` project, through
+  the shared `Messaging.IDispatcher` — never a direct reference to that module's Domain/
+  Application/Infrastructure. For "is this true *right now*, before I commit" needs: Ordering
+  calls Catalog (`GetProductVariantSnapshotQuery`, re-validate price/availability) and Inventory
+  (`ReserveStockCommand`/`ReleaseStockCommand`) at checkout; Payments calls Ordering
+  (`MarkOrderAsPaidCommand`, ADR-018) once a webhook confirms a payment. `*.Contracts` may
+  reference `Messaging` specifically so it can host these dispatchable request types, not only
+  DTOs/integration events (ArchitectureTests enforce this — any module's Application may reference
+  any module's Contracts, never another module's Domain/Application/Infrastructure).
+- **Cross-module side effect, eventual** (Phase 2 write-side, Phase 10 processor): publish an
+  `IIntegrationEvent` via `IEventBus`, written to the Outbox in the same DB transaction as the
+  triggering change. `Store.Worker` polls it and dispatches through the in-process `IEventBus`;
+  the consuming module's Application layer implements `IIntegrationEventHandler<TEvent>`,
+  idempotently (see `docs/events.md`). Two real publishers so far (`OrderPlacedIntegrationEvent`,
+  `PaymentSucceededIntegrationEvent`), no consumers registered yet.
 - **Never**: direct reference to another module's `DbContext`, entities, or
   repositories.
 

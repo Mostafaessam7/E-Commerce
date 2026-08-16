@@ -49,7 +49,8 @@
   dotnet ef migrations add InitialCreate --project src/Modules/Catalog/Catalog.Infrastructure --startup-project src/Web/Store.Web --context CatalogDbContext --output-dir Persistence/Migrations
   dotnet ef database update --project src/Modules/Catalog/Catalog.Infrastructure --startup-project src/Web/Store.Web --context CatalogDbContext
   ```
-  Currently migrated: `CatalogDbContext`, `AppIdentityDbContext`, `InventoryDbContext`.
+  Currently migrated: `CatalogDbContext`, `AppIdentityDbContext`, `InventoryDbContext`,
+  `OrderingDbContext`, `PaymentsDbContext` — every module with a DbContext so far.
 - **Concurrency**: EF Core shadow rowversion property per aggregate that needs it (ADR-006), not
   a Domain model property — applied to `StockItem` (`StockItemConfiguration`). Proven by
   `tests/IntegrationTests/Inventory/StockConcurrencyTests.cs`: two DbContexts reserving the same
