@@ -85,10 +85,23 @@ public sealed class OutboxProcessingServiceTests : IAsyncLifetime
         await hostedService.StartAsync(CancellationToken.None);
         try
         {
+            // Poll the actual DB row, not just the in-memory handler list: RecordingHandler.HandleAsync
+            // runs *before* OutboxProcessingService.DispatchAsync's own MarkProcessed + the batch's
+            // SaveChangesAsync (see that class) — asserting the moment the handler fires is a race
+            // against those two still-pending steps on the background service's own async chain, not
+            // a guarantee they've completed. Poll for the row's persisted ProcessedOnUtc instead,
+            // which is the actual thing this test is proving.
             var deadline = DateTime.UtcNow.AddSeconds(5);
-            while (DateTime.UtcNow < deadline && _handler.Handled.Count == 0)
+            DateTime? processedOnUtc = null;
+            while (DateTime.UtcNow < deadline && processedOnUtc is null)
             {
                 await Task.Delay(100);
+                using var pollScope = _provider.CreateScope();
+                var pollDb = pollScope.ServiceProvider.GetRequiredService<OrderingDbContext>();
+                processedOnUtc = await pollDb.OutboxMessages
+                    .Where(m => m.Id == _messageId)
+                    .Select(m => m.ProcessedOnUtc)
+                    .SingleAsync();
             }
         }
         finally

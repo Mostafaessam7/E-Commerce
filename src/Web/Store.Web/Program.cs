@@ -1,79 +1,134 @@
+using Catalog.Infrastructure.Persistence;
 using Catalog.Infrastructure;
+using Identity.Infrastructure.Persistence;
 using Identity.Infrastructure;
 using Infrastructure;
+using Inventory.Infrastructure.Persistence;
 using Inventory.Infrastructure;
 using Messaging;
-using Ordering.Infrastructure;
-using Payments.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Observability;
+using Ordering.Infrastructure.Persistence;
+using Ordering.Infrastructure;
+using Payments.Infrastructure.Persistence;
+using Payments.Infrastructure;
 using Security;
+using Serilog;
+using Serilog.Events;
 using Store.Web.Infrastructure.ExceptionHandling;
+using Store.Web.Infrastructure.Observability;
 
-var builder = WebApplication.CreateBuilder(args);
+// Two-stage Serilog init (the documented Serilog.AspNetCore pattern): a minimal bootstrap logger
+// exists before the host is even built, so a failure during configuration/DI wiring itself still
+// gets logged somewhere instead of disappearing — replaced by the fully-configured logger once
+// `builder.Host.UseSerilog(...)` runs below.
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
-// --- Cross-cutting building blocks (Phase 1 foundation) ---
-builder.Services.AddObservabilityCore();
-builder.Services.AddSecurityCore();
-builder.Services.AddSharedInfrastructure();
-
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
-builder.Services.AddMessagingCore();
-builder.Services.AddHttpClient();
-
-// --- Module composition root ---
-// Every module owns its own `Add{Module}Module(IServiceCollection, IConfiguration)` extension
-// in that module's Infrastructure project (convention, not an interface — see
-// docs/module-composition.md for why this beats a reflection-discovered IModule abstraction).
-// Calls are added here as each module gets real services, starting Phase 4 (Catalog):
-//
-builder.Services.AddCatalogModule(builder.Configuration);
-builder.Services.AddInventoryModule(builder.Configuration);
-builder.Services.AddOrderingModule(builder.Configuration);
-builder.Services.AddPaymentsModule(builder.Configuration);
-// builder.Services.AddCustomersModule(builder.Configuration);
-builder.Services.AddIdentityModule(builder.Configuration);
-// builder.Services.AddPromotionsModule(builder.Configuration);
-// builder.Services.AddShippingModule(builder.Configuration);
-// builder.Services.AddReviewsModule(builder.Configuration);
-// builder.Services.AddNotificationsModule(builder.Configuration);
-
-builder.Services.AddControllersWithViews();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-app.UseExceptionHandler(new ExceptionHandlerOptions
+try
 {
-    // GlobalExceptionHandler handles JSON/API requests itself; anything it defers to (normal
-    // page navigations) falls through to this Razor error view.
-    ExceptionHandlingPath = "/Home/Error",
-});
+    var builder = WebApplication.CreateBuilder(args);
 
-if (!app.Environment.IsDevelopment())
-{
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+        .WriteTo.File(
+            "logs/store-web-.log",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 14,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
+
+    // --- Cross-cutting building blocks (Phase 1 foundation) ---
+    builder.Services.AddObservabilityCore();
+    builder.Services.AddSecurityCore();
+    builder.Services.AddSharedInfrastructure();
+
+    builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+    builder.Services.AddProblemDetails();
+    builder.Services.AddMessagingCore();
+    builder.Services.AddHttpClient();
+
+    // --- Module composition root ---
+    // Every module owns its own `Add{Module}Module(IServiceCollection, IConfiguration)` extension
+    // in that module's Infrastructure project (convention, not an interface — see
+    // docs/module-composition.md for why this beats a reflection-discovered IModule abstraction).
+    // Calls are added here as each module gets real services, starting Phase 4 (Catalog):
+    //
+    builder.Services.AddCatalogModule(builder.Configuration);
+    builder.Services.AddInventoryModule(builder.Configuration);
+    builder.Services.AddOrderingModule(builder.Configuration);
+    builder.Services.AddPaymentsModule(builder.Configuration);
+    // builder.Services.AddCustomersModule(builder.Configuration);
+    builder.Services.AddIdentityModule(builder.Configuration);
+    // builder.Services.AddPromotionsModule(builder.Configuration);
+    // builder.Services.AddShippingModule(builder.Configuration);
+    // builder.Services.AddReviewsModule(builder.Configuration);
+    // builder.Services.AddNotificationsModule(builder.Configuration);
+
+    // One check per module DbContext against the single shared database (docs/database.md) —
+    // "is the DB reachable at all" is a fair enough liveness signal at this scale; a per-table or
+    // per-query check would be diagnosing something a log line already shows.
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<CatalogDbContext>("catalog-db")
+        .AddDbContextCheck<InventoryDbContext>("inventory-db")
+        .AddDbContextCheck<OrderingDbContext>("ordering-db")
+        .AddDbContextCheck<PaymentsDbContext>("payments-db")
+        .AddDbContextCheck<AppIdentityDbContext>("identity-db");
+
+    builder.Services.AddControllersWithViews();
+
+    var app = builder.Build();
+
+    // First in the pipeline so every log line for this request — including ones from middleware
+    // that runs before routing/auth — carries the same correlation id.
+    app.UseCorrelationId();
+    app.UseSerilogRequestLogging();
+
+    // Configure the HTTP request pipeline.
+    app.UseExceptionHandler(new ExceptionHandlerOptions
+    {
+        // GlobalExceptionHandler handles JSON/API requests itself; anything it defers to (normal
+        // page navigations) falls through to this Razor error view.
+        ExceptionHandlingPath = "/Home/Error",
+    });
+
+    if (!app.Environment.IsDevelopment())
+    {
+        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+        app.UseHsts();
+    }
+
+    app.UseHttpsRedirection();
+    app.UseRouting();
+
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.MapStaticAssets();
+
+    app.MapHealthChecks("/health");
+
+    app.MapControllerRoute(
+        name: "areas",
+        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}")
+        .WithStaticAssets();
+
+    app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}")
+        .WithStaticAssets();
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-app.UseRouting();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapStaticAssets();
-
-app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
-
-app.Run();
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Store.Web terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

@@ -43,23 +43,19 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         // Resolved from the request's own scoped container, not the constructor — this handler
         // is registered Singleton (AddExceptionHandler<T>'s default), and ICorrelationIdProvider
         // is Scoped; injecting it directly fails DI validation at startup
-        // ("Cannot consume scoped service ... from singleton").
+        // ("Cannot consume scoped service ... from singleton"). Only needed here for the
+        // ProblemDetails payload — the log line below already carries it via
+        // Store.Web.Infrastructure.Observability.CorrelationIdMiddleware's request-wide scope.
         var correlationId = httpContext.RequestServices.GetRequiredService<ICorrelationIdProvider>().CorrelationId;
         var statusCode = HttpStatusCodeMapper.FromException(exception);
 
-        using (_logger.BeginScope(new Dictionary<string, object>
-               {
-                   [LogContextKeys.CorrelationId] = correlationId,
-               }))
+        if (statusCode >= StatusCodes.Status500InternalServerError)
         {
-            if (statusCode >= StatusCodes.Status500InternalServerError)
-            {
-                _logger.LogError(exception, "Unhandled exception processing {Path}", httpContext.Request.Path);
-            }
-            else
-            {
-                _logger.LogWarning(exception, "Request to {Path} failed with {StatusCode}", httpContext.Request.Path, statusCode);
-            }
+            _logger.LogError(exception, "Unhandled exception processing {Path}", httpContext.Request.Path);
+        }
+        else
+        {
+            _logger.LogWarning(exception, "Request to {Path} failed with {StatusCode}", httpContext.Request.Path, statusCode);
         }
 
         var problemDetails = new ProblemDetails

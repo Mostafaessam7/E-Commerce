@@ -1,7 +1,7 @@
 Current Phase:
-Phase 10 (Outbox processor) and Phase 11 (Admin panel) complete. Next up: whichever the user
-picks — remaining modules (Customers/Promotions/Shipping/Reviews/Notifications), self-service
-Account UI (Register/ForgotPassword), or observability/CI-CD (later master-plan phases).
+Phase 10 (Outbox processor), Phase 11 (Admin panel), and Phase 12 (Observability) complete. Next
+up: whichever the user picks — remaining modules (Customers/Promotions/Shipping/Reviews/
+Notifications), self-service Account UI (Register/ForgotPassword), or Docker/CI-CD.
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -33,10 +33,26 @@ Completed:
   (scope decision, see ADR-021) — revisit if visual polish is requested later.
   Verified end-to-end live in-browser: login → create product → add variant → publish →
   Dashboard/Orders/Stock pages all render real data.
-- All tests passing: 70 unit + 18 integration (5 new: product lifecycle, admin search status
-  filter, order status walk, order cancel + admin search, stock adjust) + 29 architecture.
-- Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff (Phase 1 through 7/8), Phase 9's commit —
-  Phase 10/11 not yet committed as of this writing, see next actual commit hash in git log.
+- Phase 12: Observability. Serilog (Console + rolling daily file) replaces the default MEL
+  console formatter in both `Store.Web` and `Store.Worker`, two-stage bootstrap-logger
+  `try/catch/finally` pattern in both `Program.cs`. `CorrelationIdMiddleware`
+  (`Store.Web.Infrastructure.Observability`) wraps every request in an `ILogger.BeginScope` with
+  the correlation id — Serilog's MEL bridge turns that into a structured property automatically,
+  so `GlobalExceptionHandler`'s own duplicate `BeginScope` was removed (ADR-022). Health checks:
+  `GET /health` on Store.Web (`AddDbContextCheck<T>` per module context); Store.Worker (no
+  inbound HTTP) runs the same checks on a 5-minute timer via a log-only `IHealthCheckPublisher`.
+  Verified live: `/health` returns `Healthy`, request logs show `CorrelationId`/timing in both
+  Console and `logs/store-web-*.log`.
+  Real bug found: `tests/IntegrationTests/Outbox/OutboxProcessingServiceTests.cs` had a latent
+  race — it asserted `OutboxMessage.ProcessedOnUtc` right after observing the test handler fire,
+  but `MarkProcessed`+`SaveChangesAsync` happen slightly later in the same async chain. Went from
+  "happens to pass" to consistently failing (unrelated EF Core patch bump from 10.0.0 to 10.0.11,
+  needed for the new `Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore`
+  package's own dependency floor, apparently shifted the timing enough to expose it). Fixed by
+  polling the actual DB row instead of the in-memory handler list.
+- All tests passing: 70 unit + 18 integration + 29 architecture.
+- Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff, d17f36d, 3b401e0 (Phase 1 through 10/11) —
+  Phase 12 not yet committed as of this writing, see next actual commit hash in git log.
 
 In Progress:
 - (nothing — between phases)
@@ -65,7 +81,8 @@ Important Files:
 - docs/events.md — Outbox processor now real (Phase 10), not just documented intent.
 - docs/security.md — Account controller, admin panel authorization, AdminUserBootstrapper
   credential handling (User Secrets only, never appsettings.json).
-- docs/decisions.md — ADR-001..021.
+- docs/observability.md — Serilog, correlation id, health checks (Phase 12).
+- docs/decisions.md — ADR-001..022.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 5 migrated contexts unchanged from Phase 9 (Catalog,
@@ -75,4 +92,5 @@ Application-layer commands/queries over existing aggregates.
 Decisions Made:
 See docs/decisions.md. Newest: ADR-020 (generic per-module Outbox processor + in-process
 EventBus, AssemblyQualifiedName fix), ADR-021 (Admin panel as a Store.Web Area, permission-gated,
-dev-only AdminUserBootstrapper, no admin-ecomus template integration yet).
+dev-only AdminUserBootstrapper, no admin-ecomus template integration yet), ADR-022 (Serilog,
+code-configured sinks, correlation-id middleware, per-module-context health checks).

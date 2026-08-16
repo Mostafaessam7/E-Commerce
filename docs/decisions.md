@@ -286,3 +286,26 @@ admin user from `Identity:DefaultAdmin:Email`/`Password` config *if set* — mir
 unlike the webhook secret, these are real login credentials: never put them in `appsettings.json`,
 User Secrets/environment variables only (see docs/security.md).
 Status: Accepted (Phase 11).
+
+---
+**ADR-022**
+Decision: Serilog (not the built-in `Microsoft.Extensions.Logging` console formatter) for
+structured logging in both composition roots, code-configured (not read from
+`appsettings.json`'s `Serilog` section) — Console + a rolling daily file sink, both composition
+roots wrapped in the documented two-stage bootstrap-logger `try/catch/finally` pattern. Health
+checks via `Microsoft.Extensions.Diagnostics.HealthChecks` + `AddDbContextCheck<T>()` per module
+context: `Store.Web` exposes `GET /health`; `Store.Worker` (no inbound HTTP — plain
+`Microsoft.NET.Sdk.Worker` host) uses `IHealthCheckPublisher` to log the same checks on a timer
+instead.
+Reason: `LogContextKeys`/`ICorrelationIdProvider` were built in Phase 1 specifically anticipating
+this — Serilog's `ILogger.BeginScope` bridge (any MEL `BeginScope` dictionary becomes structured
+Serilog properties automatically, no extra wiring) means the existing
+`GlobalExceptionHandler`/module code that already calls `ILogger`/`BeginScope` didn't need to
+change its logging calls at all, just gained structure. Code-configured over
+config-file-driven: this project's rule throughout (ADR-003 module composition, ADR-010 explicit
+handler registration) has been "explicit C# over reflection/config magic" — one more config
+surface with its own schema/validation isn't worth it for two sinks. `AddDbContextCheck<T>` over
+a custom health check: "is the DB reachable" is genuinely all that's needed at this scale: a
+failing check already means "look at the logs", not something a fancier per-table check would
+add information to.
+Status: Accepted (Phase 12).

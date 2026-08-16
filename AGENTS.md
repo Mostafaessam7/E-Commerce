@@ -58,6 +58,9 @@ tests/{UnitTests,IntegrationTests,ArchitectureTests,EndToEndTests}
 - Admin panel work: `[Authorize(Policy = Permissions.X)]` per action, never
   `[Authorize(Roles = "Admin")]` — ADR-021. New admin commands should be a thin wrapper one step
   removed from an existing aggregate method, not a new business rule.
+- Logging: use `ILogger`/`BeginScope` as normal — Serilog is wired as the provider (ADR-022) and
+  bridges MEL scopes into structured properties automatically, nothing extra to do. Don't add a
+  `Serilog` section to `appsettings.json`; sinks are code-configured in `Program.cs` on purpose.
 
 Module details (responsibility/owns/contracts/deps): `docs/modules.md`.
 
@@ -101,6 +104,7 @@ dotnet test tests/ArchitectureTests/ArchitectureTests.csproj
 | `docs/database.md` | EF Core setup, DbContexts, migrations, Outbox |
 | `docs/security.md` | Identity, permissions, policies |
 | `docs/events.md` | Domain events vs integration events, Outbox flow |
+| `docs/observability.md` | Serilog, correlation id, health checks |
 | `docs/testing.md` | Test project conventions |
 | `docs/decisions.md` | ADR log — don't re-litigate a recorded decision |
 | `docs/current-state.md` | What's done, in progress, next — keep small |
