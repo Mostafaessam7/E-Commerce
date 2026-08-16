@@ -110,6 +110,7 @@ dotnet test tests/ArchitectureTests/ArchitectureTests.csproj
 | `docs/events.md` | Domain events vs integration events, Outbox flow |
 | `docs/observability.md` | Serilog, correlation id, health checks |
 | `docs/deployment.md` | Docker/docker-compose, migrations-in-container, Redis provisioning |
+| `docs/ci-cd.md` | GitHub Actions build+test workflow |
 | `docs/testing.md` | Test project conventions |
 | `docs/decisions.md` | ADR log — don't re-litigate a recorded decision |
 | `docs/current-state.md` | What's done, in progress, next — keep small |

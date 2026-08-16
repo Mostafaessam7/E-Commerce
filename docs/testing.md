@@ -27,3 +27,11 @@ dotnet test tests/UnitTests/UnitTests.csproj
 dotnet test tests/ArchitectureTests/ArchitectureTests.csproj
 dotnet test tests/IntegrationTests/IntegrationTests.csproj
 ```
+
+## CI (Phase 14)
+
+`.github/workflows/build-test.yml` runs all three on every PR — on `windows-latest` specifically,
+because `IntegrationTests`' hardcoded LocalDB connection strings need Windows' actual LocalDB
+feature, which that runner image ships preinstalled (ADR-024, docs/ci-cd.md). It applies
+migrations first (same `dotnet ef database update` commands as docs/database.md) since a fresh
+runner has no schema yet — don't skip that step when replicating the workflow locally.

@@ -335,3 +335,24 @@ spec named it as part of the stack; standing up infrastructure ahead of need is 
 speculative C# abstraction ADR-guidance elsewhere warns against — it's ordinary environment
 provisioning, and it costs nothing sitting idle in a compose file.
 Status: Accepted (Phase 13).
+
+---
+**ADR-024**
+Decision: `.github/workflows/build-test.yml` runs on `windows-latest`, not `ubuntu-latest`, and
+does not stand up a SQL Server service container the way `docker-compose.yml` does.
+Reason: every `IntegrationTests` file hardcodes its own
+`Server=(localdb)\mssqllocaldb;Database=ECommerce;...` connection string constant rather than
+reading one from configuration (docs/testing.md), and every module's `IDesignTimeDbContextFactory`
+does the same for `dotnet ef` commands — both match ADR-011..019's dev workflow via *actual*
+LocalDB, not a container. Rather than treat that as CI debt to refactor (parameterize every test
+file's connection string, add a SQL Server service container, wire migrations against it), the
+lower-risk option was recognizing GitHub's `windows-latest` runner image ships SQL Server Express
+LocalDB preinstalled under the exact same instance name (`MSSQLLocalDB`) — so the existing test
+suite runs against CI completely unmodified, and CI now exercises the *same* connection path
+every developer's machine already does, rather than a second, parallel one (container-based) that
+could drift from it. `ubuntu-latest` was rejected specifically because LocalDB is Windows-only —
+no amount of reachable-service-container workaround changes that.
+Status: Accepted (Phase 14). Revisit only if this repo later needs Linux-only CI runners for cost
+or speed reasons — at that point, ADR-011..019's "real LocalDB" testing assumption itself would
+need to change first (e.g. to a SQL Server container everywhere, dev machines included), which is
+a bigger decision than a CI workflow file.

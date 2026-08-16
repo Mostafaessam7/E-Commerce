@@ -1,8 +1,9 @@
 Current Phase:
-Phase 10 (Outbox processor), Phase 11 (Admin panel), Phase 12 (Observability), and Phase 13
-(Docker + docker-compose) complete. Next up: whichever the user picks — remaining modules
-(Customers/Promotions/Shipping/Reviews/Notifications), self-service Account UI
-(Register/ForgotPassword), or CI/CD (Phase 14+).
+Phase 10 (Outbox processor), Phase 11 (Admin panel), Phase 12 (Observability), Phase 13 (Docker +
+docker-compose), and Phase 14 (CI/CD) complete. The original 12-phase master plan plus the three
+extension phases (12/13/14) are now all done. Next up: whichever the user picks — remaining
+modules (Customers/Promotions/Shipping/Reviews/Notifications), self-service Account UI
+(Register/ForgotPassword), or something new entirely.
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -68,10 +69,22 @@ Completed:
   commands succeed with zero warnings, published output includes `wwwroot`. Could not run an
   actual `docker build`/`docker compose up` in this session — Docker Desktop is installed but not
   running in the sandbox; ask the user to verify the full stack locally.
+- Phase 14: CI/CD. `.github/workflows/build-test.yml` — build+test on every PR/push to
+  `main`/`master`. `windows-latest` (not `ubuntu-latest`): `IntegrationTests` hardcode LocalDB
+  connection strings per test file rather than reading configuration, matching every dev
+  machine's actual setup; `windows-latest` ships LocalDB preinstalled under the same instance
+  name, so the suite runs completely unmodified instead of needing a parameterization refactor or
+  a parallel SQL-Server-service-container test path that could drift from local dev (ADR-024).
+  Steps: restore → build (Release) → Unit + Architecture tests (fail fast, no DB needed) → start
+  LocalDB → install pinned `dotnet-ef` → apply all 5 contexts' migrations (same commands as
+  docs/database.md) → Integration tests. No image-publish step (out of this phase's scope — see
+  docs/ci-cd.md "Not yet built"). Verified locally: ran the exact `dotnet ef database update`
+  command the workflow uses against the real dev DB (idempotent no-op, confirming the command
+  syntax is correct) and the full local test suite.
 - All tests passing: 70 unit + 18 integration + 29 architecture.
-- Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff, d17f36d, 3b401e0, 7f6e1eb (Phase 1
-  through 12) — Phase 13 not yet committed as of this writing, see next actual commit hash in git
-  log.
+- Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff, d17f36d, 3b401e0, 7f6e1eb, 29985ed (Phase
+  1 through 13) — Phase 14 not yet committed as of this writing, see next actual commit hash in
+  git log.
 
 In Progress:
 - (nothing — between phases)
@@ -88,7 +101,8 @@ Next:
   not started), no Payments admin UI (Payments has permissions defined — `Permissions.Payments.*`
   — but no admin controller yet).
 - `admin-ecomus` template not integrated — current Admin UI is a minimal hand-styled layout.
-- No CI/CD pipeline yet (Phase 14+) — Docker images build locally only.
+- CI runs build+test only — no image publish/registry push, no branch protection rule configured
+  (that's a GitHub repo setting; enable it once this repo has a remote — docs/ci-cd.md).
 - Redis container is provisioned in docker-compose.yml but no application code uses it yet.
 
 Known Issues:
@@ -108,7 +122,8 @@ Important Files:
   credential handling (User Secrets only, never appsettings.json).
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
-- docs/decisions.md — ADR-001..023.
+- docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
+- docs/decisions.md — ADR-001..024.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 5 migrated contexts unchanged from Phase 9 (Catalog,
@@ -121,4 +136,5 @@ EventBus, AssemblyQualifiedName fix), ADR-021 (Admin panel as a Store.Web Area, 
 dev-only AdminUserBootstrapper, no admin-ecomus template integration yet), ADR-022 (Serilog,
 code-configured sinks, correlation-id middleware, per-module-context health checks), ADR-023
 (Docker build context = repo root, opt-in auto-migration in containers, Redis provisioned ahead
-of use).
+of use), ADR-024 (CI on windows-latest to match IntegrationTests' real-LocalDB assumption, not a
+SQL Server service container).
