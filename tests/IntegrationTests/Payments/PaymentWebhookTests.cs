@@ -85,7 +85,7 @@ public sealed class PaymentWebhookTests : IAsyncLifetime
         var cart = (await dispatcher.Send(new GetOrCreateCartCommand(null, anonymousId))).Value;
         await dispatcher.Send(new AddCartItemCommand(cart.Id, _variantId, 1));
         var address = new AddressInput("Sara Adel", "+201000000001", "5 Test St", null, "Giza", null, "12511", "EG");
-        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, address, address, 20m, TestNotesMarker));
+        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, "buyer@example.com", address, address, 20m, TestNotesMarker));
         _orderId = placeResult.Value;
     }
 

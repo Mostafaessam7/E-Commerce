@@ -20,7 +20,7 @@ public class OrderTests
         };
 
         return Order.Place(
-            "ORD-TEST-1", Guid.NewGuid(), TestAddress(), TestAddress(),
+            "ORD-TEST-1", Guid.NewGuid(), "buyer@example.com", TestAddress(), TestAddress(),
             items, shippingCost: 50m, tax: 25m, discount: 0m, currency: "EGP", notes: null, placedAtUtc: Now).Value;
     }
 
@@ -28,7 +28,7 @@ public class OrderTests
     public void Place_fails_for_an_order_with_no_items()
     {
         var result = Order.Place(
-            "ORD-EMPTY", Guid.NewGuid(), TestAddress(), TestAddress(),
+            "ORD-EMPTY", Guid.NewGuid(), "buyer@example.com", TestAddress(), TestAddress(),
             [], shippingCost: 0m, tax: 0m, discount: 0m, currency: "EGP", notes: null, placedAtUtc: Now);
 
         result.IsFailure.Should().BeTrue();

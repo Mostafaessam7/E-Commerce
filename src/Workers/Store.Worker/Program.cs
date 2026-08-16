@@ -3,6 +3,7 @@ using EventBus;
 using Infrastructure;
 using Messaging;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Notifications.Infrastructure;
 using Ordering.Infrastructure;
 using Ordering.Infrastructure.Persistence;
 using Payments.Infrastructure;
@@ -52,6 +53,9 @@ try
     // outbox later means one AddXModule + one AddOutboxProcessor line, nothing structural.
     builder.Services.AddOrderingModule(builder.Configuration);
     builder.Services.AddPaymentsModule(builder.Configuration);
+    // Consumer-only — Notifications never enqueues its own outbox events (nothing reacts to a
+    // notification being sent), so no AddOutboxProcessor<NotificationsDbContext> call.
+    builder.Services.AddNotificationsModule(builder.Configuration);
 
     builder.Services.AddOutboxProcessor<OrderingDbContext>();
     builder.Services.AddOutboxProcessor<PaymentsDbContext>();

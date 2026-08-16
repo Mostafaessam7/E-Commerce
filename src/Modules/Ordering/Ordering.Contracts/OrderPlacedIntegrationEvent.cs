@@ -9,5 +9,6 @@ public sealed record OrderPlacedIntegrationEvent(
     Guid OrderId,
     string OrderNumber,
     Guid? CustomerId,
+    string Email,
     decimal Total,
     string Currency) : IntegrationEvent;

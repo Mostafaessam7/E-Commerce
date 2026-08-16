@@ -119,7 +119,7 @@ public sealed class CheckoutFlowTests : IAsyncLifetime
 
         var address = new AddressInput("Ahmed Ali", "+201000000000", "1 Test St", null, "Cairo", null, "11511", "EG");
         var placeResult = await dispatcher.Send(new PlaceOrderCommand(
-            cartResult.Value.Id, CustomerId: null, address, address, ShippingCost: 30m, Notes: TestNotesMarker));
+            cartResult.Value.Id, CustomerId: null, Email: "buyer@example.com", address, address, ShippingCost: 30m, Notes: TestNotesMarker));
 
         placeResult.IsSuccess.Should().BeTrue();
 
@@ -152,7 +152,7 @@ public sealed class CheckoutFlowTests : IAsyncLifetime
 
         var address = new AddressInput("Ahmed Ali", "+201000000000", "1 Test St", null, "Cairo", null, "11511", "EG");
         var placeResult = await dispatcher.Send(new PlaceOrderCommand(
-            cartResult.Value.Id, CustomerId: null, address, address, ShippingCost: 30m, Notes: TestNotesMarker));
+            cartResult.Value.Id, CustomerId: null, Email: "buyer@example.com", address, address, ShippingCost: 30m, Notes: TestNotesMarker));
 
         placeResult.IsFailure.Should().BeTrue();
         placeResult.Error.Code.Should().Be("StockItem.InsufficientStock");

@@ -8,6 +8,8 @@ using Inventory.Infrastructure.Persistence;
 using Inventory.Infrastructure;
 using Messaging;
 using Microsoft.AspNetCore.Builder;
+using Notifications.Infrastructure.Persistence;
+using Notifications.Infrastructure;
 using Observability;
 using Ordering.Infrastructure.Persistence;
 using Ordering.Infrastructure;
@@ -72,7 +74,10 @@ try
     // builder.Services.AddPromotionsModule(builder.Configuration);
     // builder.Services.AddShippingModule(builder.Configuration);
     // builder.Services.AddReviewsModule(builder.Configuration);
-    // builder.Services.AddNotificationsModule(builder.Configuration);
+    // Store.Web doesn't register IEventBus (only Store.Worker processes the Outbox), so
+    // Notifications' handlers never fire here — this wiring is just for the DbContext/health
+    // check/future admin NotificationLog viewing, same reasoning as every other module.
+    builder.Services.AddNotificationsModule(builder.Configuration);
 
     // One check per module DbContext against the single shared database (docs/database.md) —
     // "is the DB reachable at all" is a fair enough liveness signal at this scale; a per-table or
@@ -82,7 +87,8 @@ try
         .AddDbContextCheck<InventoryDbContext>("inventory-db")
         .AddDbContextCheck<OrderingDbContext>("ordering-db")
         .AddDbContextCheck<PaymentsDbContext>("payments-db")
-        .AddDbContextCheck<AppIdentityDbContext>("identity-db");
+        .AddDbContextCheck<AppIdentityDbContext>("identity-db")
+        .AddDbContextCheck<NotificationsDbContext>("notifications-db");
 
     builder.Services.AddControllersWithViews();
 
@@ -99,6 +105,7 @@ try
         await app.Services.MigrateWithRetryAsync<OrderingDbContext>(migrationLogger);
         await app.Services.MigrateWithRetryAsync<PaymentsDbContext>(migrationLogger);
         await app.Services.MigrateWithRetryAsync<AppIdentityDbContext>(migrationLogger);
+        await app.Services.MigrateWithRetryAsync<NotificationsDbContext>(migrationLogger);
     }
 
     // First in the pipeline so every log line for this request — including ones from middleware

@@ -15,6 +15,8 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.OrderNumber).HasMaxLength(50).IsRequired();
         builder.HasIndex(o => o.OrderNumber).IsUnique();
 
+        builder.Property(o => o.Email).HasMaxLength(256).IsRequired();
+
         builder.Property(o => o.Notes).HasMaxLength(2000);
         builder.Property(o => o.TrackingNumber).HasMaxLength(100);
 

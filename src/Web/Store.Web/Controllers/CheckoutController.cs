@@ -33,7 +33,7 @@ public class CheckoutController : Controller
             : new AddressInput(form.BillingFullName!, form.BillingPhone!, form.BillingLine1!, form.BillingLine2, form.BillingCity!, form.BillingState, form.BillingPostalCode!, form.BillingCountry!);
 
         var placeResult = await _dispatcher.Send(
-            new PlaceOrderCommand(cartResult.Value.Id, CustomerId: null, billingAddress, shippingAddress, ShippingCost: 50m, form.Notes),
+            new PlaceOrderCommand(cartResult.Value.Id, CustomerId: null, form.Email, billingAddress, shippingAddress, ShippingCost: 50m, form.Notes),
             cancellationToken);
 
         if (placeResult.IsFailure)

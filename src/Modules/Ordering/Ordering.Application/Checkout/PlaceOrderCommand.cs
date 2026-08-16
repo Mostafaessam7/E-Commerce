@@ -15,6 +15,7 @@ public sealed record AddressInput(string FullName, string Phone, string Line1, s
 public sealed record PlaceOrderCommand(
     Guid CartId,
     Guid? CustomerId,
+    string Email,
     AddressInput BillingAddress,
     AddressInput ShippingAddress,
     decimal ShippingCost,
@@ -110,7 +111,7 @@ public sealed class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand
         var tax = Math.Round(subtotal * TaxRate, 2);
 
         var orderResult = Order.Place(
-            GenerateOrderNumber(_dateTimeProvider.UtcNow), request.CustomerId, billingResult.Value, shippingResult.Value,
+            GenerateOrderNumber(_dateTimeProvider.UtcNow), request.CustomerId, request.Email, billingResult.Value, shippingResult.Value,
             lines, request.ShippingCost, tax, discount: 0m, currency, request.Notes, _dateTimeProvider.UtcNow);
 
         if (orderResult.IsFailure)
@@ -143,7 +144,7 @@ public sealed class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand
         }
 
         await _orderRepository.AddAsync(order, cancellationToken);
-        _unitOfWork.EnqueueIntegrationEvent(new OrderPlacedIntegrationEvent(order.Id, order.OrderNumber, order.CustomerId, order.Total.Amount, order.Total.Currency));
+        _unitOfWork.EnqueueIntegrationEvent(new OrderPlacedIntegrationEvent(order.Id, order.OrderNumber, order.CustomerId, order.Email, order.Total.Amount, order.Total.Currency));
 
         cart.Clear();
 

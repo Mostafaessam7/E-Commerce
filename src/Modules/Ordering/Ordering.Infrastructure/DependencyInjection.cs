@@ -40,6 +40,7 @@ public static class DependencyInjection
 
         services.AddScoped<IRequestHandler<PlaceOrderCommand, Guid>, PlaceOrderCommandHandler>();
         services.AddScoped<IRequestHandler<GetOrderQuery, OrderDto>, GetOrderQueryHandler>();
+        services.AddScoped<IRequestHandler<GetOrderContactInfoQuery, OrderContactInfoDto>, GetOrderContactInfoQueryHandler>();
         services.AddScoped<IRequestHandler<MarkOrderAsPaidCommand, Unit>, MarkOrderAsPaidCommandHandler>();
 
         // Admin (Phase 11)

@@ -115,11 +115,26 @@ like theirs the moment another module gains one.
 - Dependencies: BuildingBlocks only.
 
 ## Notifications
-- Responsibility: email/SMS sending abstractions, notification templates.
-- Owns: NotificationLog.
+- Responsibility: email sending abstraction, notification log. First real consumer of the
+  integration events other modules publish (docs/events.md) — everything before Phase 15 only
+  published events into an empty room.
+- Owns: `NotificationLog` (append-only send record, not an aggregate root — no business rules,
+  just an audit trail).
 - Does not own: business events that trigger notifications (reacts via integration events).
-- Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Public contracts: none yet (nothing consumes Notifications' own state).
+- Dependencies: BuildingBlocks + **Ordering.Contracts and Payments.Contracts** — Application
+  references their integration event DTOs to react to them
+  (`IIntegrationEventHandler<OrderPlacedIntegrationEvent>`,
+  `IIntegrationEventHandler<PaymentSucceededIntegrationEvent>`), and dispatches
+  `Ordering.Contracts.GetOrderContactInfoQuery` (ADR-014) when a payment-succeeded event doesn't
+  itself carry an email. DB schema: `notifications`.
+- `INotificationSender` abstraction (Section 9-style — same shape as `IPaymentGateway`) —
+  `FakeEmailSender` is the only implementation (no real SMTP/SendGrid account exists), logs
+  instead of sending, but every call still goes through the interface and every attempt still
+  gets a real `NotificationLog` row.
+- Wired into `Store.Worker` only (that's what runs `IEventBus`/the Outbox processor — see
+  docs/events.md); Store.Web wires the module too but only for its DbContext/health check, since
+  it never processes the Outbox and the handlers would never fire there.
 
 ---
 ## Store.Web's Admin area (Phase 11 — not a module)

@@ -356,3 +356,39 @@ Status: Accepted (Phase 14). Revisit only if this repo later needs Linux-only CI
 or speed reasons — at that point, ADR-011..019's "real LocalDB" testing assumption itself would
 need to change first (e.g. to a SQL Server container everywhere, dev machines included), which is
 a bigger decision than a CI workflow file.
+
+---
+**ADR-025**
+Decision: `Order` gained an `Email` property, collected explicitly at checkout regardless of
+guest/authenticated status. `OrderPlacedIntegrationEvent` carries it directly;
+`PaymentSucceededIntegrationEvent` still doesn't (unchanged shape), so its consumer dispatches a
+new `Ordering.Contracts.GetOrderContactInfoQuery` (ADR-014) to look the email up instead.
+Reason: building Notifications (Phase 15) surfaced a real gap — nothing in Ordering ever
+collected an email anywhere (`Address` doesn't have one; guests have no `ApplicationUser` to look
+one up from), so order-confirmation/payment-receipt emails were structurally impossible before
+this. Threading it onto `Order` directly (not a new `Customers`-owned concept, since Customers
+isn't built) keeps it in the one place checkout already writes, at the cost of one new required
+column + one new migration. Not adding it to `PaymentSucceededIntegrationEvent` too was deliberate
+— duplicating the email onto every event that might need it invites the two copies drifting if an
+order's contact info is ever corrected; a single dispatched read from Ordering is the same "ask
+the owner" rule ADR-014 already established, applied consistently rather than special-cased away
+because it's "just an email field."
+Status: Accepted (Phase 15).
+
+---
+**ADR-026**
+Decision: Notifications (Phase 15, first of the five previously-placeholder modules to get real
+code) owns a plain `NotificationLog` entity (not an aggregate root — no business rules, nothing
+ever transitions its state after creation) and an `INotificationSender` abstraction with
+`FakeEmailSender` as the only implementation, same shape as Payments' `IPaymentGateway`/
+`FakePaymentGateway` (ADR-017). Wired into `Store.Worker` (where `IEventBus` actually dispatches)
+and, DbContext-only, into `Store.Web` (for `/health` and future admin log viewing — its handlers
+never fire there since Store.Web doesn't process the Outbox).
+Reason: this is the first module whose entire reason to exist is reacting to other modules'
+integration events — Catalog/Inventory/Ordering/Payments all *publish* real business state
+changes; Notifications *consumes* them and produces a side effect (an email) with no state of its
+own that anything else needs to read. That asymmetry is why it has no `Notifications.Contracts`
+public surface yet: nothing consumes a "notification was sent" fact. `FakeEmailSender` mirrors
+`FakePaymentGateway`'s reasoning exactly — no real provider account exists, but the mechanism
+(interface → real `NotificationLog` write) is real, not stubbed out.
+Status: Accepted (Phase 15).

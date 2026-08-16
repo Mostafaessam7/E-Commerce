@@ -7,6 +7,9 @@ namespace Store.Web.Models;
 /// directly, so validation attributes stay a Web-layer concern (Section 35).</summary>
 public sealed class CheckoutFormModel
 {
+    [Required, EmailAddress, StringLength(256)]
+    public string Email { get; set; } = string.Empty;
+
     [Required, StringLength(200)]
     public string FullName { get; set; } = string.Empty;
 

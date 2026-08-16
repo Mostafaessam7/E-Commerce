@@ -61,7 +61,7 @@ public sealed class OutboxProcessingServiceTests : IAsyncLifetime
         using var scope = _provider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
 
-        var integrationEvent = new OrderPlacedIntegrationEvent(Guid.NewGuid(), "OUTBOX-TEST", null, 10m, "EGP");
+        var integrationEvent = new OrderPlacedIntegrationEvent(Guid.NewGuid(), "OUTBOX-TEST", null, "buyer@example.com", 10m, "EGP");
         _messageId = integrationEvent.EventId;
         db.EnqueueIntegrationEvent(integrationEvent);
         await db.SaveChangesAsync();

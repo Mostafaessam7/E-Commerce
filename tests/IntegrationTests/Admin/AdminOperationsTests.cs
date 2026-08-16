@@ -226,7 +226,7 @@ public sealed class AdminOperationsTests : IAsyncLifetime
         await dispatcher.Send(new AddCartItemCommand(cart.Id, _stockVariantId, 1));
 
         var address = new AddressInput("Admin Test", "+201000000002", "1 Test St", null, "Cairo", null, "11511", "EG");
-        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, address, address, 10m, "admin-ops-test"));
+        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, "buyer@example.com", address, address, 10m, "admin-ops-test"));
         return placeResult.Value;
     }
 }

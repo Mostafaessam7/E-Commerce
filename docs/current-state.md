@@ -1,9 +1,8 @@
 Current Phase:
-Phase 10 (Outbox processor), Phase 11 (Admin panel), Phase 12 (Observability), Phase 13 (Docker +
-docker-compose), and Phase 14 (CI/CD) complete. The original 12-phase master plan plus the three
-extension phases (12/13/14) are now all done. Next up: whichever the user picks — remaining
-modules (Customers/Promotions/Shipping/Reviews/Notifications), self-service Account UI
-(Register/ForgotPassword), or something new entirely.
+Phase 10-14 (Outbox/Admin/Observability/Docker/CI-CD) complete. Phase 15 (Notifications module +
+first Outbox consumer) also complete — in progress on a broader backlog covering the rest of the
+originally-empty modules, self-service Account UI, remaining admin gaps, Redis usage, CI image
+publish, and EndToEndTests (user asked for "all of it"; working through it phase by phase).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -81,20 +80,30 @@ Completed:
   docs/ci-cd.md "Not yet built"). Verified locally: ran the exact `dotnet ef database update`
   command the workflow uses against the real dev DB (idempotent no-op, confirming the command
   syntax is correct) and the full local test suite.
-- All tests passing: 70 unit + 18 integration + 29 architecture.
+- All tests passing (Phase 1-14): 70 unit + 18 integration + 29 architecture.
 - Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff, d17f36d, 3b401e0, 7f6e1eb, 29985ed, 3a8bd06
-  (Phase 1 through 14), 0f2323c (docs audit fix: modules.md/architecture.md/database.md staleness).
+  (Phase 1 through 14), 0f2323c + bd0e35a (docs audit fixes).
+- Phase 15: Notifications module + first real Outbox consumer. `Order.Email` added (ADR-025) —
+  checkout now collects an email regardless of guest/authenticated (`CheckoutFormModel`/
+  `PlaceOrderCommand`/`Order.Place`), threaded onto `OrderPlacedIntegrationEvent`. Notifications
+  (ADR-026): `NotificationLog`, `INotificationSender`/`FakeEmailSender`,
+  `OrderPlacedNotificationHandler` + `PaymentSucceededNotificationHandler` (the latter dispatches
+  a new `Ordering.Contracts.GetOrderContactInfoQuery` since its triggering event has no email).
+  Wired into `Store.Worker` (where handlers actually fire) and `Store.Web` (DbContext/health only).
+  New migrations: `AddOrderEmail` (OrderingDbContext), `InitialCreate` (NotificationsDbContext).
+  Tests: 70 unit + 20 integration (2 new — proves both handlers actually write a `NotificationLog`
+  row, not just that they're registered) + 29 architecture, all passing.
 
 In Progress:
-- (nothing — between phases)
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — Customers/
+  Promotions/Shipping/Reviews modules, self-service Account UI, admin gaps, Redis usage, CI image
+  publish, docker compose verification, admin-ecomus integration, EndToEndTests.
 
 Next:
-- No Outbox handlers registered yet — events dispatch successfully but nothing reacts to them
-  (no consumer module built: Notifications isn't started).
 - No self-service Register/ForgotPassword UI — only Login/Logout exist; `IIdentityService`
   already has the methods, just no controller actions/views.
-- Customers/Promotions/Shipping/Reviews/Notifications modules still have no Domain/Application
-  code — placeholders only.
+- Customers/Promotions/Shipping/Reviews modules still have no Domain/Application code —
+  placeholders only (Notifications got real code in Phase 15).
 - Admin panel: no Brand/Category management UI (Product admin form omits BrandId/CategoryIds —
   scope decision, see ADR-021 area of docs/modules.md), no image upload (Section on file storage
   not started), no Payments admin UI (Payments has permissions defined — `Permissions.Payments.*`
@@ -122,18 +131,18 @@ Important Files:
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
 - docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..024.
+- docs/decisions.md — ADR-001..026.
 
 Database Changes:
-Local dev DB `ECommerce` (LocalDB), 5 migrated contexts unchanged from Phase 9 (Catalog,
-Identity, Inventory, Ordering, Payments) — Phase 10/11 added no new tables/columns, only
-Application-layer commands/queries over existing aggregates.
+Local dev DB `ECommerce` (LocalDB), 6 migrated contexts (Catalog, Identity, Inventory, Ordering,
+Payments, Notifications). Phase 15 added `Order.Email` (new required column, migration
+`AddOrderEmail`) and the whole `notifications` schema (migration `InitialCreate` on
+`NotificationsDbContext`).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-020 (generic per-module Outbox processor + in-process
-EventBus, AssemblyQualifiedName fix), ADR-021 (Admin panel as a Store.Web Area, permission-gated,
-dev-only AdminUserBootstrapper, no admin-ecomus template integration yet), ADR-022 (Serilog,
-code-configured sinks, correlation-id middleware, per-module-context health checks), ADR-023
-(Docker build context = repo root, opt-in auto-migration in containers, Redis provisioned ahead
-of use), ADR-024 (CI on windows-latest to match IntegrationTests' real-LocalDB assumption, not a
-SQL Server service container).
+See docs/decisions.md. Newest: ADR-024 (CI on windows-latest to match IntegrationTests'
+real-LocalDB assumption), ADR-025 (`Order.Email` added — collected at checkout, threaded through
+`OrderPlacedIntegrationEvent`; `PaymentSucceededIntegrationEvent` looks it up via a dispatched
+`GetOrderContactInfoQuery` instead of duplicating it), ADR-026 (Notifications module — plain
+`NotificationLog`, `INotificationSender`/`FakeEmailSender` mirroring Payments' gateway pattern,
+first real Outbox consumer).

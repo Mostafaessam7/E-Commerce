@@ -24,8 +24,11 @@ per module context that enqueues events (currently `OrderingDbContext`, `Payment
 `AddOutboxProcessor<TContext>()`), polling unprocessed rows and dispatching through
 `EventBus.InProcessEventBus` (resolves `IIntegrationEventHandler<TEvent>` from DI, in-process —
 ADR-020), marking `ProcessedOnUtc`. At-least-once delivery: `IIntegrationEventHandler`
-implementations must be idempotent (dedupe on `EventId`) — no handlers are registered yet (no
-consumer module reacts to an event yet), so today the processor just marks every row processed.
+implementations must be idempotent (dedupe on `EventId`). First real consumer since Phase 15:
+Notifications' `OrderPlacedNotificationHandler`/`PaymentSucceededNotificationHandler` — both
+idempotent by construction (a duplicate confirmation email from an at-least-once redelivery is
+harmless, unlike double-charging a payment, so no dedupe ledger is needed the way Payments'
+webhook handler needs one).
 `OutboxMessage.Type` stores the event's `AssemblyQualifiedName`, not just `FullName` — required
 for `Type.GetType(...)` to load the declaring assembly if the worker process hasn't already
 touched it (see ADR-020's real bug).

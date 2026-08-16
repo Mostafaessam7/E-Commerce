@@ -23,6 +23,7 @@ public sealed class Order : AggregateRoot<Guid>
         Guid id,
         string orderNumber,
         Guid? customerId,
+        string email,
         Address billingAddress,
         Address shippingAddress,
         Money shippingCost,
@@ -34,6 +35,7 @@ public sealed class Order : AggregateRoot<Guid>
     {
         OrderNumber = orderNumber;
         CustomerId = customerId;
+        Email = email;
         BillingAddress = billingAddress;
         ShippingAddress = shippingAddress;
         ShippingCost = shippingCost;
@@ -52,6 +54,12 @@ public sealed class Order : AggregateRoot<Guid>
     }
 
     public string OrderNumber { get; private set; } = null!;
+
+    /// <summary>Collected explicitly at checkout, regardless of guest/authenticated — nothing
+    /// else in Ordering carries an email (Address doesn't; guests have no ApplicationUser to look
+    /// one up from). Notifications' order-confirmation handler reads this straight off
+    /// <c>OrderPlacedIntegrationEvent</c> instead of a second cross-module round trip.</summary>
+    public string Email { get; private set; } = null!;
 
     public Guid? CustomerId { get; private set; }
 
@@ -94,6 +102,7 @@ public sealed class Order : AggregateRoot<Guid>
     public static Result<Order> Place(
         string orderNumber,
         Guid? customerId,
+        string email,
         Address billingAddress,
         Address shippingAddress,
         IReadOnlyCollection<(Guid ProductVariantId, Guid ProductId, string ProductName, string Sku, decimal UnitPrice, string Currency, int Quantity)> items,
@@ -105,6 +114,7 @@ public sealed class Order : AggregateRoot<Guid>
         DateTime placedAtUtc)
     {
         Guard.Against.NullOrWhiteSpace(orderNumber, nameof(orderNumber));
+        Guard.Against.NullOrWhiteSpace(email, nameof(email));
 
         if (items.Count == 0)
         {
@@ -124,7 +134,7 @@ public sealed class Order : AggregateRoot<Guid>
         }
 
         var order = new Order(
-            Guid.NewGuid(), orderNumber, customerId, billingAddress, shippingAddress,
+            Guid.NewGuid(), orderNumber, customerId, email, billingAddress, shippingAddress,
             shippingResult.Value, taxResult.Value, discountResult.Value, notes, placedAtUtc);
 
         foreach (var item in items)
