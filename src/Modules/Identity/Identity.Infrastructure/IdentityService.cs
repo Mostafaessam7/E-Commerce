@@ -60,6 +60,18 @@ internal sealed class IdentityService : IIdentityService
             : Result.Failure(ToValidationError(result));
     }
 
+    public async Task<Result<string>> GenerateEmailConfirmationTokenAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return Result.Failure<string>(Error.NotFound("Identity.UserNotFound", "User was not found."));
+        }
+
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        return Result.Success(token);
+    }
+
     public async Task<Result<string>> GeneratePasswordResetTokenAsync(string email, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByEmailAsync(email);

@@ -19,6 +19,11 @@ public interface IIdentityService
 
     Task<Result> ConfirmEmailAsync(Guid userId, string token, CancellationToken cancellationToken = default);
 
+    /// <summary>Null-safe by design: unlike <see cref="GeneratePasswordResetTokenAsync"/>, the
+    /// caller here (registration, which just created the user) already knows the id is valid —
+    /// this fails only on the theoretically-impossible "created it, then it vanished" race.</summary>
+    Task<Result<string>> GenerateEmailConfirmationTokenAsync(Guid userId, CancellationToken cancellationToken = default);
+
     Task<Result<string>> GeneratePasswordResetTokenAsync(string email, CancellationToken cancellationToken = default);
 
     Task<Result> ResetPasswordAsync(string email, string token, string newPassword, CancellationToken cancellationToken = default);

@@ -121,7 +121,9 @@ like theirs the moment another module gains one.
 - Owns: `NotificationLog` (append-only send record, not an aggregate root — no business rules,
   just an audit trail).
 - Does not own: business events that trigger notifications (reacts via integration events).
-- Public contracts: none yet (nothing consumes Notifications' own state).
+- Public contracts: `Notifications.Contracts.SendEmailCommand` (ADR-014/027) — dispatchable, for
+  the rare case an email must be sent synchronously (e.g. Identity's account-confirmation link)
+  rather than reactively; no DTOs describing Notifications' own state yet.
 - Dependencies: BuildingBlocks + **Ordering.Contracts and Payments.Contracts** — Application
   references their integration event DTOs to react to them
   (`IIntegrationEventHandler<OrderPlacedIntegrationEvent>`,

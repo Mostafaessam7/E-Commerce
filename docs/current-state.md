@@ -1,8 +1,8 @@
 Current Phase:
-Phase 10-14 (Outbox/Admin/Observability/Docker/CI-CD) complete. Phase 15 (Notifications module +
-first Outbox consumer) also complete — in progress on a broader backlog covering the rest of the
-originally-empty modules, self-service Account UI, remaining admin gaps, Redis usage, CI image
-publish, and EndToEndTests (user asked for "all of it"; working through it phase by phase).
+Phase 10-16 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+UI). In progress on a broader backlog: remaining placeholder modules (Customers/Promotions/
+Shipping/Reviews), remaining admin gaps, Redis usage, CI image publish, EndToEndTests (user asked
+for "all of it"; working through it phase by phase, committing after each).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -93,15 +93,26 @@ Completed:
   New migrations: `AddOrderEmail` (OrderingDbContext), `InitialCreate` (NotificationsDbContext).
   Tests: 70 unit + 20 integration (2 new — proves both handlers actually write a `NotificationLog`
   row, not just that they're registered) + 29 architecture, all passing.
+- Phase 16: self-service Register/ForgotPassword/ResetPassword UI. `IIdentityService` gained
+  `GenerateEmailConfirmationTokenAsync`. `Notifications.Contracts.SendEmailCommand` (ADR-027) — a
+  *dispatchable* counterpart to Notifications' event-reactive handlers, for emails that must be
+  sent synchronously (a confirmation link has to exist before the response renders — no prior
+  event to react to). `AccountController` gained Register/ConfirmEmail/ForgotPassword/
+  ResetPassword actions + views, round-tripping Identity's tokens through
+  `WebEncoders.Base64UrlEncode`/`Decode` (they contain `+`/`/`/`=`, unsafe raw in a query string).
+  Tests: `tests/IntegrationTests/Identity/AccountFlowTests.cs` (2 new — register→login-fails-
+  until-confirmed→confirm→login-succeeds, and forgot-password→reset→old-password-fails/new-
+  password-succeeds). Verified live in-browser end to end: registered a real user, pulled the
+  actual confirmation link out of the `NotificationLog` row (no real email provider), followed it,
+  confirmed, logged in successfully.
+- All tests passing: 70 unit + 22 integration + 29 architecture.
 
 In Progress:
 - Working through the rest of the user's "do all 4" backlog (see Next, below) — Customers/
-  Promotions/Shipping/Reviews modules, self-service Account UI, admin gaps, Redis usage, CI image
-  publish, docker compose verification, admin-ecomus integration, EndToEndTests.
+  Promotions/Shipping/Reviews modules, admin gaps, Redis usage, CI image publish, docker compose
+  verification, admin-ecomus integration, EndToEndTests.
 
 Next:
-- No self-service Register/ForgotPassword UI — only Login/Logout exist; `IIdentityService`
-  already has the methods, just no controller actions/views.
 - Customers/Promotions/Shipping/Reviews modules still have no Domain/Application code —
   placeholders only (Notifications got real code in Phase 15).
 - Admin panel: no Brand/Category management UI (Product admin form omits BrandId/CategoryIds —
@@ -131,18 +142,19 @@ Important Files:
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
 - docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..026.
+- docs/decisions.md — ADR-001..027.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 6 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications). Phase 15 added `Order.Email` (new required column, migration
-`AddOrderEmail`) and the whole `notifications` schema (migration `InitialCreate` on
-`NotificationsDbContext`).
+Payments, Notifications) — unchanged since Phase 15; Phase 16 added no schema changes (Identity's
+tables already had everything `GenerateEmailConfirmationTokenAsync` needs).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-024 (CI on windows-latest to match IntegrationTests'
-real-LocalDB assumption), ADR-025 (`Order.Email` added — collected at checkout, threaded through
-`OrderPlacedIntegrationEvent`; `PaymentSucceededIntegrationEvent` looks it up via a dispatched
-`GetOrderContactInfoQuery` instead of duplicating it), ADR-026 (Notifications module — plain
-`NotificationLog`, `INotificationSender`/`FakeEmailSender` mirroring Payments' gateway pattern,
-first real Outbox consumer).
+See docs/decisions.md. Newest: ADR-025 (`Order.Email` added — collected at checkout, threaded
+through `OrderPlacedIntegrationEvent`; `PaymentSucceededIntegrationEvent` looks it up via a
+dispatched `GetOrderContactInfoQuery` instead of duplicating it), ADR-026 (Notifications module —
+plain `NotificationLog`, `INotificationSender`/`FakeEmailSender` mirroring Payments' gateway
+pattern, first real Outbox consumer), ADR-027 (`Notifications.Contracts.SendEmailCommand` — a
+dispatchable counterpart to Notifications' event-reactive handlers, for emails that must be sent
+synchronously; used by Identity's account-confirmation/password-reset links, which have no prior
+integration event to react to and no Outbox of their own to publish one through).

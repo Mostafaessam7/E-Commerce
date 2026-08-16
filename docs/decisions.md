@@ -387,8 +387,29 @@ never fire there since Store.Web doesn't process the Outbox).
 Reason: this is the first module whose entire reason to exist is reacting to other modules'
 integration events — Catalog/Inventory/Ordering/Payments all *publish* real business state
 changes; Notifications *consumes* them and produces a side effect (an email) with no state of its
-own that anything else needs to read. That asymmetry is why it has no `Notifications.Contracts`
-public surface yet: nothing consumes a "notification was sent" fact. `FakeEmailSender` mirrors
-`FakePaymentGateway`'s reasoning exactly — no real provider account exists, but the mechanism
-(interface → real `NotificationLog` write) is real, not stubbed out.
+own that anything else needs to read. That asymmetry is why it had no `Notifications.Contracts`
+public surface at first (see ADR-027, one phase later, for when it got one): nothing consumes a
+"notification was sent" fact. `FakeEmailSender` mirrors `FakePaymentGateway`'s reasoning exactly —
+no real provider account exists, but the mechanism (interface → real `NotificationLog` write) is
+real, not stubbed out.
 Status: Accepted (Phase 15).
+
+---
+**ADR-027**
+Decision: Notifications gained a *dispatchable* `SendEmailCommand` (`Notifications.Contracts`,
+ADR-014) alongside its event-*reactive* handlers (ADR-026) — any module's Application layer may
+send an email synchronously via the shared `IDispatcher`, not just react to a fact that already
+happened. First (and so far only) caller: `Store.Web.Controllers.AccountController` — a
+registration-confirmation or password-reset link has to exist *before the response renders*
+(there's no prior integration event to react to; "user registered" and "here is their
+confirmation link" are the same moment, not two separate facts).
+Reason: forcing every email through the event-reactive path would mean inventing a fake
+integration event just to trigger it (e.g. a `UserRegisteredIntegrationEvent` Identity would have
+to publish through an Outbox it doesn't have — `AppIdentityDbContext` derives ASP.NET Core
+Identity's own `IdentityDbContext`, not `AppDbContextBase`, so it has no
+`EnqueueOutboxMessage`/Outbox table at all, ADR-009). Adding Outbox support to a context that
+exists specifically to stay framework-owned would be a bigger structural change than the actual
+problem (send one email, now) calls for. A plain dispatched command is the same "ask the owner
+module to do it" pattern ADR-014 already established for reads and cross-module writes, just
+applied to "send an email" instead of "reserve stock" or "mark an order paid."
+Status: Accepted (Phase 16).

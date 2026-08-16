@@ -66,8 +66,23 @@
   dotnet user-secrets set "Identity:DefaultAdmin:Password" "<a-real-password>" --project src/Web/Store.Web
   ```
 
+## Self-service Register/ForgotPassword/ResetPassword (Phase 16)
+
+- `AccountController.Register`: calls `IIdentityService.RegisterAsync`, then
+  `GenerateEmailConfirmationTokenAsync` (new — Phase 16), builds a `ConfirmEmail` link, and
+  dispatches `Notifications.Contracts.SendEmailCommand` (ADR-014/027) to actually send it.
+  `RequireConfirmedEmail = true` (Phase 3 policy) means the account can't sign in until that link
+  is clicked — proven end-to-end by `tests/IntegrationTests/Identity/AccountFlowTests.cs` and live
+  in-browser (register → real confirmation link from the `NotificationLog` row → confirm → login).
+- `AccountController.ForgotPassword`/`ResetPassword`: same shape, using
+  `GeneratePasswordResetTokenAsync`/`ResetPasswordAsync`. `ForgotPassword` always renders the same
+  confirmation view regardless of whether the email exists — never reveals account existence
+  (`IIdentityService.GeneratePasswordResetTokenAsync`'s own doc comment already established this;
+  the controller just doesn't undo it).
+- Identity token gotcha: ASP.NET Core Identity's tokens contain `+`/`/`/`=` — unsafe raw in a
+  query string. `AccountController` round-trips every token through
+  `WebEncoders.Base64UrlEncode`/`Base64UrlDecode` before/after putting it in a URL.
+
 ## Not yet built
 
-Register/ForgotPassword/ResetPassword self-service UI, 2FA, social login — `IIdentityService`
-already has the methods (`RegisterAsync`/`GeneratePasswordResetTokenAsync`/`ResetPasswordAsync`),
-just no controller actions/views yet.
+2FA, social login.

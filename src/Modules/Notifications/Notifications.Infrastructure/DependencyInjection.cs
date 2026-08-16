@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Notifications.Application.Abstractions;
 using Notifications.Application.OrderConfirmation;
 using Notifications.Application.PaymentReceipt;
+using Notifications.Application.SendEmail;
+using Notifications.Contracts;
 using Notifications.Infrastructure.Persistence;
 using Notifications.Infrastructure.Repositories;
 using Ordering.Contracts;
@@ -34,6 +36,9 @@ public static class DependencyInjection
         // EventBus.InProcessEventBus, resolved from DI, never called directly.
         services.AddScoped<IIntegrationEventHandler<OrderPlacedIntegrationEvent>, OrderPlacedNotificationHandler>();
         services.AddScoped<IIntegrationEventHandler<PaymentSucceededIntegrationEvent>, PaymentSucceededNotificationHandler>();
+
+        // Dispatchable (ADR-014) counterpart — see SendEmailCommand's doc comment.
+        services.AddScoped<IRequestHandler<SendEmailCommand, Unit>, SendEmailCommandHandler>();
 
         return services;
     }
