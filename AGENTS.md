@@ -47,6 +47,11 @@ tests/{UnitTests,IntegrationTests,ArchitectureTests,EndToEndTests}
 - Need a synchronous cross-module read/write (not "eventually", *right now*)? That's ADR-014:
   define the command/query in the target module's `*.Contracts`, dispatch it via the shared
   `IDispatcher` — never reference another module's Application/Domain/Infrastructure directly.
+  Works in both directions (Ordering→Catalog/Inventory, Payments→Ordering — ADR-018).
+- Running the full `IntegrationTests` suite and seeing an unrelated spurious
+  `DbUpdateConcurrencyException`? Check `tests/IntegrationTests/xunit.runner.json` exists and is
+  copied to output — those tests share one real DB and must run sequentially, not in parallel
+  (ADR-019).
 
 Module details (responsibility/owns/contracts/deps): `docs/modules.md`.
 

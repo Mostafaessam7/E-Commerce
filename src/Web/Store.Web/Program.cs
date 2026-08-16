@@ -4,6 +4,7 @@ using Infrastructure;
 using Inventory.Infrastructure;
 using Messaging;
 using Ordering.Infrastructure;
+using Payments.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Observability;
 using Security;
@@ -19,6 +20,7 @@ builder.Services.AddSharedInfrastructure();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddMessagingCore();
+builder.Services.AddHttpClient();
 
 // --- Module composition root ---
 // Every module owns its own `Add{Module}Module(IServiceCollection, IConfiguration)` extension
@@ -29,7 +31,7 @@ builder.Services.AddMessagingCore();
 builder.Services.AddCatalogModule(builder.Configuration);
 builder.Services.AddInventoryModule(builder.Configuration);
 builder.Services.AddOrderingModule(builder.Configuration);
-// builder.Services.AddPaymentsModule(builder.Configuration);
+builder.Services.AddPaymentsModule(builder.Configuration);
 // builder.Services.AddCustomersModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration);
 // builder.Services.AddPromotionsModule(builder.Configuration);

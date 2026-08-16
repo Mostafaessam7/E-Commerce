@@ -189,3 +189,51 @@ a real requirement (per-category rates? per-region?) that hasn't been given
 yet — a flat constant is honest about being a placeholder and easy to find/
 replace later, versus building a rate-lookup abstraction speculatively.
 Status: Accepted (Phase 7/8) — revisit if/when tax rules are specified.
+
+---
+**ADR-017**
+Decision: Payments has no real payment provider integration — `FakePaymentGateway`
+is a same-process fake behind `IPaymentGateway`, but it exercises the *real*
+mechanics Section 9 asks for (HMAC-SHA256 signed webhook payloads, real
+signature verification, idempotent processing via a `ProcessedWebhookEvent`
+ledger) rather than short-circuiting them. A "Simulate payment" button in
+Store.Web signs a payload with `IWebhookSimulator` and POSTs it through the
+real `/api/webhooks/payments/{provider}` endpoint — the same code path a real
+provider's callback would hit.
+Reason: no Stripe/Paymob/Checkout.com account exists for this project. Faking
+the whole flow (e.g. directly flipping PaymentStatus from a button) would
+leave Section 9's actual requirements — signature verification, duplicate/
+out-of-order webhook handling — untested and effectively unbuilt. Building the
+real mechanism against a fake provider means swapping in a real one later is
+adding one class, not retrofitting the webhook path.
+Status: Accepted (Phase 9).
+
+---
+**ADR-018**
+Decision: `MarkOrderAsPaidCommand` (`Ordering.Contracts`) is dispatched by
+`Payments.Application`'s webhook handler — the reverse direction of ADR-014
+(Ordering calling Catalog/Inventory at checkout; here Payments calls
+Ordering). Same rule applies: only through the target module's `*.Contracts`
+command via the shared `IDispatcher`, never a direct reference.
+Reason: a successful payment must update the Order's PaymentStatus
+immediately (the confirmation page reads it right after), which rules out an
+async integration event — same reasoning as ADR-014, just the other way round
+between two different module pairs. Confirms ADR-014's pattern generalizes
+symmetrically rather than only working in one direction.
+Status: Accepted (Phase 9).
+
+---
+**ADR-019**
+Decision: `tests/IntegrationTests` disables xUnit's default test-class
+parallelization (`xunit.runner.json`: `parallelizeAssembly`/
+`parallelizeTestCollections: false`).
+Reason: these tests share one real, mutable LocalDB database (docs/testing.md).
+Running test classes in parallel produced a real, reproducible failure —
+`PaymentWebhookTests` and other classes executing concurrently caused a
+spurious `DbUpdateConcurrencyException` in an unrelated test's
+`PlaceOrderCommandHandler` call, purely from parallel execution against
+shared state, not a code bug (isolated re-runs of the same test always
+passed). Sequential execution is the correct default for integration tests
+against one shared external resource — parallelism there buys speed at the
+cost of exactly this class of flakiness.
+Status: Accepted (Phase 9).

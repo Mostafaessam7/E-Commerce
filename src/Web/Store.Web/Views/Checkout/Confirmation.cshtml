@@ -38,6 +38,20 @@
             <span class="badge bg-secondary">Payment: @Model.PaymentStatus</span>
         </div>
 
-        @* Payment isn't wired yet (Phase 9) — the order sits at PaymentStatus=Pending until then. *@
+        @if (TempData["PaymentError"] is string paymentError)
+        {
+            <div class="alert alert-danger mt-3">@paymentError</div>
+        }
+
+        @if (Model.PaymentStatus == "Pending")
+        {
+            <form method="post" asp-controller="Payments" asp-action="Pay" class="mt-4 text-center">
+                <input type="hidden" name="orderId" value="@Model.Id" />
+                @* No real payment provider is wired up — this drives the real webhook endpoint
+                   with a self-signed simulated payload rather than skipping it (see
+                   PaymentsController's doc comment / docs/decisions.md ADR on Payments). *@
+                <button type="submit" class="tf-btn btn-fill radius-3">Pay now (simulated)<i class="icon icon-arrow1-top-left"></i></button>
+            </form>
+        }
     </div>
 </section>

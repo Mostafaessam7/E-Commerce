@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Ordering.Application.Abstractions;
 using Ordering.Application.Carts;
 using Ordering.Application.Checkout;
+using Ordering.Contracts;
 using Ordering.Infrastructure.Persistence;
 using Ordering.Infrastructure.Repositories;
 using Persistence.Interceptors;
@@ -38,6 +39,7 @@ public static class DependencyInjection
 
         services.AddScoped<IRequestHandler<PlaceOrderCommand, Guid>, PlaceOrderCommandHandler>();
         services.AddScoped<IRequestHandler<GetOrderQuery, OrderDto>, GetOrderQueryHandler>();
+        services.AddScoped<IRequestHandler<MarkOrderAsPaidCommand, Unit>, MarkOrderAsPaidCommandHandler>();
 
         return services;
     }

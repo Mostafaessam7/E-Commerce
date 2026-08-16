@@ -29,6 +29,22 @@
 - Password policy: 8+ chars, no non-alphanumeric requirement, unique email required, email
   confirmation required to sign in, lockout after 5 failed attempts (15 min).
 
+## Payment webhook security (Phase 9)
+
+- `POST /api/webhooks/payments/{provider}` (`WebhooksController`) verifies an HMAC-SHA256
+  signature (`X-Payment-Signature` header) over the raw request body before touching anything,
+  using `CryptographicOperations.FixedTimeEquals` (not `==`) to avoid a timing side-channel on the
+  comparison. An invalid signature returns 401 and nothing else runs.
+- The signing secret (`Payments:WebhookSecret` in config) is a **dev-only fake value** — real
+  webhook secrets from an actual provider (Stripe/Paymob/etc.) would need to move to a proper
+  secret store (User Secrets locally, Key Vault/env var in production), not `appsettings.json`, the
+  moment a real `IPaymentGateway` implementation replaces `FakePaymentGateway` (ADR-017).
+- Idempotency: `ProcessedWebhookEvent` ledger (unique index on Provider+ProviderEventId) rejects
+  reprocessing a duplicate delivery *before* any domain state changes — webhook providers retry on
+  timeout, so a handler that isn't idempotent will double-apply a payment. `PaymentTransaction`'s
+  guarded transitions (`MarkSucceeded`/`MarkFailed` no-op with a `Result.Failure` once already
+  resolved) are defense-in-depth on top of the ledger, not a replacement for it.
+
 ## Not yet built
 
 Register/Login/ForgotPassword/ResetPassword UI + controllers (Account controller), 2FA, social

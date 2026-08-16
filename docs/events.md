@@ -37,9 +37,23 @@ through `IEventBus`, marking `ProcessedAtUtc`. At-least-once delivery:
 yet (Payments/Notifications aren't built) and no processor yet (Phase 10) — the row just sits in
 `ordering.OutboxMessages` until then.
 
+## Second real implementation: `PaymentSucceededIntegrationEvent`
+
+`Payments.Contracts.PaymentSucceededIntegrationEvent`, enqueued via `IPaymentsUnitOfWork.EnqueueIntegrationEvent(...)`
+inside `ProcessWebhookCommand`'s handler, same transaction as the `PaymentTransaction` state
+change. No consumer yet (Notifications isn't built) — sits in `payments.OutboxMessages` until
+Phase 10's processor exists. Note this event does **not** update Order state — see below.
+
 ## Cross-module *synchronous* calls are not this
 
 Domain/Integration events are for "tell other modules something happened, eventually". Checkout
 needs "is this true *right now*" (current price, current stock) — that's ADR-014's dispatched
 Contracts commands/queries via `IDispatcher`, a different mechanism entirely. Don't reach for an
 integration event when what's actually needed is a synchronous cross-module read/write.
+
+`ProcessWebhookCommand` is the second real example, and runs the *opposite* direction from
+checkout's: Payments dispatches `Ordering.Contracts.MarkOrderAsPaidCommand` synchronously (the
+confirmation page needs `PaymentStatus` to be current immediately, not eventually) — see ADR-018.
+The `PaymentSucceededIntegrationEvent` enqueued in the same handler is a separate, independent
+signal for whichever future consumer wants "a payment succeeded" (e.g. Notifications), not the
+mechanism that updates the Order.

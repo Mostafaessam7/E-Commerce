@@ -6,6 +6,7 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\Security\Security.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\Messaging\Messaging.csproj" />
+    <ProjectReference Include="..\..\Ordering\Ordering.Contracts\Ordering.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

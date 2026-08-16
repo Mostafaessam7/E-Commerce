@@ -46,11 +46,26 @@ usage exists yet — add rows here the moment one does).
   Merge/GetCart) and `Ordering.Application.Checkout` (`PlaceOrderCommand`, `GetOrderQuery`).
 
 ## Payments
-- Responsibility: payment gateway abstraction, transactions, refunds, webhooks.
-- Owns: PaymentTransaction, RefundTransaction.
-- Does not own: Order state (reacts to it via integration events).
-- Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Responsibility: payment gateway abstraction, transactions, refunds, webhooks (Section 9).
+- Owns: `PaymentTransaction` (aggregate root — Initialize/MarkSucceeded/MarkFailed/Refund, each a
+  guarded transition), `RefundTransaction` (child, supports partial refunds).
+- Does not own: Order state — reacts to it via a *synchronous* cross-module call (ADR-014,
+  reverse direction: dispatches `Ordering.Contracts.MarkOrderAsPaidCommand` once a webhook
+  confirms success), not an integration event (too slow/eventual for "the payment page needs to
+  know right now").
+- `IPaymentGateway` abstraction (Section 9's explicit requirement) — `FakePaymentGateway` is the
+  only implementation (no real provider account exists), but it exercises the real mechanics: a
+  signed webhook payload (HMAC-SHA256), real signature verification, idempotent processing (a
+  `ProcessedWebhookEvent` ledger dedupes by provider event id). Swapping in a real provider means
+  adding one new class, not touching Application/Domain or any other module.
+- Public contracts: `PaymentSucceededIntegrationEvent` (`Payments.Contracts`), enqueued via the
+  Outbox — no consumer yet.
+- Dependencies: BuildingBlocks + **Ordering.Contracts** (for `MarkOrderAsPaidCommand`). DB schema:
+  `payments`.
+- Application: `Payments.Application.Payments` — `InitializePaymentCommand`,
+  `ProcessWebhookCommand` (signature verify → idempotency check → guarded domain transition →
+  dispatch `MarkOrderAsPaidCommand` → enqueue integration event, one transaction),
+  `RefundPaymentCommand`, `GetPaymentQuery`.
 
 ## Customers
 - Responsibility: customer profile, addresses (distinct from Identity's auth concern).
