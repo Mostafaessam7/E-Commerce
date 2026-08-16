@@ -1,0 +1,79 @@
+@model ProductSearchResultDto
+@{
+    ViewData["Title"] = "Shop";
+    var totalPages = Model.PageSize == 0 ? 0 : (int)Math.Ceiling(Model.TotalCount / (double)Model.PageSize);
+}
+
+<section class="flat-spacing">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                <form method="get" asp-controller="Shop" asp-action="Index" class="widget-facet mb-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-6">Search</label>
+                        <input type="text" name="q" value="@Context.Request.Query["q"]" class="form-control" placeholder="Search products..." />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-6">Min price</label>
+                        <input type="number" name="minPrice" value="@Context.Request.Query["minPrice"]" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-6">Max price</label>
+                        <input type="number" name="maxPrice" value="@Context.Request.Query["maxPrice"]" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-6">Sort by</label>
+                        <select name="sort" class="form-select">
+                            @foreach (var option in Enum.GetValues<ProductSortOrder>())
+                            {
+                                <option value="@option" selected="@(Context.Request.Query["sort"] == option.ToString())">@option</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="tf-btn btn-fill radius-3 w-100">Apply filters</button>
+                </form>
+            </div>
+
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">@Model.TotalCount product(s) found</span>
+                </div>
+
+                @if (Model.Items.Count == 0)
+                {
+                    <div class="text-center py-5">
+                        <p class="text-muted">No products match these filters yet.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="tf-grid-layout tf-col-2 md-col-3">
+                        @foreach (var product in Model.Items)
+                        {
+                            <partial name="_ProductCard" model="product" />
+                        }
+                    </div>
+
+                    @if (totalPages > 1)
+                    {
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                @for (var p = 1; p <= totalPages; p++)
+                                {
+                                    <li class="page-item @(p == Model.Page ? "active" : "")">
+                                        <a class="page-link" asp-controller="Shop" asp-action="Index"
+                                           asp-route-q="@Context.Request.Query["q"]"
+                                           asp-route-minPrice="@Context.Request.Query["minPrice"]"
+                                           asp-route-maxPrice="@Context.Request.Query["maxPrice"]"
+                                           asp-route-sort="@Context.Request.Query["sort"]"
+                                           asp-route-page="@p">@p</a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</section>

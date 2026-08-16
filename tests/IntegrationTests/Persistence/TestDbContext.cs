@@ -47,5 +47,7 @@ public sealed class TestDbContext : AppDbContextBase
 
     public DbSet<TestAggregate> Aggregates => Set<TestAggregate>();
 
+    protected override string SchemaName => "test";
+
     public void PublishForTest(IIntegrationEvent integrationEvent) => EnqueueOutboxMessage(integrationEvent);
 }

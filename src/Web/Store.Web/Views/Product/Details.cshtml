@@ -1,0 +1,95 @@
+@model ProductDetailsDto
+@{
+    ViewData["Title"] = Model.MetaTitle ?? Model.Name;
+    ViewData["Description"] = Model.MetaDescription ?? Model.ShortDescription;
+    var primaryImage = Model.Images.FirstOrDefault(i => i.IsPrimary) ?? Model.Images.FirstOrDefault();
+    var cheapestVariant = Model.Variants.OrderBy(v => v.SalePrice ?? v.Price).FirstOrDefault();
+}
+
+<section class="flat-spacing">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="tf-product-media-main">
+                    <img class="lazyload w-100" src="@(primaryImage?.Url ?? "/ecomus/images/products/white-1.jpg")" alt="@Model.Name" />
+                </div>
+                @if (Model.Images.Count > 1)
+                {
+                    <div class="d-flex gap-2 mt-3">
+                        @foreach (var image in Model.Images)
+                        {
+                            <img class="lazyload" style="width:80px;height:80px;object-fit:cover" src="@image.Url" alt="@image.AltText" />
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-6">
+                <div class="tf-product-info-wrap">
+                    <h1 class="fs-28 fw-6">@Model.Name</h1>
+
+                    @if (cheapestVariant is not null)
+                    {
+                        <div class="price mt-2 fs-22">
+                            @if (cheapestVariant.SalePrice is decimal sale)
+                            {
+                                <span class="new-price fw-6">@sale.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</span>
+                                <span class="old-price text-decoration-line-through text-muted ms-2">@cheapestVariant.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</span>
+                            }
+                            else
+                            {
+                                <span class="fw-6">@cheapestVariant.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</span>
+                            }
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ShortDescription))
+                    {
+                        <p class="mt-3 text-muted">@Model.ShortDescription</p>
+                    }
+
+                    @if (Model.Variants.Count > 1)
+                    {
+                        <div class="mt-4">
+                            <label class="form-label fw-6">Variant</label>
+                            <select class="form-select" style="max-width:320px">
+                                @foreach (var variant in Model.Variants)
+                                {
+                                    <option value="@variant.Id">@variant.Sku — @variant.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</option>
+                                }
+                            </select>
+                        </div>
+                    }
+
+                    @* Add-to-cart is Phase 7 (Cart module doesn't exist yet) — placeholder button only. *@
+                    <button class="tf-btn btn-fill radius-3 mt-4" disabled title="Cart is not available yet (Phase 7)">
+                        Add to cart<i class="icon icon-bag"></i>
+                    </button>
+
+                    @if (Model.Tags.Count > 0)
+                    {
+                        <div class="mt-4 d-flex gap-2 flex-wrap">
+                            @foreach (var tag in Model.Tags)
+                            {
+                                <span class="badge bg-light text-dark border">@tag</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <div class="row mt-5">
+                <div class="col-12">
+                    <h5>Description</h5>
+                    @* Plain-text encoded output, not Html.Raw: descriptions aren't sanitized rich
+                       text yet. Revisit with an HTML sanitizer (e.g. HtmlSanitizer) if/when the
+                       admin panel starts accepting formatted HTML for this field. *@
+                    <div class="mt-2">@Model.Description</div>
+                </div>
+            </div>
+        }
+    </div>
+</section>

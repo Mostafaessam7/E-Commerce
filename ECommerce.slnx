@@ -3,6 +3,7 @@
   <Folder Name="/src/BuildingBlocks/">
     <Project Path="src/BuildingBlocks/EventBus/EventBus.csproj" />
     <Project Path="src/BuildingBlocks/Infrastructure/Infrastructure.csproj" />
+    <Project Path="src/BuildingBlocks/Messaging/Messaging.csproj" />
     <Project Path="src/BuildingBlocks/Observability/Observability.csproj" />
     <Project Path="src/BuildingBlocks/Persistence/Persistence.csproj" />
     <Project Path="src/BuildingBlocks/Security/Security.csproj" />

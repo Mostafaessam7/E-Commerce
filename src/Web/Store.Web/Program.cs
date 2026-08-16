@@ -1,5 +1,8 @@
+using Catalog.Infrastructure;
 using Identity.Infrastructure;
 using Infrastructure;
+using Inventory.Infrastructure;
+using Messaging;
 using Microsoft.AspNetCore.Builder;
 using Observability;
 using Security;
@@ -14,6 +17,7 @@ builder.Services.AddSharedInfrastructure();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddMessagingCore();
 
 // --- Module composition root ---
 // Every module owns its own `Add{Module}Module(IServiceCollection, IConfiguration)` extension
@@ -21,8 +25,8 @@ builder.Services.AddProblemDetails();
 // docs/module-composition.md for why this beats a reflection-discovered IModule abstraction).
 // Calls are added here as each module gets real services, starting Phase 4 (Catalog):
 //
-// builder.Services.AddCatalogModule(builder.Configuration);
-// builder.Services.AddInventoryModule(builder.Configuration);
+builder.Services.AddCatalogModule(builder.Configuration);
+builder.Services.AddInventoryModule(builder.Configuration);
 // builder.Services.AddOrderingModule(builder.Configuration);
 // builder.Services.AddPaymentsModule(builder.Configuration);
 // builder.Services.AddCustomersModule(builder.Configuration);

@@ -17,7 +17,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <!-- Microsoft.Extensions.Hosting.Abstractions (for IHostedService) comes from the
+         Microsoft.AspNetCore.App FrameworkReference above once this project is consumed by
+         Store.Web — no separate PackageReference needed. -->
   </ItemGroup>
 
   <PropertyGroup>

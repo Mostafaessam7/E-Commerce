@@ -1,0 +1,19 @@
+@* Standard Bootstrap 5 offcanvas (bootstrap.min.js is already loaded) rather than the template's
+   own bespoke canvas-menu markup/JS — same nav content, far less markup to maintain, and it's
+   already wired to the header's data-bs-toggle="offcanvas" trigger. *@
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+    <div class="offcanvas-header">
+        <a asp-controller="Home" asp-action="Index" class="logo-header">
+            <img src="~/ecomus/images/logo/logo.svg" alt="logo" class="logo" style="height:28px">
+        </a>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <ul class="navbar-nav gap-2 fs-16">
+            <li class="nav-item"><a asp-controller="Home" asp-action="Index" class="nav-link">Home</a></li>
+            <li class="nav-item"><a asp-controller="Shop" asp-action="Index" class="nav-link">Shop</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">About</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">Contact</a></li>
+        </ul>
+    </div>
+</div>

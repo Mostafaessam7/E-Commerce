@@ -22,6 +22,10 @@ public sealed class AppIdentityDbContext : IdentityDbContext<ApplicationUser, Ap
     {
         base.OnModelCreating(builder);
 
+        // Own schema for the same reason AppDbContextBase gives every other module one — all
+        // modules currently share one physical database (docs/database.md).
+        builder.HasDefaultSchema("identity");
+
         builder.Entity<ApplicationUser>().ToTable("Users");
         builder.Entity<ApplicationRole>().ToTable("Roles");
     }

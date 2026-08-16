@@ -13,7 +13,14 @@ namespace Persistence;
 /// is wired separately via <c>AuditingInterceptor</c> (registered in DbContextOptions, not
 /// inheritance) so it also applies to contexts that can't derive from this base — namely
 /// <c>AppIdentityDbContext</c>, which must derive from ASP.NET Core Identity's
-/// <c>IdentityDbContext</c> instead.
+/// <c>IdentityDbContext</c> instead (and sets its own schema directly — see that class).
+///
+/// All modules currently share one physical database/connection string (see docs/database.md) —
+/// nothing stops two modules mapping a same-named table (every module gets an "OutboxMessages"
+/// table from this base alone) into the same default "dbo" schema and colliding. Each module gets
+/// its own SQL schema via <see cref="SchemaName"/> so table names only need to be unique within a
+/// module, matching "one DbContext per module" being a real logical boundary and not just a C#
+/// convenience.
 /// </summary>
 public abstract class AppDbContextBase : DbContext
 {
@@ -24,13 +31,18 @@ public abstract class AppDbContextBase : DbContext
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    /// <summary>The SQL schema this module's tables live in, e.g. "catalog", "inventory".</summary>
+    protected abstract string SchemaName { get; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.HasDefaultSchema(SchemaName);
         modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
         modelBuilder.ApplySoftDeleteQueryFilter();
+        modelBuilder.MarkDomainAssignedGuidKeysAsNeverGenerated();
     }
 
     /// <summary>

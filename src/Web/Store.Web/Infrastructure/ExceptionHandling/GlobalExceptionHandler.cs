@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Observability;
 using SharedKernel.Exceptions;
 
@@ -16,16 +17,11 @@ namespace Store.Web.Infrastructure.ExceptionHandling;
 public sealed class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
-    private readonly ICorrelationIdProvider _correlationIdProvider;
     private readonly IHostEnvironment _environment;
 
-    public GlobalExceptionHandler(
-        ILogger<GlobalExceptionHandler> logger,
-        ICorrelationIdProvider correlationIdProvider,
-        IHostEnvironment environment)
+    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger, IHostEnvironment environment)
     {
         _logger = logger;
-        _correlationIdProvider = correlationIdProvider;
         _environment = environment;
     }
 
@@ -44,7 +40,11 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
             return false;
         }
 
-        var correlationId = _correlationIdProvider.CorrelationId;
+        // Resolved from the request's own scoped container, not the constructor — this handler
+        // is registered Singleton (AddExceptionHandler<T>'s default), and ICorrelationIdProvider
+        // is Scoped; injecting it directly fails DI validation at startup
+        // ("Cannot consume scoped service ... from singleton").
+        var correlationId = httpContext.RequestServices.GetRequiredService<ICorrelationIdProvider>().CorrelationId;
         var statusCode = HttpStatusCodeMapper.FromException(exception);
 
         using (_logger.BeginScope(new Dictionary<string, object>

@@ -70,6 +70,7 @@
     <ProjectReference Include="..\..\src\Web\Store.Web\Store.Web.csproj" />
     <ProjectReference Include="..\..\src\Workers\Store.Worker\Store.Worker.csproj" />
     <ProjectReference Include="..\..\src\BuildingBlocks\Persistence\Persistence.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Messaging\Messaging.csproj" />
   </ItemGroup>
 
 </Project>

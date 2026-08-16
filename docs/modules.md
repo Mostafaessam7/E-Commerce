@@ -5,18 +5,26 @@ All modules currently depend only on BuildingBlocks (no cross-module Contracts
 usage exists yet — add rows here the moment one does).
 
 ## Catalog
-- Responsibility: products, categories, brands, attributes/variants, search input.
-- Owns: Product, Category, Brand, Attribute, ProductVariant aggregates.
-- Does not own: stock levels (Inventory), pricing promotions (Promotions).
-- Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Responsibility: products, categories, brands, attributes/variants, search/listing.
+- Owns: `Product` (aggregate root — variants, images, SEO, tags, related/cross-sell/upsell ids),
+  `Category` (nested via ParentId), `Brand`, `ProductAttribute`/`AttributeValue`.
+- Does not own: stock levels (Inventory — variants are referenced by Guid only), pricing
+  promotions (Promotions).
+- Public contracts: none yet (no cross-module consumer exists).
+- Dependencies: BuildingBlocks only. DB schema: `catalog`.
+- Application: `CreateProductCommand`, `GetProductBySlugQuery`, `SearchProductsQuery`
+  (`Catalog.Application.Products`).
 
 ## Inventory
 - Responsibility: stock quantity, reservations, prevents overselling.
-- Owns: StockItem, StockReservation, StockTransaction.
+- Owns: `StockItem` (aggregate root, keyed by `ProductVariantId` — a plain Guid, no FK/navigation
+  into Catalog), `StockTransaction` (append-only history child entity).
 - Does not own: product catalog data.
 - Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Dependencies: BuildingBlocks only. DB schema: `inventory`.
+- Application: `ReserveStockCommand`, `ReleaseStockCommand`, `GetStockQuery`
+  (`Inventory.Application.Stock`). Concurrency conflicts surface as
+  `SharedKernel.Exceptions.ConflictException` (HTTP 409), not a raw EF exception.
 
 ## Ordering
 - Responsibility: cart → checkout → order lifecycle, order aggregate.

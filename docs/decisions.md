@@ -88,3 +88,54 @@ dependency-free (same rule as every other module). Auth flows here are
 inherently an infrastructure concern (UserManager owns the actual rules), so
 Identity.Domain is intentionally near-empty for now.
 Status: Accepted (Phase 3).
+
+---
+**ADR-010**
+Decision: Added a 7th BuildingBlock, `Messaging` — minimal in-house CQRS
+dispatcher (`IRequest<T>`/`ICommand<T>`/`IQuery<T>`/`IRequestHandler<T,R>`/
+`IDispatcher`). Referenced by `*.Application` only. Handlers registered
+explicitly per module (`services.AddScoped<IRequestHandler<Cmd,R>, Handler>()`),
+no assembly scanning — consistent with ADR-003/004.
+Reason: ADR-004 flagged this as "add when the first CQRS handler needs it" —
+Catalog's `CreateProductCommand`/`GetProductBySlugQuery` were that trigger.
+Status: Accepted (Phase 4).
+
+---
+**ADR-011**
+Decision: Every module's DbContext gets its own SQL schema
+(`AppDbContextBase.SchemaName`, or a direct `HasDefaultSchema(...)` call for
+contexts that can't derive from it, like `AppIdentityDbContext`).
+Reason: All modules share one physical database/connection string; without
+per-module schemas, same-named tables across modules collide in the default
+`dbo` schema — hit for real when Inventory's `OutboxMessages` table (every
+`AppDbContextBase`-derived context gets one) collided with Catalog's.
+Status: Accepted (Phase 6). See docs/database.md.
+
+---
+**ADR-012**
+Decision: Every entity's `Guid Id` (assigned client-side via `Guid.NewGuid()`
+in the constructor, which is 100% of entities in this codebase) is mapped
+`ValueGenerated.Never`, applied automatically for every module via
+`AppDbContextBase.OnModelCreating` → `MarkDomainAssignedGuidKeysAsNeverGenerated()`.
+Reason: left at EF Core's default (`ValueGeneratedOnAdd` by convention for
+Guid keys), a *new* child entity added to an *already-tracked* (loaded, not
+just-constructed) parent's collection gets misclassified as `Modified` instead
+of `Added` — EF's heuristic assumes a non-default key on a newly-discovered
+entity means it already exists. Reproduced for real: `StockItem.Reserve()`
+adding a new `StockTransaction` to a loaded `StockItem` generated an UPDATE
+instead of an INSERT, failing with a spurious concurrency exception on the
+very first save (no actual concurrent writer). This is systemic — it would
+eventually bite any module doing the same "load aggregate, then add a new
+child" pattern — so the fix is applied once, for every entity, at the base.
+Status: Accepted (Phase 6). See docs/database.md.
+
+---
+**ADR-013**
+Decision: `SharedKernel.ValueObjects.ValueObject` does not overload `==`/`!=`.
+Reason: comparing a value-converted EF property (e.g. `Product.Slug`) against
+a same-type instance via `==` must produce an `Expression.Equal` node for EF
+Core to translate the comparison to SQL (applying the converter to both
+sides); a custom `==` operator compiles to a method call instead, which EF
+cannot translate and throws "could not be translated". `.Equals(...)` is
+unaffected and remains the way to compare value objects in C# code.
+Status: Accepted (Phase 4).
