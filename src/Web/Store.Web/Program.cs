@@ -1,3 +1,4 @@
+using System.Globalization;
 using Catalog.Infrastructure.Persistence;
 using Catalog.Infrastructure;
 using Identity.Infrastructure.Persistence;
@@ -12,6 +13,7 @@ using Ordering.Infrastructure.Persistence;
 using Ordering.Infrastructure;
 using Payments.Infrastructure.Persistence;
 using Payments.Infrastructure;
+using Persistence;
 using Security;
 using Serilog;
 using Serilog.Events;
@@ -23,7 +25,7 @@ using Store.Web.Infrastructure.Observability;
 // gets logged somewhere instead of disappearing — replaced by the fully-configured logger once
 // `builder.Host.UseSerilog(...)` runs below.
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
     .CreateBootstrapLogger();
 
 try
@@ -35,12 +37,15 @@ try
         .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
         .Enrich.FromLogContext()
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+        .WriteTo.Console(
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+            formatProvider: CultureInfo.InvariantCulture)
         .WriteTo.File(
             "logs/store-web-.log",
             rollingInterval: RollingInterval.Day,
             retainedFileCountLimit: 14,
-            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+            formatProvider: CultureInfo.InvariantCulture));
 
     // --- Cross-cutting building blocks (Phase 1 foundation) ---
     builder.Services.AddObservabilityCore();
@@ -82,6 +87,19 @@ try
     builder.Services.AddControllersWithViews();
 
     var app = builder.Build();
+
+    // Opt-in only (Docker Compose sets this; local `dotnet run` against LocalDB never does — see
+    // docs/deployment.md) — `dotnet ef database update` per context is still the normal dev
+    // workflow (docs/database.md).
+    if (app.Configuration.GetValue<bool>("ApplyMigrationsOnStartup"))
+    {
+        var migrationLogger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Migrations");
+        await app.Services.MigrateWithRetryAsync<CatalogDbContext>(migrationLogger);
+        await app.Services.MigrateWithRetryAsync<InventoryDbContext>(migrationLogger);
+        await app.Services.MigrateWithRetryAsync<OrderingDbContext>(migrationLogger);
+        await app.Services.MigrateWithRetryAsync<PaymentsDbContext>(migrationLogger);
+        await app.Services.MigrateWithRetryAsync<AppIdentityDbContext>(migrationLogger);
+    }
 
     // First in the pipeline so every log line for this request — including ones from middleware
     // that runs before routing/auth — carries the same correlation id.

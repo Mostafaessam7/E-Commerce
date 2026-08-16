@@ -1,0 +1,28 @@
+# Keep the Docker build context small and fast — see src/Web/Store.Web/Dockerfile's comment for
+# why the context is the whole repo root in the first place (Central Package Management).
+
+# Build output (restored fresh inside the image)
+**/bin/
+**/obj/
+
+# Never needed inside an image: no test project is referenced by Store.Web/Store.Worker, so
+# `dotnet restore <single csproj>` never touches tests/ — safe to exclude from context entirely.
+tests/
+
+# Raw ThemeForest template source (175MB+) — only the curated subset already committed under
+# src/Web/Store.Web/wwwroot/ecomus is actually served at runtime (see docs/decisions.md, Phase 5).
+ecomus-package/
+Mecodex-Brand-Assets/
+
+# Not needed at build/runtime
+docs/
+.git/
+.claude/
+.vs/
+.vscode/
+.idea/
+*.user
+logs/
+.env
+.env.*
+!.env.example

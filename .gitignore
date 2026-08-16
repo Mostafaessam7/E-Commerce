@@ -27,6 +27,7 @@ coverage/
 *.key
 .env
 .env.*
+!.env.example
 
 ## Logs
 *.log

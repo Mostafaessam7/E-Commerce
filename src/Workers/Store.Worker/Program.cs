@@ -1,3 +1,4 @@
+using System.Globalization;
 using EventBus;
 using Infrastructure;
 using Messaging;
@@ -6,6 +7,7 @@ using Ordering.Infrastructure;
 using Ordering.Infrastructure.Persistence;
 using Payments.Infrastructure;
 using Payments.Infrastructure.Persistence;
+using Persistence;
 using Persistence.Outbox;
 using Security;
 using Serilog;
@@ -13,7 +15,7 @@ using Serilog.Events;
 using Store.Worker;
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
     .CreateBootstrapLogger();
 
 try
@@ -24,12 +26,15 @@ try
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
         .Enrich.FromLogContext()
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+        .WriteTo.Console(
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+            formatProvider: CultureInfo.InvariantCulture)
         .WriteTo.File(
             "logs/store-worker-.log",
             rollingInterval: RollingInterval.Day,
             retainedFileCountLimit: 14,
-            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"));
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}",
+            formatProvider: CultureInfo.InvariantCulture));
 
     // Same cross-cutting building blocks Store.Web registers — module Application/Infrastructure
     // code (IDateTimeProvider, IDispatcher for ADR-014/018 cross-module calls, ICurrentUser for
@@ -60,6 +65,18 @@ try
     builder.Services.AddSingleton<IHealthCheckPublisher, LoggingHealthCheckPublisher>();
 
     var host = builder.Build();
+
+    // Opt-in only (Docker Compose sets this) — see Store.Web/Program.cs's identical block and
+    // Persistence.MigrationExtensions's doc comment. Safe to run alongside Store.Web's own
+    // migration of these same two contexts (docker-compose.yml has this service depend on
+    // store-web being up first, but this doesn't assume that ordering held).
+    if (builder.Configuration.GetValue<bool>("ApplyMigrationsOnStartup"))
+    {
+        var migrationLogger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Migrations");
+        await host.Services.MigrateWithRetryAsync<OrderingDbContext>(migrationLogger);
+        await host.Services.MigrateWithRetryAsync<PaymentsDbContext>(migrationLogger);
+    }
+
     host.Run();
 }
 catch (Exception ex)

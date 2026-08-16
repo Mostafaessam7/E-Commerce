@@ -309,3 +309,29 @@ a custom health check: "is the DB reachable" is genuinely all that's needed at t
 failing check already means "look at the logs", not something a fancier per-table check would
 add information to.
 Status: Accepted (Phase 12).
+
+---
+**ADR-023**
+Decision: `docker-compose.yml`'s build context for both `Store.Web`/`Store.Worker` is the repo
+root, not each project's own folder — `dotnet restore <single csproj>` inside the image (not the
+`.slnx`), `.dockerignore` excludes `tests/`, `ecomus-package/`, `Mecodex-Brand-Assets/`, `docs/`.
+Migrations apply automatically inside the containers via an opt-in `ApplyMigrationsOnStartup`
+config flag (`Persistence.MigrationExtensions.MigrateWithRetryAsync<TContext>`, retry-with-delay)
+— local `dotnet run` never sets it, so the existing manual `dotnet ef database update` workflow is
+unaffected. A `redis` container is provisioned in the compose stack even though no application
+code uses it yet.
+Reason: Central Package Management (`Directory.Packages.props`) lives at the repo root and this
+solution's projects reference each other across folder boundaries, so a project-folder-scoped
+build context can't restore correctly — the root is the only context that has everything a
+`ProjectReference` chain might need, and restoring one project (not the whole `.slnx`) keeps
+`tests/` (and everything a module doesn't actually depend on) out of the image for free, no
+separate exclusion list to maintain. Auto-migration exists specifically because Compose has no
+interactive step to run `dotnet ef database update` against a freshly-started SQL Server
+container the way local dev does — without it, `docker compose up` would start a Store.Web that
+immediately 500s on every DB-touching request. Retry-with-delay because the `sqlserver`
+container's own health check can report healthy a moment before it's actually accepting every
+connection reliably. Redis: provisioned ahead of the code that will use it because the original
+spec named it as part of the stack; standing up infrastructure ahead of need is not the kind of
+speculative C# abstraction ADR-guidance elsewhere warns against — it's ordinary environment
+provisioning, and it costs nothing sitting idle in a compose file.
+Status: Accepted (Phase 13).

@@ -1,7 +1,8 @@
 Current Phase:
-Phase 10 (Outbox processor), Phase 11 (Admin panel), and Phase 12 (Observability) complete. Next
-up: whichever the user picks — remaining modules (Customers/Promotions/Shipping/Reviews/
-Notifications), self-service Account UI (Register/ForgotPassword), or Docker/CI-CD.
+Phase 10 (Outbox processor), Phase 11 (Admin panel), Phase 12 (Observability), and Phase 13
+(Docker + docker-compose) complete. Next up: whichever the user picks — remaining modules
+(Customers/Promotions/Shipping/Reviews/Notifications), self-service Account UI
+(Register/ForgotPassword), or CI/CD (Phase 14+).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -50,9 +51,27 @@ Completed:
   needed for the new `Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore`
   package's own dependency floor, apparently shifted the timing enough to expose it). Fixed by
   polling the actual DB row instead of the in-memory handler list.
+- Phase 13: Docker + docker-compose. Multi-stage Dockerfiles for `Store.Web` (`aspnet` runtime
+  image) and `Store.Worker` (plain `runtime` image, no inbound HTTP) — build context is the repo
+  root (Central Package Management needs it), `dotnet restore <single csproj>` not the `.slnx`.
+  `docker-compose.yml`: `sqlserver` (2022, health-checked), `redis` (provisioned, unused by app
+  code yet — ADR-023), `store-web` (port 8080, `/health`), `store-worker`. `.env`/`.env.example`
+  for the SA password (never hardcoded — real credential, same discipline as everywhere else).
+  `Persistence.MigrationExtensions.MigrateWithRetryAsync<TContext>` + an opt-in
+  `ApplyMigrationsOnStartup` config flag (Compose-only, local `dotnet run` never sets it) so the
+  containers self-migrate against a freshly-started SQL Server instead of needing a manual step.
+  Real bug found: two `CA1305` analyzer warnings surfaced only under `-c Release` (Serilog's
+  `.WriteTo.Console`/`.WriteTo.File` calls lacking an explicit `IFormatProvider`) — invisible in
+  the Debug builds used all through Phase 12, caught only when verifying the exact `dotnet
+  publish -c Release` command the Dockerfiles run; fixed with `CultureInfo.InvariantCulture`.
+  Verified: `docker compose config` parses cleanly, both projects' exact Dockerfile publish
+  commands succeed with zero warnings, published output includes `wwwroot`. Could not run an
+  actual `docker build`/`docker compose up` in this session — Docker Desktop is installed but not
+  running in the sandbox; ask the user to verify the full stack locally.
 - All tests passing: 70 unit + 18 integration + 29 architecture.
-- Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff, d17f36d, 3b401e0 (Phase 1 through 10/11) —
-  Phase 12 not yet committed as of this writing, see next actual commit hash in git log.
+- Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff, d17f36d, 3b401e0, 7f6e1eb (Phase 1
+  through 12) — Phase 13 not yet committed as of this writing, see next actual commit hash in git
+  log.
 
 In Progress:
 - (nothing — between phases)
@@ -69,9 +88,15 @@ Next:
   not started), no Payments admin UI (Payments has permissions defined — `Permissions.Payments.*`
   — but no admin controller yet).
 - `admin-ecomus` template not integrated — current Admin UI is a minimal hand-styled layout.
+- No CI/CD pipeline yet (Phase 14+) — Docker images build locally only.
+- Redis container is provisioned in docker-compose.yml but no application code uses it yet.
 
 Known Issues:
-None outstanding.
+- Phase 13's `docker compose up`/`docker build` was not actually executed in the authoring
+  session (Docker Desktop installed but not running in that sandbox) — verified via
+  `docker compose config`, the exact `dotnet publish -c Release` commands the Dockerfiles run,
+  and inspecting publish output, but not a real container run. Worth a first real
+  `docker compose up --build` pass before relying on it.
 
 Important Files:
 - AGENTS.md — entry point; "EF Core gotchas" + "Other gotchas" sections, including the new
@@ -82,7 +107,8 @@ Important Files:
 - docs/security.md — Account controller, admin panel authorization, AdminUserBootstrapper
   credential handling (User Secrets only, never appsettings.json).
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
-- docs/decisions.md — ADR-001..022.
+- docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
+- docs/decisions.md — ADR-001..023.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 5 migrated contexts unchanged from Phase 9 (Catalog,
@@ -93,4 +119,6 @@ Decisions Made:
 See docs/decisions.md. Newest: ADR-020 (generic per-module Outbox processor + in-process
 EventBus, AssemblyQualifiedName fix), ADR-021 (Admin panel as a Store.Web Area, permission-gated,
 dev-only AdminUserBootstrapper, no admin-ecomus template integration yet), ADR-022 (Serilog,
-code-configured sinks, correlation-id middleware, per-module-context health checks).
+code-configured sinks, correlation-id middleware, per-module-context health checks), ADR-023
+(Docker build context = repo root, opt-in auto-migration in containers, Redis provisioned ahead
+of use).

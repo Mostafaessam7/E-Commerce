@@ -61,6 +61,10 @@ tests/{UnitTests,IntegrationTests,ArchitectureTests,EndToEndTests}
 - Logging: use `ILogger`/`BeginScope` as normal — Serilog is wired as the provider (ADR-022) and
   bridges MEL scopes into structured properties automatically, nothing extra to do. Don't add a
   `Serilog` section to `appsettings.json`; sinks are code-configured in `Program.cs` on purpose.
+- Docker: build context for both Dockerfiles is the repo root (Central Package Management needs
+  it), never a project subfolder — `docker build -f src/Web/Store.Web/Dockerfile .` from root, not
+  from inside `src/Web/Store.Web`. `ApplyMigrationsOnStartup` is Compose-only; never set it for
+  local `dotnet run` (ADR-023).
 
 Module details (responsibility/owns/contracts/deps): `docs/modules.md`.
 
@@ -105,6 +109,7 @@ dotnet test tests/ArchitectureTests/ArchitectureTests.csproj
 | `docs/security.md` | Identity, permissions, policies |
 | `docs/events.md` | Domain events vs integration events, Outbox flow |
 | `docs/observability.md` | Serilog, correlation id, health checks |
+| `docs/deployment.md` | Docker/docker-compose, migrations-in-container, Redis provisioning |
 | `docs/testing.md` | Test project conventions |
 | `docs/decisions.md` | ADR log — don't re-litigate a recorded decision |
 | `docs/current-state.md` | What's done, in progress, next — keep small |
