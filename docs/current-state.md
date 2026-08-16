@@ -82,9 +82,8 @@ Completed:
   command the workflow uses against the real dev DB (idempotent no-op, confirming the command
   syntax is correct) and the full local test suite.
 - All tests passing: 70 unit + 18 integration + 29 architecture.
-- Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff, d17f36d, 3b401e0, 7f6e1eb, 29985ed (Phase
-  1 through 13) — Phase 14 not yet committed as of this writing, see next actual commit hash in
-  git log.
+- Commits: 71e7f96, 36008a1, c9f75b6, fd27d1f, bc563ff, d17f36d, 3b401e0, 7f6e1eb, 29985ed, 3a8bd06
+  (Phase 1 through 14), 0f2323c (docs audit fix: modules.md/architecture.md/database.md staleness).
 
 In Progress:
 - (nothing — between phases)

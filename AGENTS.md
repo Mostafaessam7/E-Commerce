@@ -70,11 +70,12 @@ Module details (responsibility/owns/contracts/deps): `docs/modules.md`.
 
 ## Module boundary rules (enforced by ArchitectureTests, do not violate)
 
-`X.Domain` → SharedKernel only. `X.Contracts` → SharedKernel + EventBus.
-`X.Application` → own Domain/Contracts + Security/Infrastructure(BB)/EventBus.
-`X.Infrastructure` → own Application + Observability. No module references
-another module's Domain/Application/Infrastructure — only its Contracts.
-Nothing depends on Store.Web/Store.Worker. Full detail: `docs/architecture.md`.
+`X.Domain` → SharedKernel only. `X.Contracts` → SharedKernel + EventBus + Messaging (the last one
+so it can host ADR-014's dispatchable commands/queries). `X.Application` → own Domain + Security/
+Infrastructure(BB)/EventBus/Messaging + **any module's** `*.Contracts` (ADR-014 — the sanctioned
+way to call another module synchronously, never that module's Domain/Application/Infrastructure
+directly). `X.Infrastructure` → own Application + Observability. Nothing depends on
+Store.Web/Store.Worker. Full detail: `docs/architecture.md`.
 
 ## Top coding rules
 
@@ -95,8 +96,11 @@ Nothing depends on Store.Web/Store.Worker. Full detail: `docs/architecture.md`.
 dotnet build ECommerce.slnx
 dotnet test tests/UnitTests/UnitTests.csproj
 dotnet test tests/ArchitectureTests/ArchitectureTests.csproj
+dotnet test tests/IntegrationTests/IntegrationTests.csproj
 ```
-(`dotnet test` does not accept multiple `.csproj` args — run one at a time.)
+(`dotnet test` does not accept multiple `.csproj` args — run one at a time. IntegrationTests need
+a real LocalDB with migrations applied — docs/database.md — and are slower, but skipping them for
+anything touching persistence/cross-module dispatch has bitten real bugs before, e.g. ADR-020.)
 
 ## Docs map
 

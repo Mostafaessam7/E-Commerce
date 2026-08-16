@@ -10,9 +10,10 @@ for cross-module communication.
 ## Integration Events (cross-module)
 
 `EventBus.IIntegrationEvent` / `IntegrationEvent` / `IEventBus` /
-`IIntegrationEventHandler<T>` (Phase 1 abstractions only — no transport yet).
-Concrete events live in the publishing module's `*.Contracts` project so
-consumers depend only on the DTO shape, never the publisher's Domain/Application.
+`IIntegrationEventHandler<T>` (Phase 1 abstractions; `EventBus.InProcessEventBus` is the real
+transport since Phase 10 — see "Outbox" below). Concrete events live in the publishing module's
+`*.Contracts` project so consumers depend only on the DTO shape, never the publisher's
+Domain/Application.
 
 ## Outbox (write-side: Phase 2, processor: Phase 10)
 

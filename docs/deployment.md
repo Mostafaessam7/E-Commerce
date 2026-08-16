@@ -61,8 +61,9 @@ provisioning, not the kind of speculative C# abstraction this codebase otherwise
 
 ## Not yet built
 
-A real CI/CD pipeline (build+test on PR, push images to a registry), a production-shaped compose
-file (secrets manager instead of `.env`, no local SQL Server container, HTTPS termination), and a
+Build+test-on-PR exists (`docs/ci-cd.md`, Phase 14) — pushing these images to a registry does
+not; that's still a manual `docker compose build`. Also missing: a production-shaped compose file
+(secrets manager instead of `.env`, no local SQL Server container, HTTPS termination), and a
 health-check-aware `HEALTHCHECK` instruction in the app Dockerfiles (skipped — the `aspnet`/
 `runtime` base images don't ship `curl`/`wget`, and installing one just for a `HEALTHCHECK`
 directive wasn't worth the extra image layer at this stage; `docker-compose.yml`'s `depends_on`
