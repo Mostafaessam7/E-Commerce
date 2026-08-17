@@ -7,14 +7,22 @@ like theirs the moment another module gains one.
 
 ## Catalog
 - Responsibility: products, categories, brands, attributes/variants, search/listing.
-- Owns: `Product` (aggregate root — variants, images, SEO, tags, related/cross-sell/upsell ids),
-  `Category` (nested via ParentId), `Brand`, `ProductAttribute`/`AttributeValue`.
+- Owns: `Product` (aggregate root — variants, images, SEO, tags, related/cross-sell/upsell ids,
+  `BrandId`, `CategoryIds`; `SetBrand`/`SetCategories` let the admin Edit form change either after
+  creation, Phase 21), `Category` (nested via ParentId; `Activate`/`Deactivate`), `Brand`
+  (`Activate`/`Deactivate`), `ProductAttribute`/`AttributeValue`.
 - Does not own: stock levels (Inventory — variants are referenced by Guid only), pricing
   promotions (Promotions).
 - Public contracts: none yet (no cross-module consumer exists).
 - Dependencies: BuildingBlocks only. DB schema: `catalog`.
 - Application: `CreateProductCommand`, `GetProductBySlugQuery`, `SearchProductsQuery`
-  (`Catalog.Application.Products`).
+  (`Catalog.Application.Products`); `Catalog.Application.Brands`/`Categories` — `Create*Command`/
+  `Activate*Command`/`Deactivate*Command`/`List*Query` for each, same admin command shape as
+  Promotions' coupons and Shipping's methods (Phase 21).
+- Admin: `Store.Web/Areas/Admin/Controllers/{BrandsController,CategoriesController}.cs` —
+  list/create/activate/deactivate; `ProductsController`'s Create/Edit actions now dispatch
+  `ListBrandsQuery`/`ListCategoriesQuery` to populate the product form's Brand select and Category
+  checkboxes, closing the "admin form omits BrandId/CategoryIds" gap noted since Phase 11.
 
 ## Inventory
 - Responsibility: stock quantity, reservations, prevents overselling.
@@ -66,7 +74,12 @@ like theirs the moment another module gains one.
 - Application: `Payments.Application.Payments` — `InitializePaymentCommand`,
   `ProcessWebhookCommand` (signature verify → idempotency check → guarded domain transition →
   dispatch `MarkOrderAsPaidCommand` → enqueue integration event, one transaction),
-  `RefundPaymentCommand`, `GetPaymentQuery`.
+  `RefundPaymentCommand`, `GetPaymentQuery`, `ListPaymentsQuery` (admin-wide or narrowed to one
+  order, Phase 21 — `IPaymentsQueries` is the read-side, `GetPaymentQuery` stayed on the write-side
+  `IPaymentTransactionRepository` since it already existed and predates this read/write split).
+- Admin: `Store.Web/Areas/Admin/Controllers/PaymentsController.cs` — lists every transaction and
+  can trigger `RefundPaymentCommand` inline (`Permissions.Payments.View`/`Refund`, both defined
+  since Phase 11 but unused until now).
 
 ## Customers
 - Responsibility: customer profile + saved address book, distinct from Identity's auth concern.

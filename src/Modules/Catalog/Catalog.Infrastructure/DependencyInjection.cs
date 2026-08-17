@@ -1,3 +1,5 @@
+using Catalog.Application.Brands;
+using Catalog.Application.Categories;
 using Catalog.Application.Products;
 using Catalog.Contracts;
 using Catalog.Infrastructure.Persistence;
@@ -37,6 +39,22 @@ public static class DependencyInjection
         services.AddScoped<IRequestHandler<PublishProductCommand, Unit>, PublishProductCommandHandler>();
         services.AddScoped<IRequestHandler<ArchiveProductCommand, Unit>, ArchiveProductCommandHandler>();
         services.AddScoped<IRequestHandler<DeleteProductCommand, Unit>, DeleteProductCommandHandler>();
+
+        // Brands / Categories (Phase 21 — admin management UI)
+        services.AddScoped<IBrandRepository, Repositories.BrandRepository>();
+        services.AddScoped<IBrandQueries, Repositories.BrandQueries>();
+        services.AddScoped<ICategoryRepository, Repositories.CategoryRepository>();
+        services.AddScoped<ICategoryQueries, Repositories.CategoryQueries>();
+
+        services.AddScoped<IRequestHandler<CreateBrandCommand, Guid>, CreateBrandCommandHandler>();
+        services.AddScoped<IRequestHandler<ActivateBrandCommand, Unit>, ActivateBrandCommandHandler>();
+        services.AddScoped<IRequestHandler<DeactivateBrandCommand, Unit>, DeactivateBrandCommandHandler>();
+        services.AddScoped<IRequestHandler<ListBrandsQuery, IReadOnlyList<BrandDto>>, ListBrandsQueryHandler>();
+
+        services.AddScoped<IRequestHandler<CreateCategoryCommand, Guid>, CreateCategoryCommandHandler>();
+        services.AddScoped<IRequestHandler<ActivateCategoryCommand, Unit>, ActivateCategoryCommandHandler>();
+        services.AddScoped<IRequestHandler<DeactivateCategoryCommand, Unit>, DeactivateCategoryCommandHandler>();
+        services.AddScoped<IRequestHandler<ListCategoriesQuery, IReadOnlyList<CategoryDto>>, ListCategoriesQueryHandler>();
 
         return services;
     }

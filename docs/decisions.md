@@ -498,3 +498,24 @@ attempted here, same reasoning as Shipping's zone modeling (ADR-030) and Custome
 wired into checkout yet (ADR-028): each of these five placeholder modules got exactly the real
 code its phase needed, not everything imaginable for it.
 Status: Accepted (Phase 20).
+
+---
+**ADR-032**
+Decision: Phase 21 closes two long-standing admin gaps rather than adding a new module: (1)
+Brand/Category admin management — `Catalog.Application.Brands`/`Categories` (list/create/
+activate/deactivate, mirroring Promotions'/Shipping's admin command shape exactly) plus wiring
+the existing Product Create/Edit admin form to actually pick a `BrandId` and `CategoryIds` from
+real data instead of always sending `null` (`Product.SetBrand`/`SetCategories` added to the
+aggregate for the Edit path); (2) a Payments admin UI — `ListPaymentsQuery`/`IPaymentsQueries`
+(admin-wide or narrowed to one order) plus a `PaymentsController` that can trigger
+`RefundPaymentCommand` (already existed since Phase 9, just never had an admin surface). No new
+permission categories were needed for either — Catalog and Payments already had
+`View`/`Create`/`Edit`/`Refund` etc. from Phase 11, they just weren't wired to a controller yet.
+Reason: these were the two items explicitly named in the original gap analysis ("Admin panel: no
+Brand/Category management UI... no Payments admin UI") — both were cases where the domain/
+application code (or most of it) already existed from earlier phases and only the admin
+composition (controller + view + the one missing `IPaymentsQueries` read-side) was missing, unlike
+the five placeholder modules (ADR-025/026/028/029/030/031) which needed everything built from
+scratch. Treating "wire up what already exists" as its own phase kept the diff reviewable instead
+of bundling it into a module phase it doesn't belong to.
+Status: Accepted (Phase 21).

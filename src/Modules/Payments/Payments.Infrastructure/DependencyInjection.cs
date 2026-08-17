@@ -27,11 +27,13 @@ public static class DependencyInjection
         services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
         services.AddScoped<IWebhookEventRepository, WebhookEventRepository>();
         services.AddScoped<IPaymentsUnitOfWork, PaymentsUnitOfWork>();
+        services.AddScoped<IPaymentsQueries, PaymentsQueries>();
 
         services.AddScoped<IRequestHandler<InitializePaymentCommand, InitializePaymentResultDto>, InitializePaymentCommandHandler>();
         services.AddScoped<IRequestHandler<ProcessWebhookCommand, Unit>, ProcessWebhookCommandHandler>();
         services.AddScoped<IRequestHandler<RefundPaymentCommand, Unit>, RefundPaymentCommandHandler>();
         services.AddScoped<IRequestHandler<GetPaymentQuery, PaymentDto>, GetPaymentQueryHandler>();
+        services.AddScoped<IRequestHandler<ListPaymentsQuery, IReadOnlyList<PaymentListItemDto>>, ListPaymentsQueryHandler>();
 
         return services;
     }

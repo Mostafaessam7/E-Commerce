@@ -30,6 +30,32 @@
         <textarea asp-for="Description" class="form-control" rows="5"></textarea>
     </div>
 
+    <div class="mb-3">
+        <label asp-for="BrandId" class="form-label"></label>
+        <select asp-for="BrandId" class="form-select">
+            <option value="">— No brand —</option>
+            @foreach (var brand in (IReadOnlyList<BrandDto>)ViewBag.Brands)
+            {
+                <option value="@brand.Id">@brand.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Categories</label>
+        @foreach (var category in (IReadOnlyList<CategoryDto>)ViewBag.Categories)
+        {
+            <div class="form-check">
+                <input type="checkbox" name="CategoryIds" value="@category.Id" class="form-check-input" id="cat-@category.Id" />
+                <label class="form-check-label" for="cat-@category.Id">@category.Name</label>
+            </div>
+        }
+        @if (((IReadOnlyList<CategoryDto>)ViewBag.Categories).Count == 0)
+        {
+            <p class="text-muted">No categories yet.</p>
+        }
+    </div>
+
     <button type="submit" class="btn btn-dark">Create Draft</button>
     <a asp-action="Index" class="btn btn-link">Cancel</a>
 </form>

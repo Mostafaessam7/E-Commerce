@@ -17,7 +17,8 @@ public sealed record ProductDetailsDto(
     string? MetaDescription,
     IReadOnlyList<string> Tags,
     IReadOnlyList<ProductVariantDto> Variants,
-    IReadOnlyList<ProductImageDto> Images);
+    IReadOnlyList<ProductImageDto> Images,
+    IReadOnlyList<Guid> CategoryIds);
 
 /// <summary>Listing-page projection — only what a product card needs, never the full aggregate.</summary>
 public sealed record ProductSummaryDto(

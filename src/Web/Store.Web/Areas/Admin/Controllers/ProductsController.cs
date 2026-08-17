@@ -1,3 +1,5 @@
+using Catalog.Application.Brands;
+using Catalog.Application.Categories;
 using Catalog.Application.Products;
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
@@ -24,7 +26,11 @@ public sealed class ProductsController : Controller
     }
 
     [Authorize(Policy = Permissions.Catalog.Create)]
-    public IActionResult Create() => View(new ProductFormModel());
+    public async Task<IActionResult> Create(CancellationToken cancellationToken)
+    {
+        await PopulateBrandsAndCategoriesAsync(cancellationToken);
+        return View(new ProductFormModel());
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -33,16 +39,18 @@ public sealed class ProductsController : Controller
     {
         if (!ModelState.IsValid)
         {
+            await PopulateBrandsAndCategoriesAsync(cancellationToken);
             return View(form);
         }
 
         var result = await _dispatcher.Send(
-            new CreateProductCommand(form.Name, form.Slug, form.ShortDescription, form.Description, BrandId: null, CategoryIds: null),
+            new CreateProductCommand(form.Name, form.Slug, form.ShortDescription, form.Description, form.BrandId, form.CategoryIds),
             cancellationToken);
 
         if (result.IsFailure)
         {
             ModelState.AddModelError(string.Empty, result.Error.Message);
+            await PopulateBrandsAndCategoriesAsync(cancellationToken);
             return View(form);
         }
 
@@ -59,6 +67,7 @@ public sealed class ProductsController : Controller
             return NotFound();
         }
 
+        await PopulateBrandsAndCategoriesAsync(cancellationToken);
         return View(result.Value);
     }
 
@@ -70,21 +79,32 @@ public sealed class ProductsController : Controller
         if (!ModelState.IsValid)
         {
             var reload = await _dispatcher.Send(new GetProductByIdQuery(form.Id), cancellationToken);
+            await PopulateBrandsAndCategoriesAsync(cancellationToken);
             return View(reload.Value);
         }
 
         var result = await _dispatcher.Send(
-            new UpdateProductCommand(form.Id, form.Name, form.ShortDescription, form.Description), cancellationToken);
+            new UpdateProductCommand(form.Id, form.Name, form.ShortDescription, form.Description, form.BrandId, form.CategoryIds),
+            cancellationToken);
 
         if (result.IsFailure)
         {
             ModelState.AddModelError(string.Empty, result.Error.Message);
             var reload = await _dispatcher.Send(new GetProductByIdQuery(form.Id), cancellationToken);
+            await PopulateBrandsAndCategoriesAsync(cancellationToken);
             return View(reload.Value);
         }
 
         TempData["Success"] = "Product updated.";
         return RedirectToAction(nameof(Edit), new { id = form.Id });
+    }
+
+    private async Task PopulateBrandsAndCategoriesAsync(CancellationToken cancellationToken)
+    {
+        var brands = await _dispatcher.Send(new ListBrandsQuery(), cancellationToken);
+        var categories = await _dispatcher.Send(new ListCategoriesQuery(), cancellationToken);
+        ViewBag.Brands = brands.Value;
+        ViewBag.Categories = categories.Value;
     }
 
     [HttpPost]

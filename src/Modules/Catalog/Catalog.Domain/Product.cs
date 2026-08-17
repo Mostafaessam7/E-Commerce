@@ -230,6 +230,10 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletableEntity
 
     public void RemoveCategory(Guid categoryId) => _categoryIds.Remove(categoryId);
 
+    public void SetCategories(IEnumerable<Guid> categoryIds) => ReplaceIds(_categoryIds, categoryIds);
+
+    public void SetBrand(Guid? brandId) => BrandId = brandId;
+
     public void Feature() => IsFeatured = true;
 
     public void Unfeature() => IsFeatured = false;

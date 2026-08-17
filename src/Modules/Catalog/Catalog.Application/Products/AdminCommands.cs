@@ -10,7 +10,9 @@ namespace Catalog.Application.Products;
 /// read-only concerns — same repository/unit-of-work pair as <see cref="CreateProductCommand"/>,
 /// no new abstractions.
 /// </summary>
-public sealed record UpdateProductCommand(Guid ProductId, string Name, string? ShortDescription, string? Description) : ICommand<Unit>;
+public sealed record UpdateProductCommand(
+    Guid ProductId, string Name, string? ShortDescription, string? Description,
+    Guid? BrandId = null, IReadOnlyList<Guid>? CategoryIds = null) : ICommand<Unit>;
 
 public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Unit>
 {
@@ -35,6 +37,12 @@ public sealed class UpdateProductCommandHandler : IRequestHandler<UpdateProductC
         if (result.IsFailure)
         {
             return Result.Failure<Unit>(result.Error);
+        }
+
+        product.SetBrand(request.BrandId);
+        if (request.CategoryIds is not null)
+        {
+            product.SetCategories(request.CategoryIds);
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -198,6 +206,7 @@ public sealed class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQ
             product.Seo.MetaDescription,
             product.Tags.ToList(),
             product.Variants.Select(v => new ProductVariantDto(v.Id, v.Sku, v.Price.Amount, v.Price.Currency, v.SalePrice?.Amount)).ToList(),
-            product.Images.OrderBy(i => i.DisplayOrder).Select(i => new ProductImageDto(i.Id, i.Url, i.AltText, i.IsPrimary)).ToList()));
+            product.Images.OrderBy(i => i.DisplayOrder).Select(i => new ProductImageDto(i.Id, i.Url, i.AltText, i.IsPrimary)).ToList(),
+            product.CategoryIds.ToList()));
     }
 }

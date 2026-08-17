@@ -1,9 +1,10 @@
 Current Phase:
-Phase 10-20 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
-UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring/Reviews+moderation).
-All five originally-empty placeholder modules now have real code. In progress on a broader
-backlog: remaining admin gaps (Brand/Category management, Payments admin UI), Redis usage, CI
-image publish, EndToEndTests (user asked for "all of it"; working through it phase by phase,
+Phase 10-21 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring/Reviews+moderation/
+Brand+Category admin+Payments admin UI). All five originally-empty placeholder modules now have
+real code, and both named admin gaps from the original analysis are closed. In progress on a
+broader backlog: Redis usage, CI image publish, docker compose verification, admin-ecomus
+integration, EndToEndTests (user asked for "all of it"; working through it phase by phase,
 committing after each).
 
 Completed:
@@ -169,21 +170,35 @@ Completed:
   (hidden, pending), approved it through the admin panel, confirmed it then appeared on the
   storefront page with the correct average rating.
 - All tests passing: 96 unit + 27 integration + 29 architecture.
+- Phase 21: Brand/Category admin management + Payments admin UI (ADR-032) — the two admin gaps
+  explicitly named in the original analysis, not a new module. `Catalog.Application.Brands`/
+  `Categories` (list/create/activate/deactivate, same admin command shape as Promotions/Shipping);
+  `Product.SetBrand`/`SetCategories` added so the Edit form can change either after creation. The
+  Product Create/Edit admin form now dispatches `ListBrandsQuery`/`ListCategoriesQuery` to render
+  a real Brand select + Category checkboxes instead of always sending `BrandId`/`CategoryIds` as
+  `null`. New `Payments.Application.Payments.ListPaymentsQuery`/`IPaymentsQueries` (admin-wide or
+  narrowed to one order) + admin `PaymentsController` that can trigger the pre-existing
+  `RefundPaymentCommand` inline. No new permission categories — `Permissions.Catalog.*` and
+  `Permissions.Payments.*` already existed since Phase 11, just unused until now. Tests: 2 new
+  integration tests (Brand create/deactivate/reactivate visibility in the active-only list;
+  Category deactivate/reactivate) + 1 new integration test (`ListPaymentsQuery` narrowed to one
+  order vs. the admin-wide listing). Verified live in-browser: created a real Brand and Category
+  through the admin panel, attached both to an existing product through the now-real Edit form
+  picker, confirmed the selection persisted after reload; confirmed the Payments admin page
+  renders correctly.
+- All tests passing: 96 unit + 30 integration + 29 architecture.
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — remaining admin
-  gaps, Redis usage, CI image publish, docker compose verification, admin-ecomus integration,
-  EndToEndTests.
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — Redis usage, CI
+  image publish, docker compose verification, admin-ecomus integration, EndToEndTests.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
-  Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20).
+  Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20), and both admin
+  gaps named in the original analysis are closed (Phase 21).
 - Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
   see ADR-028.
-- Admin panel: no Brand/Category management UI (Product admin form omits BrandId/CategoryIds —
-  scope decision, see ADR-021 area of docs/modules.md), no image upload (Section on file storage
-  not started), no Payments admin UI (Payments has permissions defined — `Permissions.Payments.*`
-  — but no admin controller yet).
+- No product image upload (Section on file storage not started).
 - `admin-ecomus` template not integrated — current Admin UI is a minimal hand-styled layout.
 - CI runs build+test only — no image publish/registry push, no branch protection rule configured
   (that's a GitHub repo setting; enable it once this repo has a remote — docs/ci-cd.md).
@@ -207,21 +222,22 @@ Important Files:
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
 - docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..031.
+- docs/decisions.md — ADR-001..032.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications, Customers, Promotions, Shipping, Reviews). Phase 20 added the whole
-`reviews` schema (migration `InitialCreate` on `ReviewsDbContext`).
+Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged by Phase 21 (Brand/
+Category tables already existed in the `catalog` schema since Phase 4; no new migration needed).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-029 (Promotions wired into checkout using the same
-redeem/release compensation shape as Inventory's stock reservation — `Coupon.Redeem` increments
-usage immediately, checkout releases it if anything later fails to place the order), ADR-030
-(Shipping's `ShippingMethod` aggregate has no zone/region modeling — every active method applies
-everywhere; `PlaceOrderCommand`'s `ShippingCost: decimal` parameter is replaced with
-`ShippingMethodId: Guid`, looked up server-side via `GetShippingMethodQuery`, closing out the last
-hardcoded number — the flat `50m` — in the checkout write path), ADR-031 (Reviews' `Review`
-aggregate starts every submission `Pending`; only an admin `Approve`/`Reject` — one-way, blocked
-by `Review.NotPending` from re-moderating — moves it out, and the storefront query only ever
-returns `Approved` ones; no "verified purchase" check against Ordering, a deliberate scope cut).
+See docs/decisions.md. Newest: ADR-030 (Shipping's `ShippingMethod` aggregate has no zone/region
+modeling — every active method applies everywhere; `PlaceOrderCommand`'s `ShippingCost: decimal`
+parameter is replaced with `ShippingMethodId: Guid`, looked up server-side via
+`GetShippingMethodQuery`, closing out the last hardcoded number — the flat `50m` — in the checkout
+write path), ADR-031 (Reviews' `Review` aggregate starts every submission `Pending`; only an admin
+`Approve`/`Reject` — one-way, blocked by `Review.NotPending` from re-moderating — moves it out, and
+the storefront query only ever returns `Approved` ones; no "verified purchase" check against
+Ordering, a deliberate scope cut), ADR-032 (Phase 21 closed the Brand/Category admin UI and
+Payments admin UI gaps named in the original analysis — both were "wire up what already exists"
+work, not new modules; no new permission categories needed since Catalog/Payments permissions
+already existed since Phase 11).

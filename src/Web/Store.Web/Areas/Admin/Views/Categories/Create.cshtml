@@ -1,0 +1,36 @@
+@model CreateCategoryFormModel
+@{
+    ViewData["Title"] = "New Category";
+}
+
+<h1>New Category</h1>
+
+<form asp-action="Create" method="post" style="max-width: 480px;">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Slug</label>
+        <input asp-for="Slug" class="form-control" placeholder="e.g. mens-shoes" />
+        <span asp-validation-for="Slug" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Parent Category (optional)</label>
+        <select asp-for="ParentId" class="form-select">
+            <option value="">— Top level —</option>
+            @foreach (var category in (IReadOnlyList<CategoryDto>)ViewBag.Categories)
+            {
+                <option value="@category.Id">@category.Name</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-dark">Create Category</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>

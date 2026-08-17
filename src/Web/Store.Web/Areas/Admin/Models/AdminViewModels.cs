@@ -17,6 +17,10 @@ public sealed class ProductFormModel
     public string? ShortDescription { get; set; }
 
     public string? Description { get; set; }
+
+    public Guid? BrandId { get; set; }
+
+    public List<Guid> CategoryIds { get; set; } = [];
 }
 
 public sealed class ProductEditFormModel
@@ -30,6 +34,10 @@ public sealed class ProductEditFormModel
     public string? ShortDescription { get; set; }
 
     public string? Description { get; set; }
+
+    public Guid? BrandId { get; set; }
+
+    public List<Guid> CategoryIds { get; set; } = [];
 }
 
 public sealed class AddVariantFormModel
@@ -93,6 +101,38 @@ public sealed class CreateCouponFormModel
     public int? UsageLimit { get; set; }
 
     public decimal? MinimumOrderAmount { get; set; }
+}
+
+public sealed class RefundPaymentFormModel
+{
+    [Required]
+    public Guid PaymentTransactionId { get; set; }
+
+    [Required, Range(0.01, 1_000_000)]
+    public decimal Amount { get; set; }
+
+    [StringLength(300)]
+    public string? Reason { get; set; }
+}
+
+public sealed class CreateBrandFormModel
+{
+    [Required, StringLength(200)]
+    public string Name { get; set; } = string.Empty;
+
+    [Required, StringLength(200)]
+    public string Slug { get; set; } = string.Empty;
+}
+
+public sealed class CreateCategoryFormModel
+{
+    [Required, StringLength(200)]
+    public string Name { get; set; } = string.Empty;
+
+    [Required, StringLength(200)]
+    public string Slug { get; set; } = string.Empty;
+
+    public Guid? ParentId { get; set; }
 }
 
 public sealed class CreateShippingMethodFormModel

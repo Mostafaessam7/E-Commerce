@@ -190,4 +190,20 @@ public sealed class PaymentWebhookTests : IAsyncLifetime
         var payment = (await dispatcher.Send(new GetPaymentQuery(initResult.Value.PaymentTransactionId))).Value;
         payment.Status.Should().Be("Succeeded", "reprocessing must not be attempted, let alone change the outcome");
     }
+
+    [Fact]
+    public async Task ListPaymentsQuery_narrowed_to_an_order_returns_only_that_orders_transactions()
+    {
+        using var scope = _provider.CreateScope();
+        var dispatcher = scope.ServiceProvider.GetRequiredService<IDispatcher>();
+
+        var initResult = await dispatcher.Send(new InitializePaymentCommand(_orderId, 270m, "EGP"));
+        initResult.IsSuccess.Should().BeTrue();
+
+        var forThisOrder = await dispatcher.Send(new ListPaymentsQuery(_orderId));
+        forThisOrder.Value.Should().ContainSingle(p => p.Id == initResult.Value.PaymentTransactionId && p.OrderId == _orderId);
+
+        var everything = await dispatcher.Send(new ListPaymentsQuery());
+        everything.Value.Should().Contain(p => p.Id == initResult.Value.PaymentTransactionId, "the admin-wide listing must include every order's transactions");
+    }
 }

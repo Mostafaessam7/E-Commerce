@@ -71,7 +71,8 @@ internal sealed class ProductQueries : IProductQueries
         p.Seo.MetaDescription,
         p.Tags.ToList(),
         p.Variants.Select(v => new ProductVariantDto(v.Id, v.Sku, v.Price.Amount, v.Price.Currency, v.SalePrice?.Amount)).ToList(),
-        p.Images.OrderBy(i => i.DisplayOrder).Select(i => new ProductImageDto(i.Id, i.Url, i.AltText, i.IsPrimary)).ToList());
+        p.Images.OrderBy(i => i.DisplayOrder).Select(i => new ProductImageDto(i.Id, i.Url, i.AltText, i.IsPrimary)).ToList(),
+        p.CategoryIds.ToList());
 
     public async Task<ProductSearchResultDto> SearchAsync(ProductSearchCriteria criteria, CancellationToken cancellationToken = default)
     {
