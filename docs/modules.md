@@ -69,11 +69,26 @@ like theirs the moment another module gains one.
   `RefundPaymentCommand`, `GetPaymentQuery`.
 
 ## Customers
-- Responsibility: customer profile, addresses (distinct from Identity's auth concern).
-- Owns: Customer, Address.
-- Does not own: authentication/credentials (Identity).
-- Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Responsibility: customer profile + saved address book, distinct from Identity's auth concern.
+- Owns: `Customer` (aggregate root — `Id` is deliberately the *same* Guid as the owning
+  `ApplicationUser.Id`; Store.Web's `ProfileController` is the only place that equality is
+  assumed, no DB-level FK between the two modules), `CustomerAddress` (child entity — a reusable
+  saved address, distinct from `Ordering.Domain.ValueObjects.Address`, which is a permanent
+  snapshot on a placed order that must never retroactively change).
+- Does not own: authentication/credentials (Identity) — `Customer.Email` is cached for display
+  only, Identity remains the source of truth.
+- Public contracts: none yet (no cross-module consumer exists — Store.Web's `ProfileController`
+  talks to it directly via `IDispatcher`, same as every other module's storefront-facing
+  controller).
+- Dependencies: BuildingBlocks only. DB schema: `customers`.
+- Application (`Customers.Application.Profile`): `GetOrCreateCustomerCommand` (create-if-missing,
+  same shape as Ordering's `GetOrCreateCartCommand`), `UpdateProfileCommand`, `AddAddressCommand`/
+  `RemoveAddressCommand`/`SetDefaultAddressCommand`, `GetCustomerProfileQuery`. Exactly one address
+  is ever marked default — enforced in the aggregate (first address added, or removing the
+  current default, both auto-promote a new one).
+- Not wired into checkout yet: `PlaceOrderCommand` still always passes `CustomerId: null` (guest
+  checkout only) — pre-filling checkout from a saved default address, or attaching a real
+  `CustomerId` to an order, is a follow-up, not done in the phase that built this module.
 
 ## Identity
 - Responsibility: authentication, roles, permissions (ASP.NET Core Identity).

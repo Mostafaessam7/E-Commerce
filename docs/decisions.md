@@ -413,3 +413,24 @@ problem (send one email, now) calls for. A plain dispatched command is the same 
 module to do it" pattern ADR-014 already established for reads and cross-module writes, just
 applied to "send an email" instead of "reserve stock" or "mark an order paid."
 Status: Accepted (Phase 16).
+
+---
+**ADR-028**
+Decision: Customers (Phase 17, second of the five placeholder modules to get real code) makes
+`Customer.Id` deliberately equal to the owning `ApplicationUser.Id` from Identity — not a fresh
+Guid with its own FK-style reference column. No `Customers.Contracts` public surface yet;
+`Store.Web.Controllers.ProfileController` talks to it directly via `IDispatcher`, and checkout
+(`PlaceOrderCommand`) still always passes `CustomerId: null` — this module is not wired into the
+order-placement path yet.
+Reason: a "customer profile" and "the account that logs in" are the same real-world entity here
+(no B2B multi-user-per-account requirement exists), so a 1:1 relationship keyed by the same id is
+simpler than inventing a separate `CustomerId` and a lookup between the two — and it still keeps
+the module boundary real: neither module's DbContext/tables reference the other's, only the
+Guid value happens to match, known only where it has to be (the one controller that reads
+`ICurrentUser.UserId` and calls both). Not wiring it into checkout yet was a scope cut, not an
+oversight — attaching a real `CustomerId` to a placed order and/or pre-filling checkout from a
+saved default address both touch `PlaceOrderCommand`, which already has enough moving parts
+(price re-validation, stock reservation with compensation, tax, and — as of Phase 18/19 — coupon
+redemption and shipping cost lookup); bolting on a fifth cross-module concern in the same phase
+that built the module owning it risked under-testing all of them. Revisit as its own phase.
+Status: Accepted (Phase 17).

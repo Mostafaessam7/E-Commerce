@@ -1,8 +1,9 @@
 Current Phase:
-Phase 10-16 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
-UI). In progress on a broader backlog: remaining placeholder modules (Customers/Promotions/
-Shipping/Reviews), remaining admin gaps, Redis usage, CI image publish, EndToEndTests (user asked
-for "all of it"; working through it phase by phase, committing after each).
+Phase 10-17 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+UI/Customers module). In progress on a broader backlog: Promotions + Shipping (+ wiring real
+discount/shipping cost into checkout), Reviews, remaining admin gaps, Redis usage, CI image
+publish, EndToEndTests (user asked for "all of it"; working through it phase by phase, committing
+after each).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -106,15 +107,33 @@ Completed:
   actual confirmation link out of the `NotificationLog` row (no real email provider), followed it,
   confirmed, logged in successfully.
 - All tests passing: 70 unit + 22 integration + 29 architecture.
+- Phase 17: Customers module. `Customer` (aggregate root, `Id` == owning `ApplicationUser.Id`,
+  ADR-028) + `CustomerAddress` (child, saved reusable address book — first address added or the
+  one left after removing the default always auto-promotes to default, enforced in the
+  aggregate). `Customers.Application.Profile`: `GetOrCreateCustomerCommand` (create-if-missing,
+  same shape as Ordering's `GetOrCreateCartCommand`), `UpdateProfileCommand`, `AddAddressCommand`/
+  `RemoveAddressCommand`/`SetDefaultAddressCommand`, `GetCustomerProfileQuery`.
+  `Store.Web.Controllers.ProfileController` ([Authorize], any signed-in user) — new "My Account"
+  page, header account icon now routes to it when authenticated (else `/Account/Login`). New
+  migration: `InitialCreate` (`CustomersDbContext`). Not wired into checkout yet — `PlaceOrderCommand`
+  still always passes `CustomerId: null` (guest-only); deliberate scope cut (ADR-028), not an
+  oversight. Tests: 5 new unit tests (default-address promotion rules) + 1 integration test
+  (GetOrCreate idempotency + full address lifecycle against the real DB). Verified live
+  in-browser: loaded "My Account" as a signed-in user (profile auto-created), added a real
+  address, confirmed it was auto-marked default.
+- All tests passing: 75 unit + 23 integration + 29 architecture.
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — Customers/
-  Promotions/Shipping/Reviews modules, admin gaps, Redis usage, CI image publish, docker compose
-  verification, admin-ecomus integration, EndToEndTests.
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — Promotions +
+  Shipping (+ real discount/shipping-cost wiring into checkout), Reviews module, admin gaps,
+  Redis usage, CI image publish, docker compose verification, admin-ecomus integration,
+  EndToEndTests.
 
 Next:
-- Customers/Promotions/Shipping/Reviews modules still have no Domain/Application code —
-  placeholders only (Notifications got real code in Phase 15).
+- Promotions/Shipping/Reviews modules still have no Domain/Application code — placeholders only
+  (Notifications got real code in Phase 15, Customers in Phase 17).
+- Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
+  see ADR-028.
 - Admin panel: no Brand/Category management UI (Product admin form omits BrandId/CategoryIds —
   scope decision, see ADR-021 area of docs/modules.md), no image upload (Section on file storage
   not started), no Payments admin UI (Payments has permissions defined — `Permissions.Payments.*`
@@ -142,19 +161,20 @@ Important Files:
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
 - docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..027.
+- docs/decisions.md — ADR-001..028.
 
 Database Changes:
-Local dev DB `ECommerce` (LocalDB), 6 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications) — unchanged since Phase 15; Phase 16 added no schema changes (Identity's
-tables already had everything `GenerateEmailConfirmationTokenAsync` needs).
+Local dev DB `ECommerce` (LocalDB), 7 migrated contexts (Catalog, Identity, Inventory, Ordering,
+Payments, Notifications, Customers). Phase 17 added the whole `customers` schema (migration
+`InitialCreate` on `CustomersDbContext`).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-025 (`Order.Email` added — collected at checkout, threaded
-through `OrderPlacedIntegrationEvent`; `PaymentSucceededIntegrationEvent` looks it up via a
-dispatched `GetOrderContactInfoQuery` instead of duplicating it), ADR-026 (Notifications module —
+See docs/decisions.md. Newest: ADR-026 (Notifications module —
 plain `NotificationLog`, `INotificationSender`/`FakeEmailSender` mirroring Payments' gateway
 pattern, first real Outbox consumer), ADR-027 (`Notifications.Contracts.SendEmailCommand` — a
 dispatchable counterpart to Notifications' event-reactive handlers, for emails that must be sent
 synchronously; used by Identity's account-confirmation/password-reset links, which have no prior
-integration event to react to and no Outbox of their own to publish one through).
+integration event to react to and no Outbox of their own to publish one through), ADR-028
+(Customers' `Customer.Id` deliberately equals the owning `ApplicationUser.Id` — no separate FK/
+lookup; not wired into checkout yet, a deliberate scope cut to avoid bolting a fifth cross-module
+concern onto `PlaceOrderCommand` in the same phase that built the module owning it).

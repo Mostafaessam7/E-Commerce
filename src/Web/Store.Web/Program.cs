@@ -1,6 +1,8 @@
 using System.Globalization;
 using Catalog.Infrastructure.Persistence;
 using Catalog.Infrastructure;
+using Customers.Infrastructure.Persistence;
+using Customers.Infrastructure;
 using Identity.Infrastructure.Persistence;
 using Identity.Infrastructure;
 using Infrastructure;
@@ -69,7 +71,7 @@ try
     builder.Services.AddInventoryModule(builder.Configuration);
     builder.Services.AddOrderingModule(builder.Configuration);
     builder.Services.AddPaymentsModule(builder.Configuration);
-    // builder.Services.AddCustomersModule(builder.Configuration);
+    builder.Services.AddCustomersModule(builder.Configuration);
     builder.Services.AddIdentityModule(builder.Configuration);
     // builder.Services.AddPromotionsModule(builder.Configuration);
     // builder.Services.AddShippingModule(builder.Configuration);
@@ -88,7 +90,8 @@ try
         .AddDbContextCheck<OrderingDbContext>("ordering-db")
         .AddDbContextCheck<PaymentsDbContext>("payments-db")
         .AddDbContextCheck<AppIdentityDbContext>("identity-db")
-        .AddDbContextCheck<NotificationsDbContext>("notifications-db");
+        .AddDbContextCheck<NotificationsDbContext>("notifications-db")
+        .AddDbContextCheck<CustomersDbContext>("customers-db");
 
     builder.Services.AddControllersWithViews();
 
@@ -106,6 +109,7 @@ try
         await app.Services.MigrateWithRetryAsync<PaymentsDbContext>(migrationLogger);
         await app.Services.MigrateWithRetryAsync<AppIdentityDbContext>(migrationLogger);
         await app.Services.MigrateWithRetryAsync<NotificationsDbContext>(migrationLogger);
+        await app.Services.MigrateWithRetryAsync<CustomersDbContext>(migrationLogger);
     }
 
     // First in the pipeline so every log line for this request — including ones from middleware
