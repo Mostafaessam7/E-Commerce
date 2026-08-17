@@ -18,6 +18,8 @@ using Ordering.Infrastructure;
 using Payments.Infrastructure.Persistence;
 using Payments.Infrastructure;
 using Persistence;
+using Promotions.Infrastructure.Persistence;
+using Promotions.Infrastructure;
 using Security;
 using Serilog;
 using Serilog.Events;
@@ -73,7 +75,7 @@ try
     builder.Services.AddPaymentsModule(builder.Configuration);
     builder.Services.AddCustomersModule(builder.Configuration);
     builder.Services.AddIdentityModule(builder.Configuration);
-    // builder.Services.AddPromotionsModule(builder.Configuration);
+    builder.Services.AddPromotionsModule(builder.Configuration);
     // builder.Services.AddShippingModule(builder.Configuration);
     // builder.Services.AddReviewsModule(builder.Configuration);
     // Store.Web doesn't register IEventBus (only Store.Worker processes the Outbox), so
@@ -91,7 +93,8 @@ try
         .AddDbContextCheck<PaymentsDbContext>("payments-db")
         .AddDbContextCheck<AppIdentityDbContext>("identity-db")
         .AddDbContextCheck<NotificationsDbContext>("notifications-db")
-        .AddDbContextCheck<CustomersDbContext>("customers-db");
+        .AddDbContextCheck<CustomersDbContext>("customers-db")
+        .AddDbContextCheck<PromotionsDbContext>("promotions-db");
 
     builder.Services.AddControllersWithViews();
 
@@ -110,6 +113,7 @@ try
         await app.Services.MigrateWithRetryAsync<AppIdentityDbContext>(migrationLogger);
         await app.Services.MigrateWithRetryAsync<NotificationsDbContext>(migrationLogger);
         await app.Services.MigrateWithRetryAsync<CustomersDbContext>(migrationLogger);
+        await app.Services.MigrateWithRetryAsync<PromotionsDbContext>(migrationLogger);
     }
 
     // First in the pipeline so every log line for this request — including ones from middleware

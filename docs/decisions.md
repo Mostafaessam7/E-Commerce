@@ -434,3 +434,24 @@ saved default address both touch `PlaceOrderCommand`, which already has enough m
 redemption and shipping cost lookup); bolting on a fifth cross-module concern in the same phase
 that built the module owning it risked under-testing all of them. Revisit as its own phase.
 Status: Accepted (Phase 17).
+
+---
+**ADR-029**
+Decision: Promotions (Phase 18, third of the five placeholder modules to get real code) is the
+first module wired into checkout using ADR-014's compensation pattern for something other than
+stock. `RedeemCouponCommand`/`ReleaseCouponCommand` (`Promotions.Contracts`) mirror `Inventory.Contracts.ReserveStockCommand`/`ReleaseStockCommand`'s shape exactly: `PlaceOrderCommandHandler`
+redeems the coupon (incrementing `Coupon.UsageCount`) right after computing the subtotal, and
+releases it (decrementing back) if *anything* later in the same checkout fails — an invalid
+address, a stock reservation failure, whatever comes next.
+Reason: `Cart.ApplyCoupon` (Ordering, existing since Phase 7/8) only ever stored a code string —
+no coupon actually existed to validate against until this phase, so "apply a coupon" and "the
+discount actually applies" were two different, disconnected claims before now. Redeeming
+immediately (not deferring validation to the very end) matches how price/stock are already
+handled — fail fast, don't reserve/redeem things you might not need — and the compensation
+pattern was already proven correct by Inventory's version rather than being invented fresh.
+Coupon.Redeem caps a fixed-amount discount at the order's own subtotal (never produces a negative
+total) and validates currency/expiry/usage-limit/minimum-order-amount together, atomically, so a
+racing double-redemption of the last use of a limited coupon can't both succeed (ordinary EF
+Core optimistic concurrency on the row — no special locking needed, same as everywhere else that
+doesn't get ADR-006's explicit rowversion treatment because the contention window here is tiny).
+Status: Accepted (Phase 18).

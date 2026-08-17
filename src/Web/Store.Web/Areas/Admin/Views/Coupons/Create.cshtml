@@ -1,0 +1,53 @@
+@model CreateCouponFormModel
+@{
+    ViewData["Title"] = "New Coupon";
+}
+
+<h1>New Coupon</h1>
+
+<form asp-action="Create" method="post" style="max-width: 480px;">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label class="form-label">Code</label>
+        <input asp-for="Code" class="form-control" placeholder="e.g. SAVE10" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Discount Type</label>
+        <select asp-for="DiscountType" class="form-select">
+            <option value="Percentage">Percentage</option>
+            <option value="FixedAmount">Fixed Amount</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Value (% or amount)</label>
+        <input asp-for="Value" type="number" step="0.01" class="form-control" />
+        <span asp-validation-for="Value" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Currency</label>
+        <input asp-for="Currency" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Expires At (optional)</label>
+        <input asp-for="ExpiresAtUtc" type="date" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Usage Limit (optional)</label>
+        <input asp-for="UsageLimit" type="number" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Minimum Order Amount (optional)</label>
+        <input asp-for="MinimumOrderAmount" type="number" step="0.01" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-dark">Create Coupon</button>
+    <a asp-action="Index" class="btn btn-link">Cancel</a>
+</form>

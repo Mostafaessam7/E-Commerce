@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Promotions.Domain;
 
 namespace Store.Web.Areas.Admin.Models;
 
@@ -71,4 +72,25 @@ public sealed class AdjustStockFormModel
 
     [Required, StringLength(300)]
     public string Reason { get; set; } = string.Empty;
+}
+
+public sealed class CreateCouponFormModel
+{
+    [Required, StringLength(50)]
+    public string Code { get; set; } = string.Empty;
+
+    [Required]
+    public DiscountType DiscountType { get; set; } = DiscountType.Percentage;
+
+    [Required, Range(0.01, 1_000_000)]
+    public decimal Value { get; set; }
+
+    [Required, StringLength(3)]
+    public string Currency { get; set; } = "EGP";
+
+    public DateTime? ExpiresAtUtc { get; set; }
+
+    public int? UsageLimit { get; set; }
+
+    public decimal? MinimumOrderAmount { get; set; }
 }

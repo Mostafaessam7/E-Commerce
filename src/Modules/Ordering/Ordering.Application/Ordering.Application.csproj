@@ -8,6 +8,7 @@
     <ProjectReference Include="..\..\..\BuildingBlocks\Messaging\Messaging.csproj" />
     <ProjectReference Include="..\..\Catalog\Catalog.Contracts\Catalog.Contracts.csproj" />
     <ProjectReference Include="..\..\Inventory\Inventory.Contracts\Inventory.Contracts.csproj" />
+    <ProjectReference Include="..\..\Promotions\Promotions.Contracts\Promotions.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

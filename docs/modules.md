@@ -110,10 +110,25 @@ like theirs the moment another module gains one.
 
 ## Promotions
 - Responsibility: coupons, discount rules.
-- Owns: Coupon, DiscountRule.
-- Does not own: order totals calculation (Ordering applies the discount).
-- Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Owns: `Coupon` (aggregate root — `Redeem`/`ReleaseRedemption`/`Activate`/`Deactivate`, each a
+  guarded transition; the only mutation is `UsageCount`, incremented by `Redeem`).
+- Does not own: order totals calculation — Ordering applies the returned discount amount, never
+  computes one itself.
+- Public contracts: `Promotions.Contracts.RedeemCouponCommand`/`ReleaseCouponCommand` (ADR-014) —
+  dispatched from Ordering's checkout, same compensation shape as
+  `Inventory.Contracts.ReserveStockCommand`/`ReleaseStockCommand`.
+- Dependencies: BuildingBlocks only. DB schema: `promotions`.
+- Application (`Promotions.Application.Coupons`): `RedeemCouponCommandHandler`/
+  `ReleaseCouponCommandHandler` (implement the Contracts commands above), plus admin
+  `CreateCouponCommand`/`ActivateCouponCommand`/`DeactivateCouponCommand`/`ListCouponsQuery`.
+- Ordering's `Cart.ApplyCoupon`/`RemoveCoupon` only ever store a code *string* on the cart — no
+  validation happens until checkout (`PlaceOrderCommandHandler` dispatches `RedeemCouponCommand`
+  against the real subtotal, same "never trust the cart's stale snapshot" rule already applied to
+  price/stock). If the order fails to place afterward (e.g. a later stock reservation failure),
+  `ReleaseCouponCommand` undoes the usage-count increment so the coupon isn't silently burned by
+  an order that never actually happened.
+- Admin: `Store.Web/Areas/Admin/Controllers/CouponsController.cs` — list/create/activate/
+  deactivate, gated by new `Permissions.Promotions.View`/`Manage`.
 
 ## Shipping
 - Responsibility: shipping methods/zones, `IShippingProvider` abstraction.

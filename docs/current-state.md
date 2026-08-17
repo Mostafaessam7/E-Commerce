@@ -1,7 +1,7 @@
 Current Phase:
-Phase 10-17 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
-UI/Customers module). In progress on a broader backlog: Promotions + Shipping (+ wiring real
-discount/shipping cost into checkout), Reviews, remaining admin gaps, Redis usage, CI image
+Phase 10-18 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+UI/Customers/Promotions+real discount wiring). In progress on a broader backlog: Shipping (+
+wiring real shipping cost into checkout), Reviews, remaining admin gaps, Redis usage, CI image
 publish, EndToEndTests (user asked for "all of it"; working through it phase by phase, committing
 after each).
 
@@ -122,16 +122,27 @@ Completed:
   in-browser: loaded "My Account" as a signed-in user (profile auto-created), added a real
   address, confirmed it was auto-marked default.
 - All tests passing: 75 unit + 23 integration + 29 architecture.
+- Phase 18: Promotions module + real discount wiring. `Coupon` (aggregate root —
+  `Redeem`/`ReleaseRedemption`/`Activate`/`Deactivate`); `Promotions.Contracts.RedeemCouponCommand`/
+  `ReleaseCouponCommand` (ADR-014/029) mirror Inventory's `ReserveStockCommand`/`ReleaseStockCommand`
+  compensation shape exactly. `PlaceOrderCommandHandler` now actually redeems `cart.CouponCode`
+  against the real subtotal (never trusted at face value — same rule as price/stock) and releases
+  it if anything later in the same checkout fails. New `Permissions.Promotions.View`/`Manage` +
+  admin `CouponsController` (list/create/activate/deactivate). New migration: `InitialCreate`
+  (`PromotionsDbContext`). Tests: 7 new unit tests (Coupon validation rules) + 2 new integration
+  tests (real discount applied end-to-end through checkout; a coupon redeemed for an order that
+  then fails to place is released, not burned). Verified live in-browser: created a real coupon
+  through the admin panel, saw it listed correctly.
+- All tests passing: 82 unit + 25 integration + 29 architecture.
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — Promotions +
-  Shipping (+ real discount/shipping-cost wiring into checkout), Reviews module, admin gaps,
-  Redis usage, CI image publish, docker compose verification, admin-ecomus integration,
-  EndToEndTests.
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — Shipping (+ real
+  shipping-cost wiring into checkout), Reviews module, admin gaps, Redis usage, CI image publish,
+  docker compose verification, admin-ecomus integration, EndToEndTests.
 
 Next:
-- Promotions/Shipping/Reviews modules still have no Domain/Application code — placeholders only
-  (Notifications got real code in Phase 15, Customers in Phase 17).
+- Shipping/Reviews modules still have no Domain/Application code — placeholders only
+  (Notifications got real code in Phase 15, Customers in Phase 17, Promotions in Phase 18).
 - Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
   see ADR-028.
 - Admin panel: no Brand/Category management UI (Product admin form omits BrandId/CategoryIds —
@@ -161,20 +172,21 @@ Important Files:
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
 - docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..028.
+- docs/decisions.md — ADR-001..029.
 
 Database Changes:
-Local dev DB `ECommerce` (LocalDB), 7 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications, Customers). Phase 17 added the whole `customers` schema (migration
-`InitialCreate` on `CustomersDbContext`).
+Local dev DB `ECommerce` (LocalDB), 8 migrated contexts (Catalog, Identity, Inventory, Ordering,
+Payments, Notifications, Customers, Promotions). Phase 18 added the whole `promotions` schema
+(migration `InitialCreate` on `PromotionsDbContext`).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-026 (Notifications module —
-plain `NotificationLog`, `INotificationSender`/`FakeEmailSender` mirroring Payments' gateway
-pattern, first real Outbox consumer), ADR-027 (`Notifications.Contracts.SendEmailCommand` — a
+See docs/decisions.md. Newest: ADR-027 (`Notifications.Contracts.SendEmailCommand` — a
 dispatchable counterpart to Notifications' event-reactive handlers, for emails that must be sent
 synchronously; used by Identity's account-confirmation/password-reset links, which have no prior
 integration event to react to and no Outbox of their own to publish one through), ADR-028
 (Customers' `Customer.Id` deliberately equals the owning `ApplicationUser.Id` — no separate FK/
 lookup; not wired into checkout yet, a deliberate scope cut to avoid bolting a fifth cross-module
-concern onto `PlaceOrderCommand` in the same phase that built the module owning it).
+concern onto `PlaceOrderCommand` in the same phase that built the module owning it), ADR-029
+(Promotions wired into checkout using the same redeem/release compensation shape as Inventory's
+stock reservation — `Coupon.Redeem` increments usage immediately, checkout releases it if
+anything later fails to place the order).

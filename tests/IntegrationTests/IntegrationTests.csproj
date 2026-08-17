@@ -66,6 +66,9 @@
     <ProjectReference Include="..\..\src\Modules\Identity\Identity.Application\Identity.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Customers\Customers.Infrastructure\Customers.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Customers\Customers.Application\Customers.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\Promotions.Infrastructure\Promotions.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\Promotions.Application\Promotions.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Promotions\Promotions.Domain\Promotions.Domain.csproj" />
   </ItemGroup>
 
 </Project>

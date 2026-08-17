@@ -6,6 +6,7 @@ using Ordering.Application.Abstractions;
 using Ordering.Contracts;
 using Ordering.Domain;
 using Ordering.Domain.ValueObjects;
+using Promotions.Contracts;
 using SharedKernel.Results;
 
 namespace Ordering.Application.Checkout;
@@ -110,19 +111,45 @@ public sealed class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand
         var subtotal = lines.Sum(l => l.UnitPrice * l.Quantity);
         var tax = Math.Round(subtotal * TaxRate, 2);
 
+        // Never trust the cart's stored coupon code (Cart.ApplyCoupon just stores a string, no
+        // validation) — re-validate and redeem it here, same rule as price/stock above. Redeeming
+        // increments the coupon's usage count immediately; if anything after this point fails to
+        // place the order, it must be released (ADR-014's compensation pattern, same shape as
+        // stock reservation below).
+        var discount = 0m;
+        var redeemedCouponCode = (string?)null;
+
+        if (!string.IsNullOrWhiteSpace(cart.CouponCode))
+        {
+            var redeemResult = await _dispatcher.Send(new RedeemCouponCommand(cart.CouponCode, subtotal, currency), cancellationToken);
+            if (redeemResult.IsFailure)
+            {
+                return Result.Failure<Guid>(redeemResult.Error);
+            }
+
+            discount = redeemResult.Value;
+            redeemedCouponCode = cart.CouponCode;
+        }
+
         var orderResult = Order.Place(
             GenerateOrderNumber(_dateTimeProvider.UtcNow), request.CustomerId, request.Email, billingResult.Value, shippingResult.Value,
-            lines, request.ShippingCost, tax, discount: 0m, currency, request.Notes, _dateTimeProvider.UtcNow);
+            lines, request.ShippingCost, tax, discount, currency, request.Notes, _dateTimeProvider.UtcNow);
 
         if (orderResult.IsFailure)
         {
+            if (redeemedCouponCode is not null)
+            {
+                await _dispatcher.Send(new ReleaseCouponCommand(redeemedCouponCode), cancellationToken);
+            }
+
             return Result.Failure<Guid>(orderResult.Error);
         }
 
         var order = orderResult.Value;
 
         // Reserve stock per line, tagged with this order's id; if any line fails, release
-        // everything already reserved for this order (compensation — Section 5, never oversell).
+        // everything already reserved for this order (compensation — Section 5, never oversell) —
+        // and the coupon redemption too, for the same reason.
         var reserved = new List<(Guid ProductVariantId, int Quantity)>();
 
         foreach (var line in order.Items)
@@ -135,6 +162,11 @@ public sealed class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand
                 foreach (var (variantId, quantity) in reserved)
                 {
                     await _dispatcher.Send(new ReleaseStockCommand(variantId, quantity, order.Id), cancellationToken);
+                }
+
+                if (redeemedCouponCode is not null)
+                {
+                    await _dispatcher.Send(new ReleaseCouponCommand(redeemedCouponCode), cancellationToken);
                 }
 
                 return Result.Failure<Guid>(reserveResult.Error);
