@@ -1,8 +1,10 @@
 Current Phase:
-Phase 10-19 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
-UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring). In progress on a
-broader backlog: Reviews, remaining admin gaps, Redis usage, CI image publish, EndToEndTests (user
-asked for "all of it"; working through it phase by phase, committing after each).
+Phase 10-20 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring/Reviews+moderation).
+All five originally-empty placeholder modules now have real code. In progress on a broader
+backlog: remaining admin gaps (Brand/Category management, Payments admin UI), Redis usage, CI
+image publish, EndToEndTests (user asked for "all of it"; working through it phase by phase,
+committing after each).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -151,15 +153,31 @@ Completed:
   through checkout and confirmed the order's shipping cost/total matched the seeded method's real
   cost ($75.00), not a hardcoded number.
 - All tests passing: 88 unit + 25 integration + 29 architecture.
+- Phase 20: Reviews module + storefront/admin moderation flow — the fifth and last originally-empty
+  placeholder module. `Review` (aggregate root — `Submit`/`Approve`/`Reject`; every review starts
+  `Pending`, `Approve`/`Reject` are one-way transitions, `Review.NotPending` blocks re-moderating
+  an already-decided review, ADR-031). No "verified purchase" check against Ordering — accepted
+  from anyone. `Reviews.Contracts` stays empty (no other module calls into Reviews, same as
+  `Customers.Contracts`). Storefront: `ProductController`'s product page now dispatches
+  `GetProductReviewsQuery` (approved-only + average rating) and accepts `SubmitReviewCommand` (no
+  login required, guest-friendly like checkout) through a real form. New
+  `Permissions.Reviews.View`/`Moderate` + admin `ReviewsController` (pending/all listing,
+  approve/reject). New migration: `InitialCreate` (`ReviewsDbContext`). Tests: 7 new unit tests
+  (`Review` validation/transition rules) + 2 new integration tests (a submitted review is Pending
+  and invisible to the storefront query until approved; a rejected review stays invisible and
+  can't be re-moderated). Verified live in-browser: submitted a real review on a product page
+  (hidden, pending), approved it through the admin panel, confirmed it then appeared on the
+  storefront page with the correct average rating.
+- All tests passing: 96 unit + 27 integration + 29 architecture.
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — Reviews module,
-  admin gaps, Redis usage, CI image publish, docker compose verification, admin-ecomus
-  integration, EndToEndTests.
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — remaining admin
+  gaps, Redis usage, CI image publish, docker compose verification, admin-ecomus integration,
+  EndToEndTests.
 
 Next:
-- Reviews module still has no Domain/Application code — a placeholder only (Notifications got
-  real code in Phase 15, Customers in Phase 17, Promotions in Phase 18, Shipping in Phase 19).
+- All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
+  Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20).
 - Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
   see ADR-028.
 - Admin panel: no Brand/Category management UI (Product admin form omits BrandId/CategoryIds —
@@ -189,21 +207,21 @@ Important Files:
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
 - docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..030.
+- docs/decisions.md — ADR-001..031.
 
 Database Changes:
-Local dev DB `ECommerce` (LocalDB), 9 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications, Customers, Promotions, Shipping). Phase 19 added the whole `shipping`
-schema (migration `InitialCreate` on `ShippingDbContext`).
+Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
+Payments, Notifications, Customers, Promotions, Shipping, Reviews). Phase 20 added the whole
+`reviews` schema (migration `InitialCreate` on `ReviewsDbContext`).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-028 (Customers' `Customer.Id` deliberately equals the owning
-`ApplicationUser.Id` — no separate FK/lookup; not wired into checkout yet, a deliberate scope cut
-to avoid bolting a fifth cross-module concern onto `PlaceOrderCommand` in the same phase that
-built the module owning it), ADR-029 (Promotions wired into checkout using the same redeem/release
-compensation shape as Inventory's stock reservation — `Coupon.Redeem` increments usage
-immediately, checkout releases it if anything later fails to place the order), ADR-030 (Shipping's
-`ShippingMethod` aggregate has no zone/region modeling — every active method applies everywhere;
-`PlaceOrderCommand`'s `ShippingCost: decimal` parameter is replaced with `ShippingMethodId: Guid`,
-looked up server-side via `GetShippingMethodQuery`, closing out the last hardcoded number
-— the flat `50m` — in the checkout write path).
+See docs/decisions.md. Newest: ADR-029 (Promotions wired into checkout using the same
+redeem/release compensation shape as Inventory's stock reservation — `Coupon.Redeem` increments
+usage immediately, checkout releases it if anything later fails to place the order), ADR-030
+(Shipping's `ShippingMethod` aggregate has no zone/region modeling — every active method applies
+everywhere; `PlaceOrderCommand`'s `ShippingCost: decimal` parameter is replaced with
+`ShippingMethodId: Guid`, looked up server-side via `GetShippingMethodQuery`, closing out the last
+hardcoded number — the flat `50m` — in the checkout write path), ADR-031 (Reviews' `Review`
+aggregate starts every submission `Pending`; only an admin `Approve`/`Reject` — one-way, blocked
+by `Review.NotPending` from re-moderating — moves it out, and the storefront query only ever
+returns `Approved` ones; no "verified purchase" check against Ordering, a deliberate scope cut).

@@ -153,11 +153,25 @@ like theirs the moment another module gains one.
   deactivate, gated by new `Permissions.Shipping.View`/`Manage`.
 
 ## Reviews
-- Responsibility: product reviews/ratings.
-- Owns: Review.
-- Does not own: product data.
-- Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Responsibility: product reviews/ratings, with moderation. No "verified purchase" check against
+  Ordering (ADR-031) — accepted from anyone, not just someone who actually bought the product.
+- Owns: `Review` (aggregate root — `ProductId`/`ReviewerName`/`ReviewerEmail`/`Rating` (1-5)/
+  `Title`/`Body`/`Status`; `Submit`/`Approve`/`Reject`, the latter two one-way transitions out of
+  `Pending` only — `Review.NotPending` blocks re-moderating an already-decided review).
+- Does not own: product data — `ProductId` is stored as a plain Guid, not cross-module validated
+  against Catalog (a deliberate scope cut; the storefront only ever submits an id for a product
+  it's currently rendering).
+- Public contracts: none — no other module ever calls into Reviews (unlike Shipping/Promotions),
+  so `Reviews.Contracts` stays empty, same as `Customers.Contracts` (ADR-028).
+- Dependencies: BuildingBlocks only. DB schema: `reviews`.
+- Application (`Reviews.Application.Reviews`): `SubmitReviewCommand` (storefront, no login
+  required — same guest-friendly posture as checkout) always creates a `Pending` review;
+  `GetProductReviewsQuery` (storefront's product page) only ever returns `Approved` ones plus the
+  aggregate average rating. Admin: `ApproveReviewCommand`/`RejectReviewCommand`/`ListReviewsQuery`.
+- Storefront: `Store.Web/Controllers/ProductController.cs` — the product details page renders
+  approved reviews + a submission form; `Views/Product/Details.cshtml`.
+- Admin: `Store.Web/Areas/Admin/Controllers/ReviewsController.cs` — pending/all listing,
+  approve/reject, gated by new `Permissions.Reviews.View`/`Moderate`.
 
 ## Notifications
 - Responsibility: email sending abstraction, notification log. First real consumer of the

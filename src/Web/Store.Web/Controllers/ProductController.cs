@@ -1,6 +1,8 @@
 using Catalog.Application.Products;
 using Messaging;
 using Microsoft.AspNetCore.Mvc;
+using Reviews.Application.Reviews;
+using Store.Web.Models;
 
 namespace Store.Web.Controllers;
 
@@ -21,6 +23,31 @@ public class ProductController : Controller
             return NotFound();
         }
 
+        var reviewsResult = await _dispatcher.Send(new GetProductReviewsQuery(result.Value.Id), cancellationToken);
+        ViewBag.Reviews = reviewsResult.Value;
+        ViewBag.ReviewForm = new SubmitReviewFormModel { ProductId = result.Value.Id };
+
         return View(result.Value);
+    }
+
+    [HttpPost("review")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SubmitReview(SubmitReviewFormModel form, string slug, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["ReviewError"] = "Please fill in every required field with a rating between 1 and 5.";
+            return RedirectToAction(nameof(Details), new { slug });
+        }
+
+        var result = await _dispatcher.Send(
+            new SubmitReviewCommand(form.ProductId, form.ReviewerName, form.ReviewerEmail, form.Rating, form.Title, form.Body),
+            cancellationToken);
+
+        TempData[result.IsSuccess ? "ReviewSuccess" : "ReviewError"] = result.IsSuccess
+            ? "Thanks — your review was submitted and will appear once approved."
+            : result.Error.Message;
+
+        return RedirectToAction(nameof(Details), new { slug });
     }
 }

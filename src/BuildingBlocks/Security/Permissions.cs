@@ -65,6 +65,12 @@ public static class Permissions
         public const string Manage = "Shipping.Manage";
     }
 
+    public static class Reviews
+    {
+        public const string View = "Reviews.View";
+        public const string Moderate = "Reviews.Moderate";
+    }
+
     public static class Users
     {
         public const string View = "Users.View";
@@ -92,6 +98,7 @@ public static class Permissions
         Reports.View,
         Promotions.View, Promotions.Manage,
         Shipping.View, Shipping.Manage,
+        Reviews.View, Reviews.Moderate,
         Users.View, Users.Manage,
         Roles.Manage,
         PermissionsAdmin.Manage,

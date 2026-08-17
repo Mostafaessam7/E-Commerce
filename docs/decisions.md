@@ -476,3 +476,25 @@ discipline as every other checkout input. Zone/region rate modeling is a real, s
 (different methods costing different amounts in different countries) that would roughly double
 the aggregate's complexity for no proven near-term need — deliberately deferred, not missed.
 Status: Accepted (Phase 19).
+
+---
+**ADR-031**
+Decision: Reviews (Phase 20, last of the five placeholder modules to get real code) is a single
+`Review` aggregate — `ProductId`/`ReviewerName`/`ReviewerEmail`/`Rating` (1-5)/`Title`/`Body`/
+`Status`. Every review starts `Pending`; `SubmitReviewCommand` (storefront, no login required —
+same guest-friendly posture as checkout) never makes a review visible on its own. Only an admin
+`ApproveReviewCommand`/`RejectReviewCommand` moves it out of `Pending`, and
+`GetProductReviewsQuery` (the storefront's product-page query) only ever returns `Approved` ones.
+No "verified purchase" check against Ordering — a review is accepted from anyone regardless of
+whether they actually bought the product.
+Reason: free-text, publicly-displayed user content is a different trust problem than a price or a
+stock count — the risk isn't a wrong number, it's spam/abuse appearing on a live product page.
+Moderation-before-publish is the minimum real version of that: `Review.Approve`/`Reject` are
+one-way (`Review.NotPending` blocks re-moderating an already-decided review), same "guarded
+transition, no silent re-entry" shape as every other status machine in this system (`Order`,
+`Coupon`, `ShippingMethod`). "Verified purchase" (cross-checking Ordering for a real completed
+order before accepting a review) is a real, separate feature — deliberately deferred, not
+attempted here, same reasoning as Shipping's zone modeling (ADR-030) and Customers not being
+wired into checkout yet (ADR-028): each of these five placeholder modules got exactly the real
+code its phase needed, not everything imaginable for it.
+Status: Accepted (Phase 20).

@@ -20,6 +20,8 @@ using Payments.Infrastructure;
 using Persistence;
 using Promotions.Infrastructure.Persistence;
 using Promotions.Infrastructure;
+using Reviews.Infrastructure.Persistence;
+using Reviews.Infrastructure;
 using Shipping.Infrastructure.Persistence;
 using Shipping.Infrastructure;
 using Security;
@@ -79,7 +81,7 @@ try
     builder.Services.AddIdentityModule(builder.Configuration);
     builder.Services.AddPromotionsModule(builder.Configuration);
     builder.Services.AddShippingModule(builder.Configuration);
-    // builder.Services.AddReviewsModule(builder.Configuration);
+    builder.Services.AddReviewsModule(builder.Configuration);
     // Store.Web doesn't register IEventBus (only Store.Worker processes the Outbox), so
     // Notifications' handlers never fire here — this wiring is just for the DbContext/health
     // check/future admin NotificationLog viewing, same reasoning as every other module.
@@ -97,7 +99,8 @@ try
         .AddDbContextCheck<NotificationsDbContext>("notifications-db")
         .AddDbContextCheck<CustomersDbContext>("customers-db")
         .AddDbContextCheck<PromotionsDbContext>("promotions-db")
-        .AddDbContextCheck<ShippingDbContext>("shipping-db");
+        .AddDbContextCheck<ShippingDbContext>("shipping-db")
+        .AddDbContextCheck<ReviewsDbContext>("reviews-db");
 
     builder.Services.AddControllersWithViews();
 
@@ -118,6 +121,7 @@ try
         await app.Services.MigrateWithRetryAsync<CustomersDbContext>(migrationLogger);
         await app.Services.MigrateWithRetryAsync<PromotionsDbContext>(migrationLogger);
         await app.Services.MigrateWithRetryAsync<ShippingDbContext>(migrationLogger);
+        await app.Services.MigrateWithRetryAsync<ReviewsDbContext>(migrationLogger);
     }
 
     // First in the pipeline so every log line for this request — including ones from middleware

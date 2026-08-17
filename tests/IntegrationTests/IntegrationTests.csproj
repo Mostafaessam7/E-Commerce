@@ -73,6 +73,10 @@
     <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Application\Shipping.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Domain\Shipping.Domain.csproj" />
     <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Contracts\Shipping.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.Infrastructure\Reviews.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.Application\Reviews.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.Domain\Reviews.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Reviews\Reviews.Contracts\Reviews.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
