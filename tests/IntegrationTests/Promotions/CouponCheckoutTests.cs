@@ -19,6 +19,9 @@ using Promotions.Domain;
 using Promotions.Infrastructure;
 using Promotions.Infrastructure.Persistence;
 using Security;
+using Shipping.Application.Methods;
+using Shipping.Infrastructure;
+using Shipping.Infrastructure.Persistence;
 
 namespace IntegrationTests.Promotions;
 
@@ -39,6 +42,7 @@ public sealed class CouponCheckoutTests : IAsyncLifetime
     private Guid _stockItemId;
     private Guid _couponId;
     private string _couponCode = null!;
+    private Guid _shippingMethodId;
 
     public async Task InitializeAsync()
     {
@@ -55,6 +59,7 @@ public sealed class CouponCheckoutTests : IAsyncLifetime
         services.AddInventoryModule(configuration);
         services.AddOrderingModule(configuration);
         services.AddPromotionsModule(configuration);
+        services.AddShippingModule(configuration);
 
         _provider = services.BuildServiceProvider();
 
@@ -78,6 +83,9 @@ public sealed class CouponCheckoutTests : IAsyncLifetime
         var dispatcher = scope.ServiceProvider.GetRequiredService<IDispatcher>();
         var createResult = await dispatcher.Send(new CreateCouponCommand(_couponCode, DiscountType.Percentage, 10m, "EGP", null, null, null));
         _couponId = createResult.Value;
+
+        var shippingResult = await dispatcher.Send(new CreateShippingMethodCommand("Standard", null, 10m, "EGP", null, null));
+        _shippingMethodId = shippingResult.Value;
     }
 
     public async Task DisposeAsync()
@@ -86,6 +94,9 @@ public sealed class CouponCheckoutTests : IAsyncLifetime
 
         var promotionsDb = scope.ServiceProvider.GetRequiredService<PromotionsDbContext>();
         await promotionsDb.Coupons.Where(c => c.Id == _couponId).ExecuteDeleteAsync();
+
+        var shippingDb = scope.ServiceProvider.GetRequiredService<ShippingDbContext>();
+        await shippingDb.ShippingMethods.Where(m => m.Id == _shippingMethodId).ExecuteDeleteAsync();
 
         var orderingDb = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
         await orderingDb.Orders.Where(o => o.Notes == TestNotesMarker).ExecuteDeleteAsync();
@@ -122,7 +133,7 @@ public sealed class CouponCheckoutTests : IAsyncLifetime
 
         var address = new AddressInput("Coupon Test", "+201000000010", "1 Test St", null, "Cairo", null, "11511", "EG");
         var placeResult = await dispatcher.Send(
-            new PlaceOrderCommand(cart.Id, null, "coupon-buyer@example.com", address, address, 10m, TestNotesMarker));
+            new PlaceOrderCommand(cart.Id, null, "coupon-buyer@example.com", address, address, _shippingMethodId, TestNotesMarker));
 
         placeResult.IsSuccess.Should().BeTrue();
 
@@ -149,7 +160,7 @@ public sealed class CouponCheckoutTests : IAsyncLifetime
 
         var address = new AddressInput("Coupon Test", "+201000000011", "1 Test St", null, "Cairo", null, "11511", "EG");
         var placeResult = await dispatcher.Send(
-            new PlaceOrderCommand(cart.Id, null, "coupon-buyer2@example.com", address, address, 10m, TestNotesMarker));
+            new PlaceOrderCommand(cart.Id, null, "coupon-buyer2@example.com", address, address, _shippingMethodId, TestNotesMarker));
 
         placeResult.IsFailure.Should().BeTrue();
 

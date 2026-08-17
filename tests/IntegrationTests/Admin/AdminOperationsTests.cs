@@ -17,6 +17,9 @@ using Ordering.Application.Checkout;
 using Ordering.Infrastructure;
 using Ordering.Infrastructure.Persistence;
 using Security;
+using Shipping.Application.Methods;
+using Shipping.Infrastructure;
+using Shipping.Infrastructure.Persistence;
 
 namespace IntegrationTests.Admin;
 
@@ -38,6 +41,7 @@ public sealed class AdminOperationsTests : IAsyncLifetime
     private Guid _stockVariantId;
     private Guid _stockItemId;
     private Guid _orderId;
+    private Guid _shippingMethodId;
 
     public async Task InitializeAsync()
     {
@@ -53,6 +57,7 @@ public sealed class AdminOperationsTests : IAsyncLifetime
         services.AddCatalogModule(configuration);
         services.AddInventoryModule(configuration);
         services.AddOrderingModule(configuration);
+        services.AddShippingModule(configuration);
 
         _provider = services.BuildServiceProvider();
 
@@ -75,6 +80,10 @@ public sealed class AdminOperationsTests : IAsyncLifetime
         inventoryDb.StockItems.Add(stockItem);
         await inventoryDb.SaveChangesAsync();
         _stockItemId = stockItem.Id;
+
+        var dispatcher = scope.ServiceProvider.GetRequiredService<IDispatcher>();
+        var shippingResult = await dispatcher.Send(new CreateShippingMethodCommand("Standard", null, 10m, "EGP", null, null));
+        _shippingMethodId = shippingResult.Value;
     }
 
     public async Task DisposeAsync()
@@ -88,6 +97,9 @@ public sealed class AdminOperationsTests : IAsyncLifetime
 
         var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
         await inventoryDb.StockItems.Where(s => s.Id == _stockItemId).ExecuteDeleteAsync();
+
+        var shippingDb = scope.ServiceProvider.GetRequiredService<ShippingDbContext>();
+        await shippingDb.ShippingMethods.Where(m => m.Id == _shippingMethodId).ExecuteDeleteAsync();
 
         if (_orderId != Guid.Empty)
         {
@@ -226,7 +238,7 @@ public sealed class AdminOperationsTests : IAsyncLifetime
         await dispatcher.Send(new AddCartItemCommand(cart.Id, _stockVariantId, 1));
 
         var address = new AddressInput("Admin Test", "+201000000002", "1 Test St", null, "Cairo", null, "11511", "EG");
-        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, "buyer@example.com", address, address, 10m, "admin-ops-test"));
+        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, "buyer@example.com", address, address, _shippingMethodId, "admin-ops-test"));
         return placeResult.Value;
     }
 }

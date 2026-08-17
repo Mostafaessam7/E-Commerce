@@ -1,9 +1,8 @@
 Current Phase:
-Phase 10-18 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
-UI/Customers/Promotions+real discount wiring). In progress on a broader backlog: Shipping (+
-wiring real shipping cost into checkout), Reviews, remaining admin gaps, Redis usage, CI image
-publish, EndToEndTests (user asked for "all of it"; working through it phase by phase, committing
-after each).
+Phase 10-19 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring). In progress on a
+broader backlog: Reviews, remaining admin gaps, Redis usage, CI image publish, EndToEndTests (user
+asked for "all of it"; working through it phase by phase, committing after each).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -134,15 +133,33 @@ Completed:
   then fails to place is released, not burned). Verified live in-browser: created a real coupon
   through the admin panel, saw it listed correctly.
 - All tests passing: 82 unit + 25 integration + 29 architecture.
+- Phase 19: Shipping module + real shipping-cost wiring into checkout. `ShippingMethod` (aggregate
+  root — `Create`/`UpdateCost`/`Activate`/`Deactivate`; no zone/region modeling, ADR-030).
+  `Shipping.Contracts.ListShippingMethodsQuery`/`GetShippingMethodQuery` (ADR-014).
+  `PlaceOrderCommand`'s old `ShippingCost: decimal` parameter is gone, replaced with
+  `ShippingMethodId: Guid` — the handler dispatches `GetShippingMethodQuery` right after tax
+  computation to get the authoritative cost (never trusted from the client, same rule as
+  price/stock). Checkout's `GET /Checkout` now renders a real radio-button shipping-method picker
+  fed by `ListShippingMethodsQuery()`, replacing the old hidden hardcoded `50m`. New
+  `Permissions.Shipping.View`/`Manage` + admin `ShippingMethodsController` (list/create/activate/
+  deactivate). New migration: `InitialCreate` (`ShippingDbContext`). Tests: 6 new unit tests
+  (`ShippingMethod` validation rules) — the existing checkout/admin/notification/payment/coupon
+  integration tests were all updated to seed a real `ShippingMethod` and pass its id instead of a
+  raw decimal (5 files touched: `CheckoutFlowTests`, `AdminOperationsTests`,
+  `NotificationHandlersTests`, `PaymentWebhookTests`, `CouponCheckoutTests`). Verified live
+  in-browser: created a real shipping method through the admin panel, then placed a real order
+  through checkout and confirmed the order's shipping cost/total matched the seeded method's real
+  cost ($75.00), not a hardcoded number.
+- All tests passing: 88 unit + 25 integration + 29 architecture.
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — Shipping (+ real
-  shipping-cost wiring into checkout), Reviews module, admin gaps, Redis usage, CI image publish,
-  docker compose verification, admin-ecomus integration, EndToEndTests.
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — Reviews module,
+  admin gaps, Redis usage, CI image publish, docker compose verification, admin-ecomus
+  integration, EndToEndTests.
 
 Next:
-- Shipping/Reviews modules still have no Domain/Application code — placeholders only
-  (Notifications got real code in Phase 15, Customers in Phase 17, Promotions in Phase 18).
+- Reviews module still has no Domain/Application code — a placeholder only (Notifications got
+  real code in Phase 15, Customers in Phase 17, Promotions in Phase 18, Shipping in Phase 19).
 - Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
   see ADR-028.
 - Admin panel: no Brand/Category management UI (Product admin form omits BrandId/CategoryIds —
@@ -172,21 +189,21 @@ Important Files:
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
 - docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..029.
+- docs/decisions.md — ADR-001..030.
 
 Database Changes:
-Local dev DB `ECommerce` (LocalDB), 8 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications, Customers, Promotions). Phase 18 added the whole `promotions` schema
-(migration `InitialCreate` on `PromotionsDbContext`).
+Local dev DB `ECommerce` (LocalDB), 9 migrated contexts (Catalog, Identity, Inventory, Ordering,
+Payments, Notifications, Customers, Promotions, Shipping). Phase 19 added the whole `shipping`
+schema (migration `InitialCreate` on `ShippingDbContext`).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-027 (`Notifications.Contracts.SendEmailCommand` — a
-dispatchable counterpart to Notifications' event-reactive handlers, for emails that must be sent
-synchronously; used by Identity's account-confirmation/password-reset links, which have no prior
-integration event to react to and no Outbox of their own to publish one through), ADR-028
-(Customers' `Customer.Id` deliberately equals the owning `ApplicationUser.Id` — no separate FK/
-lookup; not wired into checkout yet, a deliberate scope cut to avoid bolting a fifth cross-module
-concern onto `PlaceOrderCommand` in the same phase that built the module owning it), ADR-029
-(Promotions wired into checkout using the same redeem/release compensation shape as Inventory's
-stock reservation — `Coupon.Redeem` increments usage immediately, checkout releases it if
-anything later fails to place the order).
+See docs/decisions.md. Newest: ADR-028 (Customers' `Customer.Id` deliberately equals the owning
+`ApplicationUser.Id` — no separate FK/lookup; not wired into checkout yet, a deliberate scope cut
+to avoid bolting a fifth cross-module concern onto `PlaceOrderCommand` in the same phase that
+built the module owning it), ADR-029 (Promotions wired into checkout using the same redeem/release
+compensation shape as Inventory's stock reservation — `Coupon.Redeem` increments usage
+immediately, checkout releases it if anything later fails to place the order), ADR-030 (Shipping's
+`ShippingMethod` aggregate has no zone/region modeling — every active method applies everywhere;
+`PlaceOrderCommand`'s `ShippingCost: decimal` parameter is replaced with `ShippingMethodId: Guid`,
+looked up server-side via `GetShippingMethodQuery`, closing out the last hardcoded number
+— the flat `50m` — in the checkout write path).

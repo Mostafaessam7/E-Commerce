@@ -455,3 +455,24 @@ racing double-redemption of the last use of a limited coupon can't both succeed 
 Core optimistic concurrency on the row — no special locking needed, same as everywhere else that
 doesn't get ADR-006's explicit rowversion treatment because the contention window here is tiny).
 Status: Accepted (Phase 18).
+
+---
+**ADR-030**
+Decision: Shipping (Phase 19, fourth of the five placeholder modules to get real code) is a
+single `ShippingMethod` aggregate — `Name`/`Description`/`Cost` (Money)/`EstimatedDaysMin`/`Max`/
+`IsActive` — with no `ShippingZone` modeling: every active method applies everywhere, there is no
+per-country/region rate matching. `PlaceOrderCommand`'s `ShippingCost: decimal` parameter is
+replaced outright with `ShippingMethodId: Guid`; the handler dispatches
+`Shipping.Contracts.GetShippingMethodQuery` (ADR-014) right after tax computation to get the
+authoritative cost, exactly like Catalog's price and Inventory's stock are never trusted from the
+client. Checkout's UI (`GET /Checkout`) now dispatches `ListShippingMethodsQuery()` to render a
+real radio-button picker instead of a hidden flat `50m`.
+Reason: the flat `50m` shipping cost hardcoded into checkout since Phase 7/8 was the last
+remaining "fake number in the write path" identified in the Phase 15-18 gap analysis (see
+current-state.md) — Catalog pricing and Inventory stock were already real by that point, so
+shipping was the odd one out. A `ShippingMethod` aggregate with a picker is the minimum real
+version of "shipping is a choice with a real cost," matching the same re-validate-server-side
+discipline as every other checkout input. Zone/region rate modeling is a real, separate feature
+(different methods costing different amounts in different countries) that would roughly double
+the aggregate's complexity for no proven near-term need — deliberately deferred, not missed.
+Status: Accepted (Phase 19).

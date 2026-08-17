@@ -131,11 +131,26 @@ like theirs the moment another module gains one.
   deactivate, gated by new `Permissions.Promotions.View`/`Manage`.
 
 ## Shipping
-- Responsibility: shipping methods/zones, `IShippingProvider` abstraction.
-- Owns: ShippingMethod, ShippingZone.
-- Does not own: order shipping snapshot (Ordering stores it at order time).
-- Public contracts: none yet.
-- Dependencies: BuildingBlocks only.
+- Responsibility: shipping methods and their real cost. No zone/region rate matching (ADR-030) —
+  every active method applies everywhere.
+- Owns: `ShippingMethod` (aggregate root — `Name`/`Description`/`Cost` (Money)/`EstimatedDaysMin`/
+  `Max`/`IsActive`; `Create`/`UpdateCost`/`Activate`/`Deactivate`).
+- Does not own: order shipping snapshot — Ordering re-reads the authoritative cost at checkout
+  time and stores it on the `Order` itself, same as it does for price/stock.
+- Public contracts: `Shipping.Contracts.ListShippingMethodsQuery` (checkout's method picker —
+  active-only unless `IncludeInactive: true` for the admin listing) and
+  `GetShippingMethodQuery` (ADR-014 — dispatched from `Ordering.Application.Checkout
+  .PlaceOrderCommandHandler` to price whichever method the customer picked; a client-submitted
+  cost is never trusted, same rule already applied to Catalog price and Inventory stock).
+- Dependencies: BuildingBlocks only. DB schema: `shipping`.
+- Application (`Shipping.Application.Methods`): `ListShippingMethodsQueryHandler`/
+  `GetShippingMethodQueryHandler` (implement the Contracts queries above — the latter fails with
+  `ShippingMethod.NotFound`/`ShippingMethod.Inactive`), plus admin `CreateShippingMethodCommand`/
+  `ActivateShippingMethodCommand`/`DeactivateShippingMethodCommand`.
+- `PlaceOrderCommand`'s old `ShippingCost: decimal` parameter is gone — it takes
+  `ShippingMethodId: Guid` and looks up the real cost itself (ADR-030).
+- Admin: `Store.Web/Areas/Admin/Controllers/ShippingMethodsController.cs` — list/create/activate/
+  deactivate, gated by new `Permissions.Shipping.View`/`Manage`.
 
 ## Reviews
 - Responsibility: product reviews/ratings.

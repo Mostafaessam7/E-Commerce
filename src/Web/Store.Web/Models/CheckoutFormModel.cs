@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Shipping.Contracts;
 
 namespace Store.Web.Models;
 
@@ -54,4 +56,12 @@ public sealed class CheckoutFormModel
 
     [StringLength(1000)]
     public string? Notes { get; set; }
+
+    [Required(ErrorMessage = "Please choose a shipping method.")]
+    public Guid ShippingMethodId { get; set; }
+
+    /// <summary>Populated by the controller for the dropdown — not bound from the posted form
+    /// (Shipping is re-validated authoritatively server-side regardless, see `PlaceOrderCommandHandler`).</summary>
+    [ValidateNever]
+    public IReadOnlyList<ShippingMethodDto> ShippingMethods { get; set; } = [];
 }

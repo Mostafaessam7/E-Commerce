@@ -15,6 +15,9 @@ using Ordering.Application.Checkout;
 using Ordering.Infrastructure;
 using Ordering.Infrastructure.Persistence;
 using Security;
+using Shipping.Application.Methods;
+using Shipping.Infrastructure;
+using Shipping.Infrastructure.Persistence;
 
 namespace IntegrationTests.Ordering;
 
@@ -34,6 +37,7 @@ public sealed class CheckoutFlowTests : IAsyncLifetime
     private Guid _productId;
     private Guid _variantId;
     private Guid _stockItemId;
+    private Guid _shippingMethodId;
 
     public async Task InitializeAsync()
     {
@@ -49,6 +53,7 @@ public sealed class CheckoutFlowTests : IAsyncLifetime
         services.AddCatalogModule(configuration);
         services.AddInventoryModule(configuration);
         services.AddOrderingModule(configuration);
+        services.AddShippingModule(configuration);
 
         _provider = services.BuildServiceProvider();
 
@@ -71,6 +76,10 @@ public sealed class CheckoutFlowTests : IAsyncLifetime
             inventoryDb.StockItems.Add(stockItem);
             await inventoryDb.SaveChangesAsync();
             _stockItemId = stockItem.Id;
+
+            var dispatcher = scope.ServiceProvider.GetRequiredService<IDispatcher>();
+            var shippingResult = await dispatcher.Send(new CreateShippingMethodCommand("Standard", null, 30m, "EGP", 3, 5));
+            _shippingMethodId = shippingResult.Value;
         }
     }
 
@@ -93,6 +102,9 @@ public sealed class CheckoutFlowTests : IAsyncLifetime
             inventoryDb.StockItems.Remove(stockItem);
             await inventoryDb.SaveChangesAsync();
         }
+
+        var shippingDb = scope.ServiceProvider.GetRequiredService<ShippingDbContext>();
+        await shippingDb.ShippingMethods.Where(m => m.Id == _shippingMethodId).ExecuteDeleteAsync();
 
         var orderingDb = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
         await orderingDb.Carts.Where(c => c.AnonymousId != null).ExecuteDeleteAsync();
@@ -119,7 +131,7 @@ public sealed class CheckoutFlowTests : IAsyncLifetime
 
         var address = new AddressInput("Ahmed Ali", "+201000000000", "1 Test St", null, "Cairo", null, "11511", "EG");
         var placeResult = await dispatcher.Send(new PlaceOrderCommand(
-            cartResult.Value.Id, CustomerId: null, Email: "buyer@example.com", address, address, ShippingCost: 30m, Notes: TestNotesMarker));
+            cartResult.Value.Id, CustomerId: null, Email: "buyer@example.com", address, address, ShippingMethodId: _shippingMethodId, Notes: TestNotesMarker));
 
         placeResult.IsSuccess.Should().BeTrue();
 
@@ -152,7 +164,7 @@ public sealed class CheckoutFlowTests : IAsyncLifetime
 
         var address = new AddressInput("Ahmed Ali", "+201000000000", "1 Test St", null, "Cairo", null, "11511", "EG");
         var placeResult = await dispatcher.Send(new PlaceOrderCommand(
-            cartResult.Value.Id, CustomerId: null, Email: "buyer@example.com", address, address, ShippingCost: 30m, Notes: TestNotesMarker));
+            cartResult.Value.Id, CustomerId: null, Email: "buyer@example.com", address, address, ShippingMethodId: _shippingMethodId, Notes: TestNotesMarker));
 
         placeResult.IsFailure.Should().BeTrue();
         placeResult.Error.Code.Should().Be("StockItem.InsufficientStock");

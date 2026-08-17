@@ -9,6 +9,7 @@
     <ProjectReference Include="..\..\Catalog\Catalog.Contracts\Catalog.Contracts.csproj" />
     <ProjectReference Include="..\..\Inventory\Inventory.Contracts\Inventory.Contracts.csproj" />
     <ProjectReference Include="..\..\Promotions\Promotions.Contracts\Promotions.Contracts.csproj" />
+    <ProjectReference Include="..\..\Shipping\Shipping.Contracts\Shipping.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

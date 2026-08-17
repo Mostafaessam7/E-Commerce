@@ -1,6 +1,7 @@
 using Messaging;
 using Microsoft.AspNetCore.Mvc;
 using Ordering.Application.Checkout;
+using Shipping.Contracts;
 using Store.Web.Infrastructure;
 using Store.Web.Infrastructure.ExceptionHandling;
 using Store.Web.Models;
@@ -13,7 +14,12 @@ public class CheckoutController : Controller
 
     public CheckoutController(IDispatcher dispatcher) => _dispatcher = dispatcher;
 
-    public IActionResult Index() => View(new CheckoutFormModel());
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    {
+        var form = new CheckoutFormModel();
+        await PopulateShippingMethodsAsync(form, cancellationToken);
+        return View(form);
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -21,6 +27,7 @@ public class CheckoutController : Controller
     {
         if (!ModelState.IsValid)
         {
+            await PopulateShippingMethodsAsync(form, cancellationToken);
             return View(nameof(Index), form);
         }
 
@@ -33,12 +40,13 @@ public class CheckoutController : Controller
             : new AddressInput(form.BillingFullName!, form.BillingPhone!, form.BillingLine1!, form.BillingLine2, form.BillingCity!, form.BillingState, form.BillingPostalCode!, form.BillingCountry!);
 
         var placeResult = await _dispatcher.Send(
-            new PlaceOrderCommand(cartResult.Value.Id, CustomerId: null, form.Email, billingAddress, shippingAddress, ShippingCost: 50m, form.Notes),
+            new PlaceOrderCommand(cartResult.Value.Id, CustomerId: null, form.Email, billingAddress, shippingAddress, form.ShippingMethodId, form.Notes),
             cancellationToken);
 
         if (placeResult.IsFailure)
         {
             ModelState.AddModelError(string.Empty, placeResult.Error.Message);
+            await PopulateShippingMethodsAsync(form, cancellationToken);
             return View(nameof(Index), form);
         }
 
@@ -49,5 +57,11 @@ public class CheckoutController : Controller
     {
         var result = await _dispatcher.Send(new GetOrderQuery(orderId), cancellationToken);
         return result.IsFailure ? NotFound() : View(result.Value);
+    }
+
+    private async Task PopulateShippingMethodsAsync(CheckoutFormModel form, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.Send(new ListShippingMethodsQuery(), cancellationToken);
+        form.ShippingMethods = result.IsSuccess ? result.Value : [];
     }
 }

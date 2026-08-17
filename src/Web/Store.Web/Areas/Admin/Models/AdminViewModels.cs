@@ -94,3 +94,22 @@ public sealed class CreateCouponFormModel
 
     public decimal? MinimumOrderAmount { get; set; }
 }
+
+public sealed class CreateShippingMethodFormModel
+{
+    [Required, StringLength(100)]
+    public string Name { get; set; } = string.Empty;
+
+    [StringLength(300)]
+    public string? Description { get; set; }
+
+    [Required, Range(0, 1_000_000)]
+    public decimal Cost { get; set; }
+
+    [Required, StringLength(3)]
+    public string Currency { get; set; } = "EGP";
+
+    public int? EstimatedDaysMin { get; set; }
+
+    public int? EstimatedDaysMax { get; set; }
+}

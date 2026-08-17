@@ -7,6 +7,7 @@ using Ordering.Contracts;
 using Ordering.Domain;
 using Ordering.Domain.ValueObjects;
 using Promotions.Contracts;
+using Shipping.Contracts;
 using SharedKernel.Results;
 
 namespace Ordering.Application.Checkout;
@@ -19,7 +20,7 @@ public sealed record PlaceOrderCommand(
     string Email,
     AddressInput BillingAddress,
     AddressInput ShippingAddress,
-    decimal ShippingCost,
+    Guid ShippingMethodId,
     string? Notes) : ICommand<Guid>;
 
 /// <summary>
@@ -111,6 +112,18 @@ public sealed class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand
         var subtotal = lines.Sum(l => l.UnitPrice * l.Quantity);
         var tax = Math.Round(subtotal * TaxRate, 2);
 
+        // Never trust a client-submitted shipping cost — look up the authoritative cost for
+        // whichever method was selected, same rule as price/stock/coupon (ADR-014). Deliberately
+        // fails checkout rather than silently substituting a default if the method doesn't exist
+        // or was deactivated after the customer selected it.
+        var shippingMethodResult = await _dispatcher.Send(new GetShippingMethodQuery(request.ShippingMethodId), cancellationToken);
+        if (shippingMethodResult.IsFailure)
+        {
+            return Result.Failure<Guid>(shippingMethodResult.Error);
+        }
+
+        var shippingCost = shippingMethodResult.Value.Cost;
+
         // Never trust the cart's stored coupon code (Cart.ApplyCoupon just stores a string, no
         // validation) — re-validate and redeem it here, same rule as price/stock above. Redeeming
         // increments the coupon's usage count immediately; if anything after this point fails to
@@ -133,7 +146,7 @@ public sealed class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand
 
         var orderResult = Order.Place(
             GenerateOrderNumber(_dateTimeProvider.UtcNow), request.CustomerId, request.Email, billingResult.Value, shippingResult.Value,
-            lines, request.ShippingCost, tax, discount, currency, request.Notes, _dateTimeProvider.UtcNow);
+            lines, shippingCost, tax, discount, currency, request.Notes, _dateTimeProvider.UtcNow);
 
         if (orderResult.IsFailure)
         {

@@ -25,6 +25,9 @@ using Payments.Contracts;
 using Payments.Infrastructure;
 using Payments.Infrastructure.Persistence;
 using Security;
+using Shipping.Application.Methods;
+using Shipping.Infrastructure;
+using Shipping.Infrastructure.Persistence;
 
 namespace IntegrationTests.Notifications;
 
@@ -47,6 +50,7 @@ public sealed class NotificationHandlersTests : IAsyncLifetime
     private Guid _variantId;
     private Guid _stockItemId;
     private Guid _orderId;
+    private Guid _shippingMethodId;
 
     public async Task InitializeAsync()
     {
@@ -69,6 +73,7 @@ public sealed class NotificationHandlersTests : IAsyncLifetime
         services.AddOrderingModule(configuration);
         services.AddPaymentsModule(configuration);
         services.AddNotificationsModule(configuration);
+        services.AddShippingModule(configuration);
 
         _provider = services.BuildServiceProvider();
 
@@ -87,6 +92,10 @@ public sealed class NotificationHandlersTests : IAsyncLifetime
         inventoryDb.StockItems.Add(stockItem);
         await inventoryDb.SaveChangesAsync();
         _stockItemId = stockItem.Id;
+
+        var dispatcher = scope.ServiceProvider.GetRequiredService<IDispatcher>();
+        var shippingResult = await dispatcher.Send(new CreateShippingMethodCommand("Standard", null, 10m, "EGP", null, null));
+        _shippingMethodId = shippingResult.Value;
     }
 
     public async Task DisposeAsync()
@@ -95,6 +104,9 @@ public sealed class NotificationHandlersTests : IAsyncLifetime
 
         var notificationsDb = scope.ServiceProvider.GetRequiredService<NotificationsDbContext>();
         await notificationsDb.NotificationLogs.ExecuteDeleteAsync();
+
+        var shippingDb = scope.ServiceProvider.GetRequiredService<ShippingDbContext>();
+        await shippingDb.ShippingMethods.Where(m => m.Id == _shippingMethodId).ExecuteDeleteAsync();
 
         var paymentsDb = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         await paymentsDb.PaymentTransactions.Where(p => p.OrderId == _orderId).ExecuteDeleteAsync();
@@ -181,7 +193,7 @@ public sealed class NotificationHandlersTests : IAsyncLifetime
         await dispatcher.Send(new AddCartItemCommand(cart.Id, _variantId, 1));
 
         var address = new AddressInput("Notif Test", "+201000000003", "1 Test St", null, "Cairo", null, "11511", "EG");
-        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, email, address, address, 10m, "notification-test"));
+        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, email, address, address, _shippingMethodId, "notification-test"));
         return placeResult.Value;
     }
 }

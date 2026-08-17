@@ -19,6 +19,9 @@ using Payments.Application.Payments;
 using Payments.Infrastructure;
 using Payments.Infrastructure.Persistence;
 using Security;
+using Shipping.Application.Methods;
+using Shipping.Infrastructure;
+using Shipping.Infrastructure.Persistence;
 
 namespace IntegrationTests.Payments;
 
@@ -41,6 +44,7 @@ public sealed class PaymentWebhookTests : IAsyncLifetime
     private Guid _variantId;
     private Guid _stockItemId;
     private Guid _orderId;
+    private Guid _shippingMethodId;
 
     public async Task InitializeAsync()
     {
@@ -60,6 +64,7 @@ public sealed class PaymentWebhookTests : IAsyncLifetime
         services.AddInventoryModule(configuration);
         services.AddOrderingModule(configuration);
         services.AddPaymentsModule(configuration);
+        services.AddShippingModule(configuration);
 
         _provider = services.BuildServiceProvider();
 
@@ -81,11 +86,14 @@ public sealed class PaymentWebhookTests : IAsyncLifetime
         _stockItemId = stockItem.Id;
 
         var dispatcher = scope.ServiceProvider.GetRequiredService<IDispatcher>();
+        var shippingResult = await dispatcher.Send(new CreateShippingMethodCommand("Standard", null, 20m, "EGP", null, null));
+        _shippingMethodId = shippingResult.Value;
+
         var anonymousId = Guid.NewGuid();
         var cart = (await dispatcher.Send(new GetOrCreateCartCommand(null, anonymousId))).Value;
         await dispatcher.Send(new AddCartItemCommand(cart.Id, _variantId, 1));
         var address = new AddressInput("Sara Adel", "+201000000001", "5 Test St", null, "Giza", null, "12511", "EG");
-        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, "buyer@example.com", address, address, 20m, TestNotesMarker));
+        var placeResult = await dispatcher.Send(new PlaceOrderCommand(cart.Id, null, "buyer@example.com", address, address, _shippingMethodId, TestNotesMarker));
         _orderId = placeResult.Value;
     }
 
@@ -96,6 +104,9 @@ public sealed class PaymentWebhookTests : IAsyncLifetime
         var paymentsDb = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         await paymentsDb.PaymentTransactions.Where(p => p.OrderId == _orderId).ExecuteDeleteAsync();
         await paymentsDb.ProcessedWebhookEvents.ExecuteDeleteAsync();
+
+        var shippingDb = scope.ServiceProvider.GetRequiredService<ShippingDbContext>();
+        await shippingDb.ShippingMethods.Where(m => m.Id == _shippingMethodId).ExecuteDeleteAsync();
 
         var orderingDb = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
         await orderingDb.Orders.Where(o => o.Id == _orderId).ExecuteDeleteAsync();
