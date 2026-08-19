@@ -931,3 +931,39 @@ flex; justify-content: space-between` (was the browser's default `display: list-
 alignment at all) — the CSS was correct the whole time, only the class *name* attached to the
 elements was wrong.
 Status: Accepted (Phase 34).
+
+---
+**ADR-046**
+Decision: Phase 35 continues Phase 34's systematic class-name audit (this time cross-referencing
+`.mt-*`/`.fs-*`/`.w*` numeric-scale usages against exactly which values the theme's CSS actually
+defines, not just presence/absence of the base class name) and fixes what it found:
+(1) 12 admin buttons across 5 files (Orders/Details, Products/Edit, Reviews/Index, Payments/Index,
+Stock/Index) used `w150`/`w100` for a fixed button width — `admin-ecomus` only ships
+`.tf-button.w128/.w180/.w208/.w230/.w380`, never `.w150`/`.w100`. Every one of these buttons had
+been shrinking to its own text width instead of a consistent fixed width — most visible on
+Reviews' "Pending"/"All" toggle pair, which are supposed to look like a matched two-button toggle
+but were rendering at two different natural widths. Replaced `w150`→`w180` and `w100`→`w128`, the
+theme's nearest real variants. (2) Several admin views used `.mt-10`/`.mt-14`/`.mt-20` for spacing
+above empty-state text, form sections, and pagination — the theme defines a rich `.mb-*` scale
+(`.mb-10` through `.mb-50`) but its `.mt-*` scale stops at `.mt-4`, so every one of these had been
+applying zero top margin. Added the three missing values to `wwwroot/admin/admin-overrides.css`,
+mirroring the theme's own `.mb-*` pixel values exactly (`!important`, matching every other spacing
+utility the theme ships, so cascade order can't accidentally un-apply them). (3) Found one bug
+introduced by this session itself, not inherited: Phase 32's Stock-page fix used `fs-14` for the
+SKU/fallback-note text, borrowed from the storefront's `ecomus` theme convention without checking
+`admin-ecomus` has no font-size scale at all — added `.fs-14` to `admin-overrides.css` too.
+Reason: same "found via systematic audit, not another one-off page read" method as ADR-045 — a
+button that silently ignores its intended width class doesn't error or 404, it just renders at
+whatever size its content happens to need, which reads as "the design feels a little off" exactly
+the kind of vague complaint that prompted this whole audit rather than a diagnosable single-page
+bug report. Verified live: fetched the admin Product Edit and Reviews pages post-login and
+confirmed via computed styles that `.w180` buttons now compute a real `180px` (was shrink-to-fit),
+and that the Reviews "Pending"/"All" toggle pair now renders at matching widths. Hit a real
+environment quirk while verifying the `.mt-*`/`.fs-14` fix specifically: the sandboxed preview
+browser's HTTP cache kept serving a stale copy of `admin-overrides.css` (a static, cacheable file —
+unlike the dynamically-rendered `.cshtml` views, which always reflected changes immediately)
+across a hard reload and even a full dev-server restart; confirmed the actual fix is correct by
+fetching the file through a completely independent HTTP client (`curl`, including through a real
+authenticated admin session) and getting the exact up-to-date byte-for-byte content every time —
+a genuinely served, correct file, not a browser-cache-shaped code defect.
+Status: Accepted (Phase 35).

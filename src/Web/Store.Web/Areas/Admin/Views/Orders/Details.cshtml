@@ -49,14 +49,14 @@
         {
             <form asp-action="Confirm" method="post">
                 <input type="hidden" name="id" value="@Model.Id" />
-                <button type="submit" class="tf-button style-1 w150">Confirm</button>
+                <button type="submit" class="tf-button style-1 w180">Confirm</button>
             </form>
         }
         @if (Model.Status == "Confirmed")
         {
             <form asp-action="StartProcessing" method="post">
                 <input type="hidden" name="id" value="@Model.Id" />
-                <button type="submit" class="tf-button style-1 w150">Start Processing</button>
+                <button type="submit" class="tf-button style-1 w180">Start Processing</button>
             </form>
         }
         @if (Model.Status == "Processing")
@@ -64,14 +64,14 @@
             <form asp-action="Ship" method="post" class="flex gap10">
                 <input type="hidden" name="OrderId" value="@Model.Id" />
                 <input type="text" name="TrackingNumber" placeholder="Tracking # (optional)" />
-                <button type="submit" class="tf-button style-1 w150">Mark Shipped</button>
+                <button type="submit" class="tf-button style-1 w180">Mark Shipped</button>
             </form>
         }
         @if (Model.Status == "Shipped")
         {
             <form asp-action="Deliver" method="post">
                 <input type="hidden" name="id" value="@Model.Id" />
-                <button type="submit" class="tf-button style-1 w150">Mark Delivered</button>
+                <button type="submit" class="tf-button style-1 w180">Mark Delivered</button>
             </form>
         }
         @if (Model.Status is "Pending" or "Confirmed" or "Processing")
@@ -79,7 +79,7 @@
             <form asp-action="Cancel" method="post" class="flex gap10" onsubmit="return confirm('Cancel this order?');">
                 <input type="hidden" name="OrderId" value="@Model.Id" />
                 <input type="text" name="Reason" placeholder="Cancellation reason" required />
-                <button type="submit" class="tf-button style-2 w150" style="color:var(--Palette-Red-500,#EF4444)">Cancel Order</button>
+                <button type="submit" class="tf-button style-2 w180" style="color:var(--Palette-Red-500,#EF4444)">Cancel Order</button>
             </form>
         }
     </div>

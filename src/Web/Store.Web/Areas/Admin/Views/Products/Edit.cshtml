@@ -143,19 +143,19 @@
                 {
                     <form asp-action="Publish" method="post">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="tf-button style-1 w150">Publish</button>
+                        <button type="submit" class="tf-button style-1 w180">Publish</button>
                     </form>
                 }
                 @if (Model.Status != "Archived")
                 {
                     <form asp-action="Archive" method="post">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="tf-button style-2 w150">Archive</button>
+                        <button type="submit" class="tf-button style-2 w180">Archive</button>
                     </form>
                 }
                 <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this product?');">
                     <input type="hidden" name="id" value="@Model.Id" />
-                    <button type="submit" class="tf-button style-2 w150" style="color:var(--Palette-Red-500,#EF4444)">Delete</button>
+                    <button type="submit" class="tf-button style-2 w180" style="color:var(--Palette-Red-500,#EF4444)">Delete</button>
                 </form>
             </div>
         </div>

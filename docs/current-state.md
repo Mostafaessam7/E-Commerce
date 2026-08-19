@@ -386,6 +386,22 @@ Completed:
   top/bottom padding (was `0px`), and a real admin row now computes `display: flex;
   justify-content: space-between` (was the browser's block-list default). All 168 tests still
   passing (Razor-view-markup-only change).
+- Phase 35: continued the class-name audit into numeric-scale gaps (ADR-046). 12 admin buttons
+  across 5 files used `w150`/`w100`, which don't exist (the theme ships `.tf-button.w128/.w180/
+  .w208/.w230/.w380`) — every one of them was shrinking to its own text width instead of a
+  consistent size, most visible on Reviews' "Pending"/"All" toggle pair rendering at two different
+  widths. Replaced with the nearest real variants. Several views used `.mt-10`/`.mt-14`/`.mt-20`,
+  which the theme's `.mt-*` scale doesn't reach (stops at `.mt-4`, unlike its richer `.mb-*` scale)
+  — added the three missing values to `admin-overrides.css`. Also fixed a bug this session
+  introduced itself: Phase 32's Stock-page fix used `.fs-14`, borrowed from the storefront theme
+  without checking the admin theme has no font-size scale at all — added `.fs-14` there too.
+  Verified live: confirmed via computed styles that `.w180` buttons now compute a real `180px`
+  (was shrink-to-fit) and the Reviews toggle pair now matches. Hit a real environment quirk
+  verifying the CSS-file changes specifically (the sandboxed preview browser cached the static
+  `admin-overrides.css` file itself, unlike the always-fresh dynamically-rendered views) —
+  confirmed the fix was actually correct by fetching the file through `curl` (a fully independent
+  HTTP client, including through a real authenticated admin session), which got the exact
+  up-to-date content every time. All 168 tests still passing.
 
 In Progress:
 - None.
@@ -400,10 +416,11 @@ Next:
   upload is real (Phase 29), Home/Account pages have a real Vanta.js treatment (Phase 30), the
   Cart page has real product images + a working coupon UI (Phase 31), the Admin area's status
   badges/Stock page are fixed (Phase 32), the Payments page/Checkout confirmation badges are
-  fixed (Phase 33), and a site-wide CSS class-name audit found and fixed two long-standing
-  zero-padding/broken-flex defects across 17 files (Phase 34). The screen-by-screen design audit is
-  now complete — no further actionable UI gaps are currently tracked; a broader visual redesign
-  beyond these scoped, defect-driven passes would need its own explicit ask.
+  fixed (Phase 33), and a site-wide CSS class-name audit found and fixed long-standing
+  zero-padding/broken-flex/wrong-width/missing-margin defects across 20+ files (Phases 34-35). The
+  screen-by-screen design audit is now complete — no further actionable UI gaps are currently
+  tracked; a broader visual redesign beyond these scoped, defect-driven passes would need its own
+  explicit ask.
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
@@ -435,7 +452,7 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..045.
+- docs/decisions.md — ADR-001..046.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
@@ -486,4 +503,7 @@ storefront-specific `OrderStatusBadge` helper), ADR-045 (Phase 34 — the real s
 "design isn't right" feedback: two site-wide CSS class typos predating this whole session,
 `flat-spacing` and `item-row`, both with zero CSS definition — 6 storefront pages had zero section
 padding and 11 admin list views had their row columns block-stacked instead of flex-aligned, found
-via a systematic class-name audit rather than another one-off page read).
+via a systematic class-name audit rather than another one-off page read), ADR-046 (Phase 35
+continues the same audit into numeric-scale gaps — `w150`/`w100` don't exist on 12 admin buttons,
+`.mt-10`/`.mt-14`/`.mt-20` don't exist despite the theme's richer `.mb-*` scale, and `.fs-14` was a
+bug this session introduced itself in Phase 32 by borrowing a storefront-only class).

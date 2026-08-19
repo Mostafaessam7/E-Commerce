@@ -306,6 +306,15 @@ been rendering block-stacked vertically instead of flex-aligned in a row since P
 by adding `wg-product` alongside the existing classes (kept `item-row` — `admin-ecomus/js/main.js`
 targets `.parents(".item-row")` for a remove-row interaction).
 
+Button-width and spacing gaps fixed (Phase 35, ADR-046): `w150`/`w100` (used on 12 buttons across 5
+files) don't exist — the theme only ships `.tf-button.w128/.w180/.w208/.w230/.w380` — so those
+buttons shrank to their own text width instead of a consistent size; replaced with the nearest real
+variants (`w150`→`w180`, `w100`→`w128`). `.mt-10`/`.mt-14`/`.mt-20` were used but the theme's
+`.mt-*` scale stops at `.mt-4` (unlike its richer `.mb-*` scale); added the missing three to
+`wwwroot/admin/admin-overrides.css`, mirroring the `.mb-*` pixel values. Also added `.fs-14` there
+— a bug this session introduced itself in Phase 32, borrowed from the storefront's `ecomus` theme
+without checking `admin-ecomus` has no font-size scale at all.
+
 Status badges fixed (Phase 32, ADR-043): every status pill across Orders/Payments/Products/Reviews
 (`Store.Web.Infrastructure.Admin.StatusBadge.CssClass`) previously hardcoded the same
 `block-available` (green) class regardless of the actual status string, so a Cancelled order and a

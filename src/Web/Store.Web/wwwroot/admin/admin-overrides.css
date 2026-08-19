@@ -53,3 +53,27 @@
     align-items: center;
     cursor: pointer;
 }
+
+/* Phase 34/35 (ADR-045/046): the theme's own margin-top scale only goes up to .mt-4 (px 2-4) —
+   .mb-10/.mb-14/.mb-20 exist but their .mt-* counterparts don't, even though several admin views
+   already used them (silently applying no margin at all). Mirrors the theme's own .mb-* values
+   exactly, same !important the theme uses on every other spacing utility so ordering in the
+   cascade doesn't matter. */
+.mt-10 {
+    margin-top: 10px !important;
+}
+
+.mt-14 {
+    margin-top: 14px !important;
+}
+
+.mt-20 {
+    margin-top: 20px !important;
+}
+
+/* The theme has no font-size scale at all (unlike the storefront's ecomus theme, which defines
+   .fs-10 through .fs-28) — Stock/Index.cshtml (Phase 32) borrowed .fs-14 from that storefront
+   convention without checking it existed here too. */
+.fs-14 {
+    font-size: 14px;
+}
