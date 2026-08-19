@@ -369,6 +369,23 @@ Completed:
   simulated payment (Confirmed/Paid), then confirmed that same order's real number rendered on the
   admin Payments page. Also cleaned up 14 long-orphaned `PaymentTransaction` rows found incidental
   to this verification (pre-existing dev-DB cruft, not a code defect). All 168 tests still passing.
+- Phase 34: site-wide CSS class-name typos fixed (ADR-045) — the real substance behind live
+  user feedback that "the design isn't right," found via a systematic audit (every class token
+  used across `Views`/`Areas/Admin/Views` cross-referenced against every loaded stylesheet) rather
+  than another one-off page read. Two defects, both predating this entire session: (1) 6 of the
+  storefront's highest-traffic pages (Home, Shop, Product Details, Cart, Checkout, Checkout
+  Confirmation) used `class="flat-spacing"`, which has zero CSS definition (`ecomus/css/styles.css`
+  only defines `.flat-spacing-1` through `-5`) — every one of these pages has been rendering with
+  zero section padding, content jammed against the header/footer, since the original Phase 5
+  integration. (2) 11 admin list-row files used `class="item-row gap20"`, `item-row` likewise
+  undefined — the theme's real row class is `.wg-product` (`display: flex`), so every admin list's
+  columns had been block-stacked vertically instead of aligned in a row since Phase 11/21. Fixed
+  both (`flat-spacing` → `flat-spacing-1`; `wg-product` added alongside `item-row`, which stays for
+  a `main.js` remove-row selector). Verified live via computed styles, not a screenshot (no visual
+  access in this environment): confirmed `flat-spacing-1` sections now compute real `70px`
+  top/bottom padding (was `0px`), and a real admin row now computes `display: flex;
+  justify-content: space-between` (was the browser's block-list default). All 168 tests still
+  passing (Razor-view-markup-only change).
 
 In Progress:
 - None.
@@ -382,10 +399,11 @@ Next:
   sitemap exist (Phases 26-27), Customers is wired into checkout (Phase 28), admin product image
   upload is real (Phase 29), Home/Account pages have a real Vanta.js treatment (Phase 30), the
   Cart page has real product images + a working coupon UI (Phase 31), the Admin area's status
-  badges/Stock page are fixed (Phase 32), and the Payments page/Checkout confirmation badges are
-  fixed (Phase 33). The screen-by-screen design audit is now complete — no further actionable UI
-  gaps are currently tracked; a broader visual redesign beyond these scoped, defect-driven passes
-  would need its own explicit ask.
+  badges/Stock page are fixed (Phase 32), the Payments page/Checkout confirmation badges are
+  fixed (Phase 33), and a site-wide CSS class-name audit found and fixed two long-standing
+  zero-padding/broken-flex defects across 17 files (Phase 34). The screen-by-screen design audit is
+  now complete — no further actionable UI gaps are currently tracked; a broader visual redesign
+  beyond these scoped, defect-driven passes would need its own explicit ask.
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
@@ -417,18 +435,18 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..044.
+- docs/decisions.md — ADR-001..045.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
 Payments, Notifications, Customers, Promotions, Shipping, Reviews). Brand/Category tables, and
 `Products.Images` / the `ProductImages` table Phase 29 now actually writes to, already existed in
 the `catalog` schema since Phase 4 — no new migration needed for those. Phase 31 adds
-`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Phases 32-33 are
+`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Phases 32-34 are
 application-code-only (no migration) — Inventory/Payments read Catalog/Ordering data live via
-`IDispatcher`, no new columns. Redis isn't a migrated `DbContext`. Phases 23-28, 30 were
-CI/workflow, Razor-views, new-test-project, and application-code-only work respectively — no
-schema changes in those.
+`IDispatcher`, Phase 34 is Razor-view class-name fixes only. Redis isn't a migrated `DbContext`.
+Phases 23-28, 30 were CI/workflow, Razor-views, new-test-project, and application-code-only work
+respectively — no schema changes in those.
 
 Decisions Made:
 See docs/decisions.md. Newest: ADR-036 (Phase 25 populates `EndToEndTests` with a real
@@ -464,4 +482,8 @@ names/SKUs instead of a bare Guid via Inventory's first-ever cross-module read f
 ADR-044 (Phase 33 closes the design-audit series: the admin Payments page now shows a real
 `OrderNumber` instead of a raw Guid via `Ordering.Contracts.GetOrderContactInfoQuery`, and the
 Checkout confirmation page's badges get the same fix as Phase 32's Admin badges via a new,
-storefront-specific `OrderStatusBadge` helper).
+storefront-specific `OrderStatusBadge` helper), ADR-045 (Phase 34 — the real substance behind live
+"design isn't right" feedback: two site-wide CSS class typos predating this whole session,
+`flat-spacing` and `item-row`, both with zero CSS definition — 6 storefront pages had zero section
+padding and 11 admin list views had their row columns block-stacked instead of flex-aligned, found
+via a systematic class-name audit rather than another one-off page read).

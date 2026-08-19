@@ -298,6 +298,14 @@ curated-not-literal approach as the storefront's Phase 5) — real sidebar/heade
 toggle, `wg-table`/`wg-box`/`form-style-1`/`tf-button` component classes throughout. Replaced the
 hand-styled placeholder Phase 11 shipped with.
 
+List rows fixed (Phase 34, ADR-045): every admin list row (Orders/Payments/Products/Brands/
+Categories/Coupons/Reviews/ShippingMethods/Stock, 11 files) used `<li class="item-row gap20">` —
+`item-row` has zero CSS definition anywhere in `admin-ecomus`; the theme's real row class is
+`.wg-product` (`display: flex`, alternating-row background, hover state). Every row's columns had
+been rendering block-stacked vertically instead of flex-aligned in a row since Phase 11/21. Fixed
+by adding `wg-product` alongside the existing classes (kept `item-row` — `admin-ecomus/js/main.js`
+targets `.parents(".item-row")` for a remove-row interaction).
+
 Status badges fixed (Phase 32, ADR-043): every status pill across Orders/Payments/Products/Reviews
 (`Store.Web.Infrastructure.Admin.StatusBadge.CssClass`) previously hardcoded the same
 `block-available` (green) class regardless of the actual status string, so a Cancelled order and a
@@ -338,6 +346,14 @@ show only the raw `ProductVariantId` Guid, which nobody can recognize a product 
   `bg-success`/`bg-warning`/`bg-danger`/`bg-info` — this page's only status display, so a
   standalone small helper rather than reusing the Admin one (different CSS classes available: no
   `admin-ecomus` theme on the storefront).
+- Section spacing fixed (Phase 34, ADR-045): Home/Shop/Product Details/Cart/Checkout/Checkout
+  Confirmation all wrapped their content in `<section class="flat-spacing">` — `ecomus/css/styles.css`
+  only defines `.flat-spacing-1` through `-5` (each a numbered padding value), never a bare
+  `.flat-spacing`, so all 6 pages have been rendering with zero section padding, content jammed
+  against the header/footer, since the original Phase 5 integration. Home's second section used an
+  equally-undefined `flat-spacing-collections`. All 7 occurrences now use `.flat-spacing-1`
+  (`padding: 70px 0`) — found via a systematic class-name audit (every class token used in Views
+  cross-referenced against every loaded stylesheet), not another one-off page read.
 
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,

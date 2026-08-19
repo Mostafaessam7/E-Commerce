@@ -21,7 +21,7 @@
         <ul class="flex flex-column">
         @foreach (var category in Model)
         {
-            <li class="item-row gap20">
+            <li class="wg-product item-row gap20">
                 <div class="body-text text-main-dark mt-4">@category.Name</div>
                 <div class="body-text text-main-dark mt-4"><code>@category.Slug</code></div>
                 <div class="body-text text-main-dark mt-4">@(category.ParentId is Guid parentId && byId.TryGetValue(parentId, out var parent) ? parent.Name : "—")</div>

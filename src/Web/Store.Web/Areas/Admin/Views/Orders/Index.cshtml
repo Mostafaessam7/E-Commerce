@@ -18,7 +18,7 @@
         <ul class="flex flex-column">
         @foreach (var order in Model.Items)
         {
-            <li class="item-row gap20">
+            <li class="wg-product item-row gap20">
                 <div class="body-text text-main-dark mt-4">@order.OrderNumber</div>
                 <div class="mt-4"><div class="@StatusBadge.CssClass(order.Status) bg-1 fw-7">@order.Status</div></div>
                 <div class="mt-4"><div class="@StatusBadge.CssClass(order.PaymentStatus) bg-1 fw-7">@order.PaymentStatus</div></div>

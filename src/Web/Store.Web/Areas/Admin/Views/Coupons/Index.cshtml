@@ -21,7 +21,7 @@
         <ul class="flex flex-column">
         @foreach (var coupon in Model)
         {
-            <li class="item-row gap20">
+            <li class="wg-product item-row gap20">
                 <div class="body-text text-main-dark mt-4"><code>@coupon.Code</code></div>
                 <div class="body-text text-main-dark mt-4">@(coupon.DiscountType == "Percentage" ? $"{coupon.Value}%" : $"{coupon.Value:0.00} {coupon.Currency}")</div>
                 <div class="mt-4">

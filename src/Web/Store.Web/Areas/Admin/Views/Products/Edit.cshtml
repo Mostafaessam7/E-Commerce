@@ -75,7 +75,7 @@
                 <ul class="flex flex-column">
                 @foreach (var variant in Model.Variants)
                 {
-                    <li class="item-row gap20">
+                    <li class="wg-product item-row gap20">
                         <div class="body-text text-main-dark mt-4">@variant.Sku</div>
                         <div class="body-text text-main-dark mt-4">@variant.Price.ToString("0.00") @variant.Currency</div>
                         <div class="body-text text-main-dark mt-4">@(variant.SalePrice?.ToString("0.00") ?? "—")</div>

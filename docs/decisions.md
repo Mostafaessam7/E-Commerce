@@ -893,3 +893,41 @@ whose `Order` no longer existed (orphaned test data left over from earlier phase
 verification, predating this session's `EndToEndTests` cleanup discipline) — deleted, not a code
 defect.
 Status: Accepted (Phase 33).
+
+---
+**ADR-045**
+Decision: Phase 34 fixes two real, site-wide CSS-class typos that predate this entire session
+(present since the original Phase 5/24 template integrations) and are very likely the actual
+substance behind "the design isn't right" — every prior UI phase (30-33) fixed individual-page
+defects, but never audited for a class *name* that's simply wrong everywhere it's used:
+(1) Every `<section class="flat-spacing">` across the storefront's 6 highest-traffic pages
+(Home, Shop, Product Details, Cart, Checkout, Checkout Confirmation) used a class that has **zero**
+CSS definition — `ecomus/css/styles.css` only defines `.flat-spacing-1` through `-5` (each a
+different `padding` value), never a bare `.flat-spacing`. Every one of these sections has been
+rendering with `padding: 0` — content jammed straight against the header/footer — since the very
+first Ecomus integration. Home's second section additionally used `flat-spacing-collections`,
+equally undefined. All 7 occurrences now use `.flat-spacing-1` (`padding: 70px 0`), the template's
+standard section rhythm, restoring the vertical spacing this whole time (2) Every admin list row —
+Orders (list + detail), Payments, Products (list + edit's variant table), Brands, Categories,
+Coupons, Reviews, ShippingMethods, Stock, 11 files in total — used `<li class="item-row gap20">`.
+`item-row` has zero CSS definition in `admin-ecomus/css/styles.css` either; the theme's real class
+for exactly this row (used correctly by nothing except one already-correct spot in
+`Products/Index.cshtml`) is `.wg-product` (`display: flex; align-items: center; justify-content:
+space-between`, plus alternating-row background and hover state under `.table-all-category`). Every
+other admin list has been rendering each row's columns block-stacked vertically instead of aligned
+in a row this whole time. Kept `item-row` alongside the fix rather than replacing it —
+`admin-ecomus/js/main.js` targets `.parents(".item-row")` for a remove-row interaction, so dropping
+it would silently break that behavior even though it contributes no visual styling of its own.
+Reason: found via a systematic audit, not another one-off page read — cross-referenced every class
+token actually used in Views/Areas/Admin/Views against every loaded stylesheet (a small PowerShell
+script, since `python3`/`grep -P` weren't reliably available) to surface anything with zero CSS
+definition, rather than continuing to eyeball individual pages one at a time as Phases 30-33 did.
+That method is the real lesson here: a hardcoded-wrong-color badge (ADR-041/043/044) is visible on
+sight, but a class typo that silently resolves to "no rule matches, browser default applies" is
+not — nothing errors, nothing 404s, the page just quietly loses its spacing/layout. Verified live:
+confirmed via computed styles that `flat-spacing-1` sections now compute `padding-top: 70px` /
+`padding-bottom: 70px` (was `0px`), and that a real admin `.wg-product` row now computes `display:
+flex; justify-content: space-between` (was the browser's default `display: list-item`, no flex
+alignment at all) — the CSS was correct the whole time, only the class *name* attached to the
+elements was wrong.
+Status: Accepted (Phase 34).

@@ -20,7 +20,7 @@
         @foreach (var payment in Model)
         {
             var refundable = payment.Status == "Succeeded" && payment.RefundedAmount < payment.Amount;
-            <li class="item-row gap20">
+            <li class="wg-product item-row gap20">
                 <div class="body-text text-main-dark mt-4">
                     <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@payment.OrderId">@(payment.OrderNumber ?? payment.OrderId.ToString())</a>
                 </div>
