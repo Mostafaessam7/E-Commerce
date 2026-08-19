@@ -11,7 +11,7 @@ internal static class CartMapper
             cart.CustomerId,
             cart.AnonymousId,
             cart.CouponCode,
-            cart.Items.Select(i => new CartItemDto(i.Id, i.ProductVariantId, i.ProductName, i.Sku, i.UnitPrice.Amount, i.Quantity, i.LineTotal.Amount)).ToList(),
+            cart.Items.Select(i => new CartItemDto(i.Id, i.ProductVariantId, i.ProductName, i.Sku, i.UnitPrice.Amount, i.Quantity, i.LineTotal.Amount, i.ImageUrl)).ToList(),
             cart.Subtotal.Amount,
             currency);
     }

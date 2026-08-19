@@ -65,8 +65,10 @@
                             {
                                 <input type="hidden" name="productVariantId" value="@cheapestVariant.Id" />
                             }
-                            <input type="hidden" name="quantity" value="1" />
-                            <button type="submit" class="tf-btn btn-fill radius-3">Add to cart<i class="icon icon-bag"></i></button>
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="number" name="quantity" value="1" min="1" class="form-control" style="width:90px" />
+                                <button type="submit" class="tf-btn btn-fill radius-3">Add to cart<i class="icon icon-bag"></i></button>
+                            </div>
                         </form>
                     }
 
@@ -110,13 +112,18 @@
                     }
                 </h5>
 
+                @* Bug fix (Phase 31): these used to render `admin-alert admin-alert-*`, a class
+                   only defined in wwwroot/admin/admin-overrides.css (Admin-area-only stylesheet,
+                   never loaded on the storefront) — completely unstyled raw text on this page.
+                   Bootstrap's own `alert` is already loaded here and used the same way on
+                   /Profile. *@
                 @if (TempData["ReviewSuccess"] is string success)
                 {
-                    <div class="admin-alert admin-alert-success mt-2">@success</div>
+                    <div class="alert alert-success mt-2">@success</div>
                 }
                 @if (TempData["ReviewError"] is string error)
                 {
-                    <div class="admin-alert admin-alert-error mt-2">@error</div>
+                    <div class="alert alert-danger mt-2">@error</div>
                 }
 
                 @if (reviews.Reviews.Count == 0)

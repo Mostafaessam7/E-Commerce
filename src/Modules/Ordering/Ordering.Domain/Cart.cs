@@ -52,7 +52,9 @@ public sealed class Cart : AggregateRoot<Guid>
         return new Cart(Guid.NewGuid(), null, anonymousId);
     }
 
-    public Result AddItem(Guid productVariantId, Guid productId, string productName, string sku, decimal price, string currency, int quantity)
+    public Result AddItem(
+        Guid productVariantId, Guid productId, string productName, string sku, decimal price, string currency,
+        int quantity, string? imageUrl = null)
     {
         Guard.Against.NegativeOrZero(quantity, nameof(quantity));
 
@@ -70,7 +72,7 @@ public sealed class Cart : AggregateRoot<Guid>
         }
         else
         {
-            _items.Add(new CartItem(Guid.NewGuid(), productVariantId, productId, productName, sku, priceResult.Value, quantity));
+            _items.Add(new CartItem(Guid.NewGuid(), productVariantId, productId, productName, sku, priceResult.Value, quantity, imageUrl));
         }
 
         return Result.Success();

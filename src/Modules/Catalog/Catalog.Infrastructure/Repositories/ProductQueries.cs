@@ -26,7 +26,9 @@ internal sealed class ProductQueries : IProductQueries
                 x.Variant.Price.Amount,
                 x.Variant.SalePrice != null ? x.Variant.SalePrice.Amount : null,
                 x.Variant.Price.Currency,
-                x.Product.Status == ProductStatus.Active && x.Variant.IsActive))
+                x.Product.Status == ProductStatus.Active && x.Variant.IsActive,
+                x.Product.Images.Where(i => i.IsPrimary).Select(i => i.Url).FirstOrDefault()
+                    ?? x.Product.Images.Select(i => i.Url).FirstOrDefault()))
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<ProductDetailsDto?> GetBySlugAsync(string slug, CancellationToken cancellationToken = default)

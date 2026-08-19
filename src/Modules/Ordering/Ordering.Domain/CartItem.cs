@@ -11,7 +11,9 @@ namespace Ordering.Domain;
 /// </summary>
 public sealed class CartItem : Entity<Guid>
 {
-    internal CartItem(Guid id, Guid productVariantId, Guid productId, string productName, string sku, Money unitPrice, int quantity)
+    internal CartItem(
+        Guid id, Guid productVariantId, Guid productId, string productName, string sku, Money unitPrice,
+        int quantity, string? imageUrl = null)
         : base(id)
     {
         ProductVariantId = productVariantId;
@@ -20,6 +22,7 @@ public sealed class CartItem : Entity<Guid>
         Sku = sku;
         UnitPrice = unitPrice;
         Quantity = quantity;
+        ImageUrl = imageUrl;
     }
 
     private CartItem()
@@ -33,6 +36,13 @@ public sealed class CartItem : Entity<Guid>
     public string ProductName { get; private set; } = null!;
 
     public string Sku { get; private set; } = null!;
+
+    /// <summary>
+    /// The product's primary image URL *at the time this item was added* — display-only, same
+    /// staleness rule as <see cref="UnitPrice"/> (Section 6: never trust a stale cart value for
+    /// anything but display). Nullable: a product can have no images yet (Phase 4/29).
+    /// </summary>
+    public string? ImageUrl { get; private set; }
 
     public Money UnitPrice { get; private set; } = null!;
 

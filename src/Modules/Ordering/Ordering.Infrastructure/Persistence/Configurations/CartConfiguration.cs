@@ -32,6 +32,7 @@ public sealed class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
 
         builder.Property(i => i.ProductName).HasMaxLength(300).IsRequired();
         builder.Property(i => i.Sku).HasMaxLength(100).IsRequired();
+        builder.Property(i => i.ImageUrl).HasMaxLength(500);
 
         builder.OwnsOne(i => i.UnitPrice, price =>
         {

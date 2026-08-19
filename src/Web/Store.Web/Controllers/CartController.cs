@@ -54,6 +54,29 @@ public class CartController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ApplyCoupon(string code, CancellationToken cancellationToken)
+    {
+        var cart = await CurrentCart(cancellationToken);
+        if (!string.IsNullOrWhiteSpace(code))
+        {
+            await _dispatcher.Send(new ApplyCouponCommand(cart.Id, code.Trim()), cancellationToken);
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveCoupon(CancellationToken cancellationToken)
+    {
+        var cart = await CurrentCart(cancellationToken);
+        await _dispatcher.Send(new RemoveCouponCommand(cart.Id), cancellationToken);
+
+        return RedirectToAction(nameof(Index));
+    }
+
     // A signed-in shopper's cart is always looked up by CustomerId (Phase 28) — the anonymous-id
     // cookie is still read (never skipped) so a guest who logs in mid-session still has something
     // for AccountController.Login's MergeCartCommand to fold in on their *next* login, not this

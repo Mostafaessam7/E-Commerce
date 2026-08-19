@@ -82,8 +82,16 @@ Dependencies line like theirs the moment another module gains one.
   `Shipping.Contracts` (`GetShippingMethodQuery`/`ListShippingMethodsQuery`, Phase 19) — all via the
   shared `IDispatcher`. DB schema: `ordering`.
 - Application: `Ordering.Application.Carts` (Get/AddItem/RemoveItem/UpdateQuantity/ApplyCoupon/
-  Merge/GetCart) and `Ordering.Application.Checkout` (`PlaceOrderCommand`, `GetOrderQuery`,
-  `GetOrderContactInfoQuery`).
+  RemoveCoupon/Merge/GetCart) and `Ordering.Application.Checkout` (`PlaceOrderCommand`,
+  `GetOrderQuery`, `GetOrderContactInfoQuery`).
+- Cart UI gap closed (Phase 31, ADR-042): `ApplyCouponCommand`/`RemoveCouponCommand` had existed
+  since before Promotions was built (Phase 18) but were never registered in DI nor dispatched from
+  anywhere — no UI ever let a customer actually set `Cart.CouponCode`, so `PlaceOrderCommand`'s
+  real `RedeemCouponCommand` dispatch had nothing to ever redeem. `CartController` now dispatches
+  both; `Views/Cart/Index.cshtml` has a real coupon input/remove UI. Also: `CartItem`/`CartItemDto`
+  gained `ImageUrl`, sourced from `Catalog.Contracts.ProductVariantSnapshotDto`'s new
+  `PrimaryImageUrl` field and snapshotted at add-to-cart time (same staleness rule as
+  `UnitPrice`) — the cart page rendered no product images at all before this.
 
 ## Payments
 - Responsibility: payment gateway abstraction, transactions, refunds, webhooks (Section 9).

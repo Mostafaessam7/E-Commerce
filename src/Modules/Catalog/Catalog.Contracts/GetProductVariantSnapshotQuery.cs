@@ -16,6 +16,7 @@ public sealed record ProductVariantSnapshotDto(
     decimal Price,
     decimal? SalePrice,
     string Currency,
-    bool IsPurchasable);
+    bool IsPurchasable,
+    string? PrimaryImageUrl);
 
 public sealed record GetProductVariantSnapshotQuery(Guid ProductVariantId) : IQuery<ProductVariantSnapshotDto>;

@@ -44,7 +44,7 @@ public sealed class AddCartItemCommandHandler : IRequestHandler<AddCartItemComma
 
         var addResult = cart.AddItem(
             variant.ProductVariantId, variant.ProductId, variant.ProductName, variant.Sku,
-            variant.SalePrice ?? variant.Price, variant.Currency, request.Quantity);
+            variant.SalePrice ?? variant.Price, variant.Currency, request.Quantity, variant.PrimaryImageUrl);
 
         if (addResult.IsFailure)
         {

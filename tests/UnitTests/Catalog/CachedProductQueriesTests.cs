@@ -82,7 +82,7 @@ public class CachedProductQueriesTests
     [Fact]
     public async Task GetVariantSnapshotAsync_is_never_cached()
     {
-        var inner = new CountingProductQueries(variantSnapshot: new ProductVariantSnapshotDto(Guid.NewGuid(), Guid.NewGuid(), "P", "SKU", 10m, null, "EGP", true));
+        var inner = new CountingProductQueries(variantSnapshot: new ProductVariantSnapshotDto(Guid.NewGuid(), Guid.NewGuid(), "P", "SKU", 10m, null, "EGP", true, null));
         var cached = new CachedProductQueries(inner, NewMemoryCache());
         var variantId = Guid.NewGuid();
 

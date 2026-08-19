@@ -4,6 +4,14 @@ using SharedKernel.Results;
 
 namespace Ordering.Application.Carts;
 
+/// <summary>
+/// Stores a coupon *code* on the cart — display-only, same deferred-validation rule as price/stock
+/// (Section 6): the code is never checked against Promotions here, only at
+/// <c>PlaceOrderCommandHandler</c>'s real <c>Promotions.Contracts.RedeemCouponCommand</c> dispatch
+/// (ADR-014, built Phase 18), which fails the whole checkout if the code turns out to be
+/// invalid/expired/exhausted. Applying an unrecognized code to the cart is harmless and
+/// reversible; redeeming one against a real order is not.
+/// </summary>
 public sealed record ApplyCouponCommand(Guid CartId, string Code) : ICommand<CartDto>;
 
 public sealed record RemoveCouponCommand(Guid CartId) : ICommand<CartDto>;
@@ -27,9 +35,6 @@ public sealed class ApplyCouponCommandHandler : IRequestHandler<ApplyCouponComma
             return Result.Failure<CartDto>(Error.NotFound("Cart.NotFound", "Cart was not found."));
         }
 
-        // Coupon *validation* (does this code exist, is it active/within limits) is Promotions'
-        // job (not built yet) — for now the code is only stored on the cart; PlaceOrderCommand
-        // applies zero discount until Promotions exists to actually price it.
         cart.ApplyCoupon(request.Code);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -35,6 +35,8 @@ public static class DependencyInjection
         services.AddScoped<IRequestHandler<UpdateCartItemQuantityCommand, CartDto>, UpdateCartItemQuantityCommandHandler>();
         services.AddScoped<IRequestHandler<ApplyCouponCommand, CartDto>, ApplyCouponCommandHandler>();
         services.AddScoped<IRequestHandler<RemoveCouponCommand, CartDto>, RemoveCouponCommandHandler>();
+        services.AddScoped<IRequestHandler<ApplyCouponCommand, CartDto>, ApplyCouponCommandHandler>();
+        services.AddScoped<IRequestHandler<RemoveCouponCommand, CartDto>, RemoveCouponCommandHandler>();
         services.AddScoped<IRequestHandler<MergeCartCommand, CartDto>, MergeCartCommandHandler>();
         services.AddScoped<IRequestHandler<GetCartQuery, CartDto>, GetCartQueryHandler>();
 

@@ -327,6 +327,24 @@ Completed:
   the CTA text; Login/Register render the split panel with a live Vanta canvas; submitting Register
   empty now shows all three "field is required" messages instantly with no page reload. All 168
   tests still passing (view-markup-only change, no application code touched).
+- Phase 31: Cart page real defects fixed while auditing for the same design-improvement ask
+  (ADR-042). Two dead-code commands (`ApplyCouponCommand`/`RemoveCouponCommand` — existed since
+  Phase 7/8, never registered in DI, same bug shape as `MergeCartCommand` before Phase 28 and the
+  Phase 29 image commands) now actually wired to `CartController` + a real coupon input/remove UI
+  on `Views/Cart/Index.cshtml` — coupon validation stays deferred to checkout's real
+  `RedeemCouponCommand`, same "never trust the cart snapshot" rule as price/stock. Cart line items
+  now show the real product image: `Catalog.Contracts.ProductVariantSnapshotDto` gained
+  `PrimaryImageUrl`, `CartItem` gained a nullable `ImageUrl` column (new `AddCartItemImageUrl`
+  migration, `ordering` schema) snapshotted once at add-to-cart time. Also fixed
+  `Product/Details.cshtml`'s review-submission success/error banners, which had silently rendered
+  as unstyled raw text the whole time Reviews has existed (Phase 20) — they used
+  `admin-alert admin-alert-*`, a class only defined in the Admin-only stylesheet, never loaded on
+  the storefront; switched to Bootstrap's `alert alert-success`/`alert alert-danger`. Added a real
+  quantity input to the product page's add-to-cart form (previously hardcoded to 1). Verified
+  live: uploaded a real product image, added it to cart as a genuine guest, confirmed the image
+  renders in the cart row; applied a coupon and confirmed it persisted to `ordering.Carts` and
+  removed cleanly; submitted a review and confirmed the success banner now has a real green
+  background. All 168 tests still passing.
 
 In Progress:
 - None.
@@ -338,9 +356,10 @@ Next:
   CI publishes both images to GHCR (Phase 23), the Admin area uses the real admin-ecomus template
   (Phase 24), EndToEndTests proves the full journey works (Phase 25), rate limiting and a real
   sitemap exist (Phases 26-27), Customers is wired into checkout (Phase 28), admin product image
-  upload is real (Phase 29), and Home/Account pages have a real Vanta.js treatment (Phase 30). No
-  further actionable gaps are currently tracked; a broader visual redesign of the remaining
-  storefront/admin screens beyond this scoped pass would need its own explicit ask.
+  upload is real (Phase 29), Home/Account pages have a real Vanta.js treatment (Phase 30), and the
+  Cart page has real product images + a working coupon UI (Phase 31). No further actionable gaps
+  are currently tracked; a broader visual redesign of the remaining storefront/admin screens beyond
+  this scoped pass would need its own explicit ask.
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
@@ -371,16 +390,17 @@ Important Files:
 - docs/testing.md — four test projects now, including the real-HTTP EndToEndTests (Phase 25).
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
-  redesign, right after the Admin area section.
-- docs/decisions.md — ADR-001..041.
+  redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
+- docs/decisions.md — ADR-001..042.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged since Phase 20
-(Brand/Category tables, and `Products.Images` / the `ProductImages` table Phase 29 now actually
-writes to, already existed in the `catalog` schema since Phase 4, no new migration needed; Redis
-isn't a migrated `DbContext`; Phases 23-29 were CI/workflow, Razor-views, new-test-project, and
-application-code-only work respectively — no schema changes anywhere in this range).
+Payments, Notifications, Customers, Promotions, Shipping, Reviews). Brand/Category tables, and
+`Products.Images` / the `ProductImages` table Phase 29 now actually writes to, already existed in
+the `catalog` schema since Phase 4 — no new migration needed for those. Phase 31 adds
+`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Redis isn't a
+migrated `DbContext`. Phases 23-28, 30 were CI/workflow, Razor-views, new-test-project, and
+application-code-only work respectively — no schema changes in those.
 
 Decisions Made:
 See docs/decisions.md. Newest: ADR-036 (Phase 25 populates `EndToEndTests` with a real
@@ -403,4 +423,10 @@ hand-written DI list, invisible to the build, only surfacing as a live 500 on fi
 from "every screen" to the two places an animated background actually helps rather than hurts;
 found and fixed a real, previously-invisible bug along the way — client-side validation had been
 silently dead everywhere `_ValidationScriptsPartial` was used since Phase 7/8 because the vendor
-files it referenced were never actually present in `wwwroot/lib`).
+files it referenced were never actually present in `wwwroot/lib`), ADR-042 (Phase 31 wires the
+pre-existing but never-dispatched `ApplyCouponCommand`/`RemoveCouponCommand` into a real Cart-page
+UI — same "exists but was never registered in DI" bug shape as `MergeCartCommand` and the Phase 29
+image commands — and adds real product-image thumbnails to cart line items via a new
+`PrimaryImageUrl` field on Catalog's cross-module variant snapshot; also fixed a storefront review
+banner that had rendered as completely unstyled text since Phase 20 because it used an Admin-only
+CSS class never loaded on the storefront).

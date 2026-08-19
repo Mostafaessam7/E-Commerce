@@ -793,3 +793,43 @@ same reasoning as every other vendor asset here) — confirmed live: submitting 
 field empty now shows all three "field is required" messages instantly, no page reload, no server
 round-trip.
 Status: Accepted (Phase 30).
+
+---
+**ADR-042**
+Decision: Phase 31 closes two real gaps found auditing the storefront for the same "which screens
+need design work" ask, and adds line-item product images to the Cart page:
+(1) `Ordering.Application.Carts.ApplyCouponCommand`/`RemoveCouponCommand` already existed
+(pre-Promotions, Phase 7/8-era) and were already listed in docs/modules.md's Application bullet —
+but were never registered in `Ordering.Infrastructure`'s DI list and never dispatched from any
+controller, so nothing had ever let a customer actually set `Cart.CouponCode` despite
+`PlaceOrderCommand` (Phase 18, ADR-029) already redeeming it. Same shape of bug as `MergeCartCommand`
+before Phase 28 and the two `AddProductImageCommand`/`RemoveProductImageCommand` handlers before
+Phase 29 — a command that exists and even builds clean, but is dark until someone actually wires
+it to DI and a controller action. Registered both handlers, added `CartController.ApplyCoupon`/
+`RemoveCoupon`, and a real input/remove UI on `Views/Cart/Index.cshtml`. Coupon *validation* is
+deliberately still deferred to checkout's real `Promotions.Contracts.RedeemCouponCommand` dispatch —
+applying an unrecognized code to the cart is harmless and reversible, same "never trust the cart
+snapshot" rule as price/stock; there's no new read-only "does this code exist" query added here.
+(2) `Cart`/`CartItem` never carried a product image — the cart page rendered as a plain text table,
+a real defect on a fashion storefront. `Catalog.Contracts.ProductVariantSnapshotDto` gained
+`PrimaryImageUrl` (Catalog's `GetVariantSnapshotAsync` projection now also selects the product's
+primary — or first, if none marked primary — image URL); `CartItem` gained a nullable `ImageUrl`
+column (`AddCartItemImageUrl` migration, `ordering` schema) set once at add-to-cart time from that
+snapshot, same point-in-time/display-only rule as `UnitPrice` — never re-fetched, never trusted at
+checkout. `CartItemDto`/`CartMapper`/`Views/Cart/Index.cshtml` updated to carry and render it.
+Also fixed in the same pass, found while reading `Product/Details.cshtml`'s review-submission
+alerts: they used `admin-alert admin-alert-*`, a class only ever defined in
+`wwwroot/admin/admin-overrides.css` (loaded solely by `_AdminLayout.cshtml`) — completely unstyled
+raw text on this storefront page the entire time Reviews has existed (Phase 20). Switched to
+Bootstrap's `alert alert-success`/`alert alert-danger`, already used the same way on `/Profile`.
+Also added a real quantity input to the product page's "Add to cart" form, previously hardcoded to
+`quantity=1` with no way to change it before adding.
+Reason: user asked to find and fix screens that need design work. A cart with no product photos
+and a completely non-functional coupon field (despite the backend half of it existing) are the two
+concrete, verifiable defects that surfaced from actually using the storefront end to end as a
+shopper, not a subjective restyling call. Verified live: uploaded a real product image via the
+admin panel, added that product to cart as a genuine guest, confirmed the exact image URL appears
+in the cart line item; applied a coupon code, confirmed it persisted to `ordering.Carts.CouponCode`
+in the real DB and rendered with a working Remove control; submitted a product review and confirmed
+the success banner now renders with a real green background instead of unstyled text.
+Status: Accepted (Phase 31).
