@@ -3,53 +3,53 @@
     ViewData["Title"] = "Stock";
 }
 
-<h1>Stock</h1>
+<div class="wg-box">
+    <div class="body-text mb-20">@Model.TotalCount stock item(s) tracked.</div>
 
-<table class="admin-table mb-4">
-    <thead>
-        <tr>
-            <th>Product Variant Id</th>
-            <th>On Hand</th>
-            <th>Reserved</th>
-            <th>Available</th>
-            <th>Low Stock Threshold</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var item in Model.Items)
-    {
-        <tr>
-            <td><code>@item.ProductVariantId</code></td>
-            <td>@item.QuantityOnHand</td>
-            <td>@item.QuantityReserved</td>
-            <td>@item.AvailableQuantity @(item.IsOutOfStock ? "(out of stock)" : "")</td>
-            <td>@item.LowStockThreshold</td>
-            <td>
-                <form asp-action="Adjust" method="post" class="d-flex gap-1">
+    <div class="wg-table table-all-category">
+        <ul class="table-title flex gap20 mb-14">
+            <li><div class="body-title">Product Variant Id</div></li>
+            <li><div class="body-title">On Hand</div></li>
+            <li><div class="body-title">Reserved</div></li>
+            <li><div class="body-title">Available</div></li>
+            <li><div class="body-title">Low Stock Threshold</div></li>
+            <li><div class="body-title">Adjust</div></li>
+        </ul>
+        <ul class="flex flex-column">
+        @foreach (var item in Model.Items)
+        {
+            <li class="item-row gap20">
+                <div class="body-text text-main-dark mt-4"><code>@item.ProductVariantId</code></div>
+                <div class="body-text text-main-dark mt-4">@item.QuantityOnHand</div>
+                <div class="body-text text-main-dark mt-4">@item.QuantityReserved</div>
+                <div class="body-text text-main-dark mt-4">@item.AvailableQuantity @(item.IsOutOfStock ? "(out of stock)" : "")</div>
+                <div class="body-text text-main-dark mt-4">@item.LowStockThreshold</div>
+                <form asp-action="Adjust" method="post" class="flex gap10">
                     <input type="hidden" name="ProductVariantId" value="@item.ProductVariantId" />
-                    <input type="number" name="NewQuantityOnHand" class="form-control form-control-sm" style="width:90px" value="@item.QuantityOnHand" required />
-                    <input type="text" name="Reason" class="form-control form-control-sm" placeholder="Reason" required />
-                    <button type="submit" class="btn btn-dark btn-sm">Adjust</button>
+                    <input type="number" name="NewQuantityOnHand" style="width:90px" value="@item.QuantityOnHand" required />
+                    <input type="text" name="Reason" placeholder="Reason" required />
+                    <button type="submit" class="tf-button style-2 w100">Adjust</button>
                 </form>
-            </td>
-        </tr>
+            </li>
+        }
+        </ul>
+    </div>
+
+    @if (Model.TotalCount == 0)
+    {
+        <p class="mt-14">No stock is tracked yet.</p>
     }
-    </tbody>
-</table>
 
-@if (Model.TotalCount == 0)
-{
-    <p>No stock is tracked yet.</p>
-}
-
-<nav>
     @{
         var totalPages = (int)Math.Ceiling(Model.TotalCount / (double)Model.PageSize);
     }
-    @for (var p = 1; p <= totalPages; p++)
+    @if (totalPages > 1)
     {
-        <a asp-action="Index" asp-route-page="@p" class="@(p == Model.Page ? "fw-bold" : "")">@p</a>
-        <text> </text>
+        <ul class="wg-pagination mt-20">
+            @for (var p = 1; p <= totalPages; p++)
+            {
+                <li class="@(p == Model.Page ? "active" : "")"><a asp-action="Index" asp-route-page="@p">@p</a></li>
+            }
+        </ul>
     }
-</nav>
+</div>

@@ -3,47 +3,61 @@
     ViewData["Title"] = "Products";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Products</h1>
-    <a asp-action="Create" class="btn btn-dark">New Product</a>
-</div>
+<div class="wg-box">
+    <div class="flex items-center justify-between gap10 flex-wrap mb-20">
+        <div class="body-text">@Model.TotalCount product(s) total.</div>
+        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>New Product</a>
+    </div>
 
-<table class="admin-table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Slug</th>
-            <th>Status</th>
-            <th>Price</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var product in Model.Items)
+    <div class="wg-table table-product-list">
+        <ul class="table-title flex gap20 mb-14">
+            <li><div class="body-title">Product</div></li>
+            <li><div class="body-title">Slug</div></li>
+            <li><div class="body-title">Status</div></li>
+            <li><div class="body-title">Price</div></li>
+            <li><div class="body-title">Action</div></li>
+        </ul>
+        <ul class="flex flex-column">
+        @foreach (var product in Model.Items)
+        {
+            <li class="wg-product item-row gap20">
+                <div class="name">
+                    @if (!string.IsNullOrWhiteSpace(product.PrimaryImageUrl))
+                    {
+                        <div class="image"><img src="@product.PrimaryImageUrl" alt="@product.Name" /></div>
+                    }
+                    <div class="title line-clamp-2 mb-0">
+                        <a asp-action="Edit" asp-route-id="@product.Id" class="body-text">@product.Name</a>
+                    </div>
+                </div>
+                <div class="body-text text-main-dark mt-4">@product.Slug</div>
+                <div class="mt-4"><div class="block-available bg-1 fw-7">@product.Status</div></div>
+                <div class="body-text text-main-dark mt-4">
+                    @(product.MinPrice is decimal price ? $"{price:0.00} {product.Currency}" : "—")
+                </div>
+                <div class="list-icon-function">
+                    <a asp-action="Edit" asp-route-id="@product.Id" class="item edit"><i class="icon-edit-3"></i></a>
+                </div>
+            </li>
+        }
+        </ul>
+    </div>
+
+    @if (Model.TotalCount == 0)
     {
-        <tr>
-            <td>@product.Name</td>
-            <td>@product.Slug</td>
-            <td><span class="admin-badge">@product.Status</span></td>
-            <td>@(product.MinPrice is decimal price ? $"{price:0.00} {product.Currency}" : "—")</td>
-            <td><a asp-action="Edit" asp-route-id="@product.Id">Edit</a></td>
-        </tr>
+        <p class="mt-14">No products yet.</p>
     }
-    </tbody>
-</table>
 
-@if (Model.TotalCount == 0)
-{
-    <p class="mt-3">No products yet.</p>
-}
-
-<nav class="mt-3">
     @{
         var totalPages = (int)Math.Ceiling(Model.TotalCount / (double)Model.PageSize);
     }
-    @for (var p = 1; p <= totalPages; p++)
+    @if (totalPages > 1)
     {
-        <a asp-action="Index" asp-route-page="@p" class="@(p == Model.Page ? "fw-bold" : "")">@p</a>
-        <text> </text>
+        <ul class="wg-pagination mt-20">
+            @for (var p = 1; p <= totalPages; p++)
+            {
+                <li class="@(p == Model.Page ? "active" : "")"><a asp-action="Index" asp-route-page="@p">@p</a></li>
+            }
+        </ul>
     }
-</nav>
+</div>

@@ -3,34 +3,38 @@
     ViewData["Title"] = "New Category";
 }
 
-<h1>New Category</h1>
+<div class="wg-box" style="max-width:560px">
+    <form asp-action="Create" method="post" class="form-style-1">
+        <div asp-validation-summary="ModelOnly" class="admin-alert admin-alert-error"></div>
 
-<form asp-action="Create" method="post" style="max-width: 480px;">
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <fieldset class="name">
+            <div class="body-title">Name <span class="tf-color-1">*</span></div>
+            <input asp-for="Name" class="flex-grow" type="text" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Name</label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
+        <fieldset class="name">
+            <div class="body-title">Slug <span class="tf-color-1">*</span></div>
+            <input asp-for="Slug" class="flex-grow" type="text" placeholder="e.g. mens-shoes" />
+            <span asp-validation-for="Slug" class="text-danger"></span>
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Slug</label>
-        <input asp-for="Slug" class="form-control" placeholder="e.g. mens-shoes" />
-        <span asp-validation-for="Slug" class="text-danger"></span>
-    </div>
+        <fieldset class="category">
+            <div class="body-title">Parent Category (optional)</div>
+            <div class="select flex-grow">
+                <select asp-for="ParentId">
+                    <option value="">— Top level —</option>
+                    @foreach (var category in (IReadOnlyList<CategoryDto>)ViewBag.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+            </div>
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Parent Category (optional)</label>
-        <select asp-for="ParentId" class="form-select">
-            <option value="">— Top level —</option>
-            @foreach (var category in (IReadOnlyList<CategoryDto>)ViewBag.Categories)
-            {
-                <option value="@category.Id">@category.Name</option>
-            }
-        </select>
-    </div>
-
-    <button type="submit" class="btn btn-dark">Create Category</button>
-    <a asp-action="Index" class="btn btn-link">Cancel</a>
-</form>
+        <div class="bot">
+            <a asp-action="Index" class="tf-button style-2 w208">Cancel</a>
+            <button class="tf-button w208" type="submit">Create Category</button>
+        </div>
+    </form>
+</div>

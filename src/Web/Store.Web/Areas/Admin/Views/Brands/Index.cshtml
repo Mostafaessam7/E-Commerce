@@ -3,49 +3,51 @@
     ViewData["Title"] = "Brands";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Brands</h1>
-    <a asp-action="Create" class="btn btn-dark">New Brand</a>
-</div>
+<div class="wg-box">
+    <div class="flex items-center justify-between gap10 flex-wrap mb-20">
+        <div class="body-text">@Model.Count brand(s) total.</div>
+        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>New Brand</a>
+    </div>
 
-<table class="admin-table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Slug</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var brand in Model)
+    <div class="wg-table table-all-category">
+        <ul class="table-title flex gap20 mb-14">
+            <li><div class="body-title">Name</div></li>
+            <li><div class="body-title">Slug</div></li>
+            <li><div class="body-title">Status</div></li>
+            <li><div class="body-title">Action</div></li>
+        </ul>
+        <ul class="flex flex-column">
+        @foreach (var brand in Model)
+        {
+            <li class="item-row gap20">
+                <div class="body-text text-main-dark mt-4">@brand.Name</div>
+                <div class="body-text text-main-dark mt-4"><code>@brand.Slug</code></div>
+                <div class="mt-4">
+                    <div class="@(brand.IsActive ? "block-available" : "block-stock") bg-1 fw-7">@(brand.IsActive ? "Active" : "Inactive")</div>
+                </div>
+                <div class="list-icon-function">
+                    @if (brand.IsActive)
+                    {
+                        <form asp-action="Deactivate" method="post">
+                            <input type="hidden" name="id" value="@brand.Id" />
+                            <button type="submit" class="item edit" title="Deactivate"><i class="icon-slash"></i></button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Activate" method="post">
+                            <input type="hidden" name="id" value="@brand.Id" />
+                            <button type="submit" class="item eye" title="Activate"><i class="icon-check"></i></button>
+                        </form>
+                    }
+                </div>
+            </li>
+        }
+        </ul>
+    </div>
+
+    @if (Model.Count == 0)
     {
-        <tr>
-            <td>@brand.Name</td>
-            <td><code>@brand.Slug</code></td>
-            <td><span class="admin-badge">@(brand.IsActive ? "Active" : "Inactive")</span></td>
-            <td>
-                @if (brand.IsActive)
-                {
-                    <form asp-action="Deactivate" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@brand.Id" />
-                        <button type="submit" class="btn btn-secondary btn-sm">Deactivate</button>
-                    </form>
-                }
-                else
-                {
-                    <form asp-action="Activate" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@brand.Id" />
-                        <button type="submit" class="btn btn-success btn-sm">Activate</button>
-                    </form>
-                }
-            </td>
-        </tr>
+        <p class="mt-14">No brands yet.</p>
     }
-    </tbody>
-</table>
-
-@if (Model.Count == 0)
-{
-    <p class="mt-3">No brands yet.</p>
-}
+</div>

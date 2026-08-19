@@ -581,3 +581,45 @@ produced the exact DLLs each `ENTRYPOINT` expects. The one thing genuinely unver
 container-runtime layer itself — worth a real `docker compose up --build` pass in an environment
 where Docker Desktop can actually start.
 Status: Accepted (Phase 23).
+
+---
+**ADR-035**
+Decision: Phase 24 replaces the Admin area's hand-styled placeholder chrome (`admin-shell`/
+`admin-sidebar`/`admin-table`, `wwwroot/admin/admin.css`) with a real integration of the
+`admin-ecomus` ThemeForest template — the same curated-subset approach ADR (Phase 5) used for the
+storefront, applied to the admin dashboard template this time. A curated ~1.3MB asset subset
+(`css/`, a hand-picked `js/` set — `jquery`/`bootstrap`/`bootstrap-select`/`main`/`theme-settings`,
+explicitly not `apexcharts`/`morris`/`raphael`/`jvectormap`, none of which anything here wires up
+— `font/`, `icon/`) is copied into `wwwroot/admin-ecomus/`, out of the raw ~5MB/137-file
+`ecomus-package/ecomus/admin-ecomus/` source (never served directly, same as the storefront's
+package). `_AdminLayout.cshtml` is rebuilt on the template's real sidebar/header-dashboard/
+main-content structure — active-menu-item highlighting computed from `RouteData`, a real dark/
+light toggle (`theme-settings.js`, `localStorage`-backed), a real signed-in user's name in the
+header, real `Sign out` — and every existing admin view (Dashboard, Products, Brands, Categories,
+Orders, Payments, Stock, Coupons, ShippingMethods, Reviews — 18 view files across 10 controllers)
+is retargeted onto the template's own component classes (`wg-box`, `wg-table`/`item-row`,
+`form-style-1`/`fieldset`, `tf-button`, `block-available`/`block-stock` status pills) instead of
+being ported to new bespoke markup per page. `wwwroot/admin/admin-overrides.css` keeps only what
+the theme has no component for: alert banners (success/error) and a small dashboard stat-card icon
+badge.
+Reason: rebuilding all 18 pages' internal DOM to literally match a specific demo page's exact
+per-page structure (the raw template's `product-list.html` and `category-list.html` use
+differently-named scoped grid classes, `table-product-list` vs `table-all-category`, that would
+each need their own bespoke CSS if copied verbatim) would multiply the surface area for visual
+bugs for no functional gain over reusing one consistent `wg-table` row-list shape with real
+per-page columns — the theme's own CSS already makes that shape look native everywhere it's used
+in the source template, not just on one demo page. No chart libraries were wired up (dashboard
+KPI cards show real counts, no apexcharts-rendered trend lines) because there's no historical
+time-series data anywhere in this system to chart honestly — a fabricated "1.56%" trend arrow
+next to a real number would be dishonest UI, not a design choice. Fake demo content already in
+the template (notification/inbox dropdowns with invented unread counts, a country-language
+switcher, stock product photography) was dropped entirely for the same reason: only the pieces
+backed by something real (real nav, real user, real dark-mode preference, real data tables) made
+it in. Verified live in-browser: signed in as the seeded admin, confirmed the sidebar/header CSS
+computes real values (`320px` fixed sidebar, `12px`-radius `wg-box` cards, `icomoon` icon font
+resolving), confirmed the icon font and all curated JS/CSS assets loaded 200 (not 404), exercised
+a real Deactivate/Activate round-trip on a seeded Brand and watched the themed success alert and
+status pill flip live, viewed a real seeded Order's detail page, and confirmed the sidebar
+collapses off-canvas at a mobile viewport width (the theme's own responsive behavior, not
+something hand-rolled here).
+Status: Accepted (Phase 24).

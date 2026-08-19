@@ -3,49 +3,51 @@
     ViewData["Title"] = "Payments";
 }
 
-<h1 class="mb-3">Payments</h1>
+<div class="wg-box">
+    <div class="body-text mb-20">@Model.Count payment(s) total.</div>
 
-<table class="admin-table">
-    <thead>
-        <tr>
-            <th>Order</th>
-            <th>Provider</th>
-            <th>Status</th>
-            <th>Amount</th>
-            <th>Refunded</th>
-            <th>Date</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var payment in Model)
+    <div class="wg-table table-all-category">
+        <ul class="table-title flex gap20 mb-14">
+            <li><div class="body-title">Order</div></li>
+            <li><div class="body-title">Provider</div></li>
+            <li><div class="body-title">Status</div></li>
+            <li><div class="body-title">Amount</div></li>
+            <li><div class="body-title">Refunded</div></li>
+            <li><div class="body-title">Date</div></li>
+            <li><div class="body-title">Refund</div></li>
+        </ul>
+        <ul class="flex flex-column">
+        @foreach (var payment in Model)
+        {
+            var refundable = payment.Status == "Succeeded" && payment.RefundedAmount < payment.Amount;
+            <li class="item-row gap20">
+                <div class="body-text text-main-dark mt-4">
+                    <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@payment.OrderId">@payment.OrderId</a>
+                </div>
+                <div class="body-text text-main-dark mt-4">@payment.Provider</div>
+                <div class="mt-4"><div class="block-available bg-1 fw-7">@payment.Status</div></div>
+                <div class="body-text text-main-dark mt-4">@payment.Amount.ToString("0.00") @payment.Currency</div>
+                <div class="body-text text-main-dark mt-4">@payment.RefundedAmount.ToString("0.00")</div>
+                <div class="body-text text-main-dark mt-4">@payment.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</div>
+                <div>
+                    @if (refundable)
+                    {
+                        <form asp-action="Refund" method="post" class="flex gap10">
+                            <input type="hidden" name="PaymentTransactionId" value="@payment.Id" />
+                            <input type="number" name="Amount" step="0.01" max="@(payment.Amount - payment.RefundedAmount)"
+                                   style="width:90px" placeholder="Amount" required />
+                            <input type="text" name="Reason" style="width:120px" placeholder="Reason (optional)" />
+                            <button type="submit" class="tf-button style-2 w100">Refund</button>
+                        </form>
+                    }
+                </div>
+            </li>
+        }
+        </ul>
+    </div>
+
+    @if (Model.Count == 0)
     {
-        var refundable = payment.Status == "Succeeded" && payment.RefundedAmount < payment.Amount;
-        <tr>
-            <td><a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@payment.OrderId">@payment.OrderId</a></td>
-            <td>@payment.Provider</td>
-            <td><span class="admin-badge">@payment.Status</span></td>
-            <td>@payment.Amount.ToString("0.00") @payment.Currency</td>
-            <td>@payment.RefundedAmount.ToString("0.00")</td>
-            <td>@payment.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</td>
-            <td>
-                @if (refundable)
-                {
-                    <form asp-action="Refund" method="post" class="d-flex gap-1">
-                        <input type="hidden" name="PaymentTransactionId" value="@payment.Id" />
-                        <input type="number" name="Amount" step="0.01" max="@(payment.Amount - payment.RefundedAmount)"
-                               class="form-control form-control-sm" style="width:100px" placeholder="Amount" required />
-                        <input type="text" name="Reason" class="form-control form-control-sm" style="width:140px" placeholder="Reason (optional)" />
-                        <button type="submit" class="btn btn-secondary btn-sm">Refund</button>
-                    </form>
-                }
-            </td>
-        </tr>
+        <p class="mt-14">No payments yet.</p>
     }
-    </tbody>
-</table>
-
-@if (Model.Count == 0)
-{
-    <p class="mt-3">No payments yet.</p>
-}
+</div>

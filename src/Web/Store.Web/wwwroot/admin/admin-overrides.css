@@ -1,0 +1,55 @@
+/* Small additions on top of the real admin-ecomus theme (Phase 24) — only what the theme itself
+   doesn't already provide a component for. Everything else (sidebar, header, tables, forms,
+   buttons, badges) uses the theme's own classes directly, no reinvented CSS. */
+
+.admin-alert {
+    padding: 14px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.admin-alert-success {
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--Palette-Green-500, #22C55E);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.admin-alert-error {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--Palette-Red-500, #EF4444);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* Dashboard stat cards — a simplified version of the theme's wg-chart-default (icon badge +
+   number), without the chart half (no apexcharts wired up — see docs/decisions.md). */
+.dashboard-stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+    font-size: 22px;
+}
+
+/* Reused across every list page's action column — the theme's own icon buttons, no page-specific
+   sizing needed. */
+.list-icon-function .item {
+    cursor: pointer;
+}
+
+.list-icon-function form {
+    display: inline-flex;
+}
+
+.list-icon-function button {
+    border: none;
+    background: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}

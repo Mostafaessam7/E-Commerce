@@ -3,59 +3,65 @@
     ViewData["Title"] = "New Product";
 }
 
-<h1>New Product</h1>
+<div class="wg-box">
+    <form asp-action="Create" method="post" class="form-style-1">
+        <div asp-validation-summary="ModelOnly" class="admin-alert admin-alert-error"></div>
 
-<form asp-action="Create" method="post" style="max-width: 560px;">
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <fieldset class="name">
+            <div class="body-title">Product name <span class="tf-color-1">*</span></div>
+            <input asp-for="Name" class="flex-grow" type="text" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </fieldset>
 
-    <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
+        <fieldset class="name">
+            <div class="body-title">Slug <span class="tf-color-1">*</span></div>
+            <input asp-for="Slug" class="flex-grow" type="text" placeholder="e.g. blue-cotton-tshirt" />
+            <span asp-validation-for="Slug" class="text-danger"></span>
+        </fieldset>
 
-    <div class="mb-3">
-        <label asp-for="Slug" class="form-label"></label>
-        <input asp-for="Slug" class="form-control" placeholder="e.g. blue-cotton-tshirt" />
-        <span asp-validation-for="Slug" class="text-danger"></span>
-    </div>
+        <fieldset class="name">
+            <div class="body-title">Short description</div>
+            <input asp-for="ShortDescription" class="flex-grow" type="text" />
+        </fieldset>
 
-    <div class="mb-3">
-        <label asp-for="ShortDescription" class="form-label"></label>
-        <input asp-for="ShortDescription" class="form-control" />
-    </div>
+        <fieldset class="category">
+            <div class="body-title">Description</div>
+            <textarea asp-for="Description" class="flex-grow" rows="5"></textarea>
+        </fieldset>
 
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control" rows="5"></textarea>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="BrandId" class="form-label"></label>
-        <select asp-for="BrandId" class="form-select">
-            <option value="">— No brand —</option>
-            @foreach (var brand in (IReadOnlyList<BrandDto>)ViewBag.Brands)
-            {
-                <option value="@brand.Id">@brand.Name</option>
-            }
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Categories</label>
-        @foreach (var category in (IReadOnlyList<CategoryDto>)ViewBag.Categories)
-        {
-            <div class="form-check">
-                <input type="checkbox" name="CategoryIds" value="@category.Id" class="form-check-input" id="cat-@category.Id" />
-                <label class="form-check-label" for="cat-@category.Id">@category.Name</label>
+        <fieldset class="category">
+            <div class="body-title">Brand</div>
+            <div class="select flex-grow">
+                <select asp-for="BrandId" class="">
+                    <option value="">— No brand —</option>
+                    @foreach (var brand in (IReadOnlyList<BrandDto>)ViewBag.Brands)
+                    {
+                        <option value="@brand.Id">@brand.Name</option>
+                    }
+                </select>
             </div>
-        }
-        @if (((IReadOnlyList<CategoryDto>)ViewBag.Categories).Count == 0)
-        {
-            <p class="text-muted">No categories yet.</p>
-        }
-    </div>
+        </fieldset>
 
-    <button type="submit" class="btn btn-dark">Create Draft</button>
-    <a asp-action="Index" class="btn btn-link">Cancel</a>
-</form>
+        <fieldset class="category">
+            <div class="body-title">Categories</div>
+            <div class="flex flex-wrap gap10">
+                @foreach (var category in (IReadOnlyList<CategoryDto>)ViewBag.Categories)
+                {
+                    <label class="cb-item" style="display:flex;align-items:center;gap:6px">
+                        <input type="checkbox" name="CategoryIds" value="@category.Id" />
+                        <span class="body-text">@category.Name</span>
+                    </label>
+                }
+                @if (((IReadOnlyList<CategoryDto>)ViewBag.Categories).Count == 0)
+                {
+                    <p class="text-muted mb-0">No categories yet.</p>
+                }
+            </div>
+        </fieldset>
+
+        <div class="bot">
+            <a asp-action="Index" class="tf-button style-2 w208">Cancel</a>
+            <button class="tf-button w208" type="submit">Create Draft</button>
+        </div>
+    </form>
+</div>

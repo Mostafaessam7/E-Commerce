@@ -1,12 +1,13 @@
 Current Phase:
-Phase 10-23 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+Phase 10-24 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
 UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring/Reviews+moderation/
-Brand+Category admin+Payments admin UI/real Redis-backed caching/CI image publish). All five
-originally-empty placeholder modules now have real code, both named admin gaps from the original
-analysis are closed, the provisioned-but-unused Redis container now has a real reader, and CI
-pushes both images to GHCR on every push to main/master. In progress on a broader backlog:
-admin-ecomus integration, EndToEndTests (user asked for "all of it"; working through it phase by
-phase, committing after each).
+Brand+Category admin+Payments admin UI/real Redis-backed caching/CI image publish/admin-ecomus
+template integration). All five originally-empty placeholder modules now have real code, both
+named admin gaps from the original analysis are closed, the provisioned-but-unused Redis container
+now has a real reader, CI pushes both images to GHCR on every push to main/master, and the Admin
+area is now the real `admin-ecomus` template instead of a hand-styled placeholder. In progress on
+a broader backlog: EndToEndTests (user asked for "all of it"; working through it phase by phase,
+committing after each).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -225,22 +226,44 @@ Completed:
   projects and produced the exact `Store.Web.dll`/`Store.Worker.dll` each `ENTRYPOINT` expects.
   Branch protection remains explicitly out of reach (needs a GitHub remote this repo doesn't have).
 - All tests passing: 102 unit + 30 integration + 29 architecture (unchanged — CI/workflow-only phase).
+- Phase 24: admin-ecomus template integration (ADR-035) — the Admin area's hand-styled placeholder
+  chrome is replaced with a real `admin-ecomus` ThemeForest template integration, same curated-
+  subset approach as the storefront's own Phase 5. Curated ~1.3MB asset subset (`css/`, a
+  hand-picked `js/` — no `apexcharts`/`morris`/`raphael`/`jvectormap`, nothing here wires up
+  charts/maps — `font/`, `icon/`) copied into `wwwroot/admin-ecomus/` out of the raw ~5MB/137-file
+  package source. `_AdminLayout.cshtml` rebuilt on the template's real sidebar/header-dashboard/
+  main-content structure (active-menu highlighting from `RouteData`, a real dark/light toggle,
+  real signed-in user + sign out). All 18 view files across 10 admin controllers (Dashboard,
+  Products, Brands, Categories, Orders, Payments, Stock, Coupons, ShippingMethods, Reviews)
+  retargeted onto the template's own component classes (`wg-box`, `wg-table`/`item-row`,
+  `form-style-1`, `tf-button`, status pills) instead of one-off bespoke markup per page. No fake
+  demo content carried over (notification/inbox dropdowns with invented counts, chart trend
+  arrows, stock photography) — only pieces backed by something real made it in. Verified live
+  in-browser: signed in as the seeded admin, confirmed real computed CSS (fixed 320px sidebar,
+  12px-radius cards, `icomoon` icon font resolving), confirmed every curated asset loaded 200 (not
+  404), exercised a real Brand Deactivate/Activate round-trip and watched the themed alert +
+  status pill flip live, viewed a real seeded order's detail page, confirmed the sidebar collapses
+  off-canvas at a mobile viewport (the theme's own responsive behavior).
+- All tests passing: 102 unit + 30 integration + 29 architecture (unchanged — Razor views only,
+  no application code touched).
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — admin-ecomus
-  integration, EndToEndTests.
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — EndToEndTests is
+  the one item left.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
   Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20), both admin
   gaps named in the original analysis are closed (Phase 21), Redis has a real reader (Phase 22),
-  and CI publishes both images to GHCR (Phase 23).
+  CI publishes both images to GHCR (Phase 23), and the Admin area uses the real admin-ecomus
+  template (Phase 24).
 - Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
   see ADR-028.
 - No product image upload (Section on file storage not started).
-- `admin-ecomus` template not integrated — current Admin UI is a minimal hand-styled layout.
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
+- `EndToEndTests` still not populated — the one remaining item from the user's "all 4 categories"
+  backlog.
 
 Known Issues:
 - `docker compose up --build` still hasn't been run against a real Docker daemon — genuinely
@@ -266,25 +289,26 @@ Important Files:
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis now really used (Phase 22).
 - docs/ci-cd.md — GitHub Actions build+test + publish-images workflow (Phase 14, Phase 23).
-- docs/decisions.md — ADR-001..034.
+- docs/decisions.md — ADR-001..035.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged by Phase 21/22/23
+Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged since Phase 20
 (Brand/Category tables already existed in the `catalog` schema since Phase 4, no new migration
-needed; Redis isn't a migrated `DbContext`; Phase 23 was CI/workflow-only).
+needed; Redis isn't a migrated `DbContext`; Phases 23-24 were CI/workflow and Razor-views-only).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-032 (Phase 21 closed the Brand/Category admin UI and Payments
-admin UI gaps named in the original analysis — both were "wire up what already exists" work, not
-new modules; no new permission categories needed since Catalog/Payments permissions already
-existed since Phase 11), ADR-033 (Phase 22 gives Redis its
-first real reader — `CachedProductQueries` decorates Catalog's storefront queries with a
-TTL-only, 60s/30s read-through cache; checkout's price/stock re-validation query and admin
-listings are deliberately never cached; falls back to an in-memory cache when Redis isn't
-configured, same "app never depends on this running" posture as `ApplyMigrationsOnStartup`),
-ADR-034 (Phase 23's `publish-images` CI job pushes both images to GHCR on every push to
-`main`/`master`; also fixed a real bug found in passing — `build-and-test`'s migration list was
-missing five contexts added since Phase 14 wrote it; a real `docker compose up --build` remains
-unverified, genuinely attempted this session and blocked by this sandbox having no nested
-virtualization, not assumed unavailable).
+See docs/decisions.md. Newest: ADR-033 (Phase 22 gives Redis its first real reader —
+`CachedProductQueries` decorates Catalog's storefront queries with a TTL-only, 60s/30s
+read-through cache; checkout's price/stock re-validation query and admin listings are
+deliberately never cached; falls back to an in-memory cache when Redis isn't configured, same
+"app never depends on this running" posture as `ApplyMigrationsOnStartup`), ADR-034 (Phase 23's
+`publish-images` CI job pushes both images to GHCR on every push to `main`/`master`; also fixed a
+real bug found in passing — `build-and-test`'s migration list was missing five contexts added
+since Phase 14 wrote it; a real `docker compose up --build` remains unverified, genuinely
+attempted this session and blocked by this sandbox having no nested virtualization, not assumed
+unavailable), ADR-035 (Phase 24 replaces the Admin area's hand-styled placeholder with a real,
+curated `admin-ecomus` template integration — same curated-subset approach as the storefront's
+own Phase 5 — across the layout and all 18 admin view files; no fake demo content — chart trend
+arrows, invented notification counts — carried over, only pieces backed by something real made
+it in).

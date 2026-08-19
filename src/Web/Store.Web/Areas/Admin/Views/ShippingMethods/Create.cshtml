@@ -3,43 +3,45 @@
     ViewData["Title"] = "New Shipping Method";
 }
 
-<h1>New Shipping Method</h1>
+<div class="wg-box" style="max-width:560px">
+    <form asp-action="Create" method="post" class="form-style-1">
+        <div asp-validation-summary="ModelOnly" class="admin-alert admin-alert-error"></div>
 
-<form asp-action="Create" method="post" style="max-width: 480px;">
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <fieldset class="name">
+            <div class="body-title">Name <span class="tf-color-1">*</span></div>
+            <input asp-for="Name" class="flex-grow" type="text" placeholder="e.g. Standard" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Name</label>
-        <input asp-for="Name" class="form-control" placeholder="e.g. Standard" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
+        <fieldset class="name">
+            <div class="body-title">Description (optional)</div>
+            <input asp-for="Description" class="flex-grow" type="text" />
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Description (optional)</label>
-        <input asp-for="Description" class="form-control" />
-    </div>
+        <fieldset class="name">
+            <div class="body-title">Cost <span class="tf-color-1">*</span></div>
+            <input asp-for="Cost" type="number" step="0.01" class="flex-grow" />
+            <span asp-validation-for="Cost" class="text-danger"></span>
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Cost</label>
-        <input asp-for="Cost" type="number" step="0.01" class="form-control" />
-        <span asp-validation-for="Cost" class="text-danger"></span>
-    </div>
+        <fieldset class="name">
+            <div class="body-title">Currency</div>
+            <input asp-for="Currency" class="flex-grow" type="text" />
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Currency</label>
-        <input asp-for="Currency" class="form-control" />
-    </div>
+        <fieldset class="name">
+            <div class="body-title">Estimated Days Min (optional)</div>
+            <input asp-for="EstimatedDaysMin" type="number" class="flex-grow" />
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Estimated Days Min (optional)</label>
-        <input asp-for="EstimatedDaysMin" type="number" class="form-control" />
-    </div>
+        <fieldset class="name">
+            <div class="body-title">Estimated Days Max (optional)</div>
+            <input asp-for="EstimatedDaysMax" type="number" class="flex-grow" />
+        </fieldset>
 
-    <div class="mb-3">
-        <label class="form-label">Estimated Days Max (optional)</label>
-        <input asp-for="EstimatedDaysMax" type="number" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-dark">Create Shipping Method</button>
-    <a asp-action="Index" class="btn btn-link">Cancel</a>
-</form>
+        <div class="bot">
+            <a asp-action="Index" class="tf-button style-2 w208">Cancel</a>
+            <button class="tf-button w208" type="submit">Create Shipping Method</button>
+        </div>
+    </form>
+</div>

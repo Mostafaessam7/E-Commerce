@@ -3,69 +3,84 @@
     ViewData["Title"] = $"Order {Model.OrderNumber}";
 }
 
-<h1>Order @Model.OrderNumber <span class="admin-badge">@Model.Status</span> <span class="admin-badge">@Model.PaymentStatus</span></h1>
+<div class="flex items-center gap10 mb-20 flex-wrap">
+    <h4>Order @Model.OrderNumber</h4>
+    <div class="block-available bg-1 fw-7">@Model.Status</div>
+    <div class="block-available bg-1 fw-7">@Model.PaymentStatus</div>
+</div>
 
-<table class="admin-table mb-4">
-    <thead><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
-    <tbody>
-    @foreach (var item in Model.Items)
-    {
-        <tr>
-            <td>@item.ProductName</td>
-            <td>@item.Sku</td>
-            <td>@item.Quantity</td>
-            <td>@item.UnitPrice.ToString("0.00")</td>
-            <td>@item.LineTotal.ToString("0.00")</td>
-        </tr>
-    }
-    </tbody>
-</table>
+<div class="wg-box mb-20">
+    <div class="wg-table table-all-category">
+        <ul class="table-title flex gap20 mb-14">
+            <li><div class="body-title">Product</div></li>
+            <li><div class="body-title">SKU</div></li>
+            <li><div class="body-title">Qty</div></li>
+            <li><div class="body-title">Unit Price</div></li>
+            <li><div class="body-title">Line Total</div></li>
+        </ul>
+        <ul class="flex flex-column">
+        @foreach (var item in Model.Items)
+        {
+            <li class="item-row gap20">
+                <div class="body-text text-main-dark mt-4">@item.ProductName</div>
+                <div class="body-text text-main-dark mt-4">@item.Sku</div>
+                <div class="body-text text-main-dark mt-4">@item.Quantity</div>
+                <div class="body-text text-main-dark mt-4">@item.UnitPrice.ToString("0.00")</div>
+                <div class="body-text text-main-dark mt-4">@item.LineTotal.ToString("0.00")</div>
+            </li>
+        }
+        </ul>
+    </div>
+</div>
 
-<p>
-    Subtotal: @Model.Subtotal.ToString("0.00") @Model.Currency<br />
-    Shipping: @Model.ShippingCost.ToString("0.00")<br />
-    Tax: @Model.Tax.ToString("0.00")<br />
-    Discount: @Model.Discount.ToString("0.00")<br />
-    <strong>Total: @Model.Total.ToString("0.00") @Model.Currency</strong>
-</p>
+<div class="wg-box mb-20">
+    <h5 class="mb-14">Totals</h5>
+    <div class="body-text">Subtotal: @Model.Subtotal.ToString("0.00") @Model.Currency</div>
+    <div class="body-text">Shipping: @Model.ShippingCost.ToString("0.00")</div>
+    <div class="body-text">Tax: @Model.Tax.ToString("0.00")</div>
+    <div class="body-text">Discount: @Model.Discount.ToString("0.00")</div>
+    <div class="body-title mt-10">Total: @Model.Total.ToString("0.00") @Model.Currency</div>
+</div>
 
-<h5>Actions</h5>
-<div class="d-flex gap-2 flex-wrap">
-    @if (Model.Status == "Pending")
-    {
-        <form asp-action="Confirm" method="post">
-            <input type="hidden" name="id" value="@Model.Id" />
-            <button type="submit" class="btn btn-dark btn-sm">Confirm</button>
-        </form>
-    }
-    @if (Model.Status == "Confirmed")
-    {
-        <form asp-action="StartProcessing" method="post">
-            <input type="hidden" name="id" value="@Model.Id" />
-            <button type="submit" class="btn btn-dark btn-sm">Start Processing</button>
-        </form>
-    }
-    @if (Model.Status == "Processing")
-    {
-        <form asp-action="Ship" method="post" class="d-flex gap-1">
-            <input type="hidden" name="OrderId" value="@Model.Id" />
-            <input type="text" name="TrackingNumber" class="form-control form-control-sm" placeholder="Tracking # (optional)" />
-            <button type="submit" class="btn btn-dark btn-sm">Mark Shipped</button>
-        </form>
-    }
-    @if (Model.Status == "Shipped")
-    {
-        <form asp-action="Deliver" method="post">
-            <input type="hidden" name="id" value="@Model.Id" />
-            <button type="submit" class="btn btn-dark btn-sm">Mark Delivered</button>
-        </form>
-    }
-    @if (Model.Status is "Pending" or "Confirmed" or "Processing")
-    {
-        <form asp-action="Cancel" method="post" class="d-flex gap-1" onsubmit="return confirm('Cancel this order?');">
-            <input type="hidden" name="OrderId" value="@Model.Id" />
-            <input type="text" name="Reason" class="form-control form-control-sm" placeholder="Cancellation reason" required />
-            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel Order</button>
-        </form>
-    }
+<div class="wg-box">
+    <h5 class="mb-14">Actions</h5>
+    <div class="flex gap10 flex-wrap">
+        @if (Model.Status == "Pending")
+        {
+            <form asp-action="Confirm" method="post">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="tf-button style-1 w150">Confirm</button>
+            </form>
+        }
+        @if (Model.Status == "Confirmed")
+        {
+            <form asp-action="StartProcessing" method="post">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="tf-button style-1 w150">Start Processing</button>
+            </form>
+        }
+        @if (Model.Status == "Processing")
+        {
+            <form asp-action="Ship" method="post" class="flex gap10">
+                <input type="hidden" name="OrderId" value="@Model.Id" />
+                <input type="text" name="TrackingNumber" placeholder="Tracking # (optional)" />
+                <button type="submit" class="tf-button style-1 w150">Mark Shipped</button>
+            </form>
+        }
+        @if (Model.Status == "Shipped")
+        {
+            <form asp-action="Deliver" method="post">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="tf-button style-1 w150">Mark Delivered</button>
+            </form>
+        }
+        @if (Model.Status is "Pending" or "Confirmed" or "Processing")
+        {
+            <form asp-action="Cancel" method="post" class="flex gap10" onsubmit="return confirm('Cancel this order?');">
+                <input type="hidden" name="OrderId" value="@Model.Id" />
+                <input type="text" name="Reason" placeholder="Cancellation reason" required />
+                <button type="submit" class="tf-button style-2 w150" style="color:var(--Palette-Red-500,#EF4444)">Cancel Order</button>
+            </form>
+        }
+    </div>
 </div>

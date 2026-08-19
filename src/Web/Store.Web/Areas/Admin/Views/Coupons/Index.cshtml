@@ -3,53 +3,55 @@
     ViewData["Title"] = "Coupons";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Coupons</h1>
-    <a asp-action="Create" class="btn btn-dark">New Coupon</a>
-</div>
+<div class="wg-box">
+    <div class="flex items-center justify-between gap10 flex-wrap mb-20">
+        <div class="body-text">@Model.Count coupon(s) total.</div>
+        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>New Coupon</a>
+    </div>
 
-<table class="admin-table">
-    <thead>
-        <tr>
-            <th>Code</th>
-            <th>Discount</th>
-            <th>Status</th>
-            <th>Usage</th>
-            <th>Expires</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var coupon in Model)
+    <div class="wg-table table-all-category">
+        <ul class="table-title flex gap20 mb-14">
+            <li><div class="body-title">Code</div></li>
+            <li><div class="body-title">Discount</div></li>
+            <li><div class="body-title">Status</div></li>
+            <li><div class="body-title">Usage</div></li>
+            <li><div class="body-title">Expires</div></li>
+            <li><div class="body-title">Action</div></li>
+        </ul>
+        <ul class="flex flex-column">
+        @foreach (var coupon in Model)
+        {
+            <li class="item-row gap20">
+                <div class="body-text text-main-dark mt-4"><code>@coupon.Code</code></div>
+                <div class="body-text text-main-dark mt-4">@(coupon.DiscountType == "Percentage" ? $"{coupon.Value}%" : $"{coupon.Value:0.00} {coupon.Currency}")</div>
+                <div class="mt-4">
+                    <div class="@(coupon.IsActive ? "block-available" : "block-stock") bg-1 fw-7">@(coupon.IsActive ? "Active" : "Inactive")</div>
+                </div>
+                <div class="body-text text-main-dark mt-4">@coupon.UsageCount@(coupon.UsageLimit is int limit ? $" / {limit}" : "")</div>
+                <div class="body-text text-main-dark mt-4">@(coupon.ExpiresAtUtc?.ToString("yyyy-MM-dd") ?? "—")</div>
+                <div class="list-icon-function">
+                    @if (coupon.IsActive)
+                    {
+                        <form asp-action="Deactivate" method="post">
+                            <input type="hidden" name="id" value="@coupon.Id" />
+                            <button type="submit" class="item edit" title="Deactivate"><i class="icon-slash"></i></button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="Activate" method="post">
+                            <input type="hidden" name="id" value="@coupon.Id" />
+                            <button type="submit" class="item eye" title="Activate"><i class="icon-check"></i></button>
+                        </form>
+                    }
+                </div>
+            </li>
+        }
+        </ul>
+    </div>
+
+    @if (Model.Count == 0)
     {
-        <tr>
-            <td><code>@coupon.Code</code></td>
-            <td>@(coupon.DiscountType == "Percentage" ? $"{coupon.Value}%" : $"{coupon.Value:0.00} {coupon.Currency}")</td>
-            <td><span class="admin-badge">@(coupon.IsActive ? "Active" : "Inactive")</span></td>
-            <td>@coupon.UsageCount@(coupon.UsageLimit is int limit ? $" / {limit}" : "")</td>
-            <td>@(coupon.ExpiresAtUtc?.ToString("yyyy-MM-dd") ?? "—")</td>
-            <td>
-                @if (coupon.IsActive)
-                {
-                    <form asp-action="Deactivate" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@coupon.Id" />
-                        <button type="submit" class="btn btn-secondary btn-sm">Deactivate</button>
-                    </form>
-                }
-                else
-                {
-                    <form asp-action="Activate" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@coupon.Id" />
-                        <button type="submit" class="btn btn-success btn-sm">Activate</button>
-                    </form>
-                }
-            </td>
-        </tr>
+        <p class="mt-14">No coupons yet.</p>
     }
-    </tbody>
-</table>
-
-@if (Model.Count == 0)
-{
-    <p class="mt-3">No coupons yet.</p>
-}
+</div>

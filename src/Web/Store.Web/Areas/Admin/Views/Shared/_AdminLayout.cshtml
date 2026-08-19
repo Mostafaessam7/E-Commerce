@@ -1,48 +1,216 @@
+@{
+    var controllerName = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    bool IsController(params string[] names) => names.Contains(controllerName, StringComparer.OrdinalIgnoreCase);
+    string MenuClass(params string[] names) => IsController(names) ? "menu-item has-children active" : "menu-item has-children";
+    string SubMenuStyle(params string[] names) => IsController(names) ? "display:block" : "display:none";
+    string SubActive(bool current) => current ? "sub-menu-item active" : "sub-menu-item";
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <title>@(ViewData["Title"] is not null ? $"{ViewData["Title"]} - Admin" : "Admin")</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="~/ecomus/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/admin/admin.css" />
+    <link rel="stylesheet" href="~/admin-ecomus/css/bootstrap.css" />
+    <link rel="stylesheet" href="~/admin-ecomus/css/bootstrap-select.min.css" />
+    <link rel="stylesheet" href="~/admin-ecomus/css/animate.min.css" />
+    <link rel="stylesheet" href="~/admin-ecomus/css/animation.css" />
+    <link rel="stylesheet" href="~/admin-ecomus/css/styles.css" />
+    <link rel="stylesheet" href="~/admin-ecomus/font/fonts.css" />
+    <link rel="stylesheet" href="~/admin-ecomus/icon/style.css" />
+    <link rel="stylesheet" href="~/admin/admin-overrides.css" />
+    <link rel="shortcut icon" href="~/ecomus/images/logo/favicon.png" />
 </head>
 <body>
-    <div class="admin-shell">
-        <aside class="admin-sidebar">
-            <div class="admin-brand">ECommerce Admin</div>
-            <nav class="admin-nav">
-                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-                <a asp-area="Admin" asp-controller="Products" asp-action="Index">Products</a>
-                <a asp-area="Admin" asp-controller="Brands" asp-action="Index">Brands</a>
-                <a asp-area="Admin" asp-controller="Categories" asp-action="Index">Categories</a>
-                <a asp-area="Admin" asp-controller="Orders" asp-action="Index">Orders</a>
-                <a asp-area="Admin" asp-controller="Payments" asp-action="Index">Payments</a>
-                <a asp-area="Admin" asp-controller="Stock" asp-action="Index">Stock</a>
-                <a asp-area="Admin" asp-controller="Coupons" asp-action="Index">Coupons</a>
-                <a asp-area="Admin" asp-controller="ShippingMethods" asp-action="Index">Shipping</a>
-                <a asp-area="Admin" asp-controller="Reviews" asp-action="Index">Reviews</a>
-            </nav>
-            <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="admin-logout">
-                <button type="submit" class="admin-logout-btn">Sign out</button>
-            </form>
-        </aside>
+    <div id="wrapper">
+        <div id="page">
+            <div class="layout-wrap">
+                <div class="section-menu-left">
+                    <div class="box-logo">
+                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" id="site-logo-inner">
+                            <img id="logo_header" alt="ECommerce" src="~/ecomus/images/logo/logo.svg"
+                                 data-light="~/ecomus/images/logo/logo.svg" data-dark="~/ecomus/images/logo/logo-white.svg" />
+                        </a>
+                        <div class="button-show-hide"><i class="icon-chevron-left"></i></div>
+                    </div>
+                    <div class="section-menu-left-wrap">
+                        <div class="center">
+                            <div class="center-item">
+                                <ul>
+                                    <li class="menu-item @(IsController("Dashboard") ? "active" : "")">
+                                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                                            <div class="icon"><i class="icon-home"></i></div>
+                                            <div class="text">Dashboard</div>
+                                        </a>
+                                    </li>
+                                    <li class="@MenuClass("Products")">
+                                        <a href="#" class="menu-item-button">
+                                            <div class="icon"><i class="icon-file-plus"></i></div>
+                                            <div class="text">Products</div>
+                                        </a>
+                                        <ul class="sub-menu" style="@SubMenuStyle("Products")">
+                                            <li class="@SubActive(IsController("Products"))">
+                                                <a asp-area="Admin" asp-controller="Products" asp-action="Index"><div class="text">All Products</div></a>
+                                            </li>
+                                            <li class="sub-menu-item">
+                                                <a asp-area="Admin" asp-controller="Products" asp-action="Create"><div class="text">Add Product</div></a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li class="@MenuClass("Brands")">
+                                        <a href="#" class="menu-item-button">
+                                            <div class="icon"><i class="icon-award"></i></div>
+                                            <div class="text">Brands</div>
+                                        </a>
+                                        <ul class="sub-menu" style="@SubMenuStyle("Brands")">
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Brands" asp-action="Index"><div class="text">All Brands</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Brands" asp-action="Create"><div class="text">Add Brand</div></a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="@MenuClass("Categories")">
+                                        <a href="#" class="menu-item-button">
+                                            <div class="icon"><i class="icon-layers"></i></div>
+                                            <div class="text">Categories</div>
+                                        </a>
+                                        <ul class="sub-menu" style="@SubMenuStyle("Categories")">
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index"><div class="text">Category list</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Create"><div class="text">New category</div></a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="menu-item @(IsController("Orders") ? "active" : "")">
+                                        <a asp-area="Admin" asp-controller="Orders" asp-action="Index">
+                                            <div class="icon"><i class="icon-shopping-bag"></i></div>
+                                            <div class="text">Orders</div>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item @(IsController("Payments") ? "active" : "")">
+                                        <a asp-area="Admin" asp-controller="Payments" asp-action="Index">
+                                            <div class="icon"><i class="icon-credit-card"></i></div>
+                                            <div class="text">Payments</div>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item @(IsController("Stock") ? "active" : "")">
+                                        <a asp-area="Admin" asp-controller="Stock" asp-action="Index">
+                                            <div class="icon"><i class="icon-box"></i></div>
+                                            <div class="text">Stock</div>
+                                        </a>
+                                    </li>
+                                    <li class="@MenuClass("Coupons")">
+                                        <a href="#" class="menu-item-button">
+                                            <div class="icon"><i class="icon-percent"></i></div>
+                                            <div class="text">Coupons</div>
+                                        </a>
+                                        <ul class="sub-menu" style="@SubMenuStyle("Coupons")">
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Coupons" asp-action="Index"><div class="text">All Coupons</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Coupons" asp-action="Create"><div class="text">New Coupon</div></a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="@MenuClass("ShippingMethods")">
+                                        <a href="#" class="menu-item-button">
+                                            <div class="icon"><i class="icon-truck"></i></div>
+                                            <div class="text">Shipping</div>
+                                        </a>
+                                        <ul class="sub-menu" style="@SubMenuStyle("ShippingMethods")">
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="ShippingMethods" asp-action="Index"><div class="text">All Methods</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="ShippingMethods" asp-action="Create"><div class="text">New Method</div></a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="menu-item @(IsController("Reviews") ? "active" : "")">
+                                        <a asp-area="Admin" asp-controller="Reviews" asp-action="Index">
+                                            <div class="icon"><i class="icon-star"></i></div>
+                                            <div class="text">Reviews</div>
+                                        </a>
+                                    </li>
+                                    <li class="menu-item">
+                                        <a asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
+                                            <div class="icon"><i class="icon-globe"></i></div>
+                                            <div class="text">View Store</div>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-content-right">
+                    <div class="header-dashboard">
+                        <div class="wrap">
+                            <div class="header-left">
+                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                                    <img id="logo_header_mobile" alt="ECommerce" src="~/ecomus/images/logo/logo.svg"
+                                         data-light="~/ecomus/images/logo/logo.svg" data-dark="~/ecomus/images/logo/logo-white.svg" />
+                                </a>
+                                <div class="button-show-hide"><i class="icon-chevron-left"></i></div>
+                            </div>
+                            <div class="header-grid">
+                                <div class="header-item button-dark-light">
+                                    <i class="icon-moon"></i>
+                                </div>
+                                <div class="popup-wrap user type-header">
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button"
+                                                id="dropdownMenuButton3" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span class="header-user wg-user">
+                                                <span class="image"><i class="icon-user" style="font-size:24px"></i></span>
+                                                <span class="flex flex-column">
+                                                    <span class="body-text text-main-dark">@User.Identity?.Name</span>
+                                                    <span class="text-tiny">Administrator</span>
+                                                </span>
+                                            </span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end has-content" aria-labelledby="dropdownMenuButton3">
+                                            <li>
+                                                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                                                    <button type="submit" class="user-item" style="width:100%;border:none;background:none;text-align:left">
+                                                        <div class="icon"><i class="icon-log-out"></i></div>
+                                                        <div class="body-title-2">Sign out</div>
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="main-content">
+                        <div class="main-content-inner">
+                            <div class="main-content-wrap">
+                                <div class="flex items-center flex-wrap justify-between gap20 mb-30">
+                                    <h3>@(ViewData["Title"] ?? "Admin")</h3>
+                                    <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
+                                        <li><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><div class="text-tiny">Dashboard</div></a></li>
+                                        <li><i class="icon-chevron-right"></i></li>
+                                        <li><div class="text-tiny">@(ViewData["Title"] ?? "Admin")</div></li>
+                                    </ul>
+                                </div>
 
-        <main class="admin-main">
-            @if (TempData["Success"] is string success)
-            {
-                <div class="admin-alert admin-alert-success">@success</div>
-            }
-            @if (TempData["Error"] is string error)
-            {
-                <div class="admin-alert admin-alert-error">@error</div>
-            }
+                                @if (TempData["Success"] is string success)
+                                {
+                                    <div class="admin-alert admin-alert-success">@success</div>
+                                }
+                                @if (TempData["Error"] is string error)
+                                {
+                                    <div class="admin-alert admin-alert-error">@error</div>
+                                }
 
-            @RenderBody()
-        </main>
+                                @RenderBody()
+                            </div>
+                        </div>
+                        <div class="bottom-page">
+                            <div class="body-text">ECommerce Admin</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="~/ecomus/js/bootstrap.min.js"></script>
+    <script src="~/admin-ecomus/js/jquery.min.js"></script>
+    <script src="~/admin-ecomus/js/bootstrap.min.js"></script>
+    <script src="~/admin-ecomus/js/bootstrap-select.min.js"></script>
+    <script src="~/admin-ecomus/js/theme-settings.js"></script>
+    <script defer src="~/admin-ecomus/js/main.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

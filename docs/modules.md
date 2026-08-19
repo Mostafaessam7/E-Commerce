@@ -263,6 +263,12 @@ BB) — never role-name checks. `Identity.Infrastructure.Seeding.AdminUserBootst
 dev-only, opt-in (config-gated) hosted service that creates one pre-confirmed admin user; see
 ADR-021 and docs/security.md.
 
+UI (Phase 24, ADR-035): `_AdminLayout.cshtml` and all 18 admin view files are built on the real
+`admin-ecomus` ThemeForest template (`wwwroot/admin-ecomus/`, a curated asset subset — same
+curated-not-literal approach as the storefront's Phase 5) — real sidebar/header chrome, dark/light
+toggle, `wg-table`/`wg-box`/`form-style-1`/`tf-button` component classes throughout. Replaced the
+hand-styled placeholder Phase 11 shipped with.
+
 ---
 As of Phase 21: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
 Customers, Promotions, Shipping, Reviews) have real Domain/Application/Infrastructure code — none
