@@ -19,7 +19,9 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>Recommended</AnalysisMode>
 
-    <!-- Arabic + English content/currency/dates are a Phase-1 requirement (see localization). -->
+    <!-- Keeps ICU data available (ar-EG/en-US culture-aware string comparison, number/currency/
+         date formatting) for when real Arabic+English localization is built — no UI translation,
+         resource files, or RTL markup exist yet; this flag alone doesn't provide any of that. -->
     <InvariantGlobalization>false</InvariantGlobalization>
 
     <Deterministic>true</Deterministic>

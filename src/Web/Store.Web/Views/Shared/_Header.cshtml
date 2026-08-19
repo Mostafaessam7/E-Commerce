@@ -43,7 +43,10 @@
                             <a asp-controller="Account" asp-action="Login" class="nav-icon-item"><i class="icon icon-account"></i></a>
                         }
                     </li>
-                    <li class="nav-wishlist"><a href="#" class="nav-icon-item"><i class="icon icon-heart"></i><span class="count-box">0</span></a></li>
+                    @* Wishlist icon deliberately dropped, not just hidden — it isn't one of the
+                       fixed 10 modules (AGENTS.md) and a "#" link with a hardcoded "0" count
+                       would be dead UI pretending to work. Add it back for real if a Wishlist
+                       module is ever built. *@
                     <li class="nav-cart"><a asp-controller="Cart" asp-action="Index" class="nav-icon-item"><i class="icon icon-bag"></i><span class="count-box">0</span></a></li>
                 </ul>
             </div>
