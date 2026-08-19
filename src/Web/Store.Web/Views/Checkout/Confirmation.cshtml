@@ -34,8 +34,8 @@
         </div>
 
         <div class="mt-4">
-            <span class="badge bg-warning text-dark">Status: @Model.Status</span>
-            <span class="badge bg-secondary">Payment: @Model.PaymentStatus</span>
+            <span class="badge @OrderStatusBadge.CssClass(Model.Status)">Status: @Model.Status</span>
+            <span class="badge @OrderStatusBadge.CssClass(Model.PaymentStatus)">Payment: @Model.PaymentStatus</span>
         </div>
 
         @if (TempData["PaymentError"] is string paymentError)

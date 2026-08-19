@@ -22,7 +22,7 @@
             var refundable = payment.Status == "Succeeded" && payment.RefundedAmount < payment.Amount;
             <li class="item-row gap20">
                 <div class="body-text text-main-dark mt-4">
-                    <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@payment.OrderId">@payment.OrderId</a>
+                    <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@payment.OrderId">@(payment.OrderNumber ?? payment.OrderId.ToString())</a>
                 </div>
                 <div class="body-text text-main-dark mt-4">@payment.Provider</div>
                 <div class="mt-4"><div class="@StatusBadge.CssClass(payment.Status) bg-1 fw-7">@payment.Status</div></div>

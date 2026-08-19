@@ -357,6 +357,18 @@ Completed:
   Pending order renders the orange `block-pending` class, an Active product renders the green
   `block-available` class, and the Stock page shows a real seeded product's name instead of its
   Guid. All 168 tests still passing.
+- Phase 33: Payments-page order numbers + Checkout confirmation badges fixed (ADR-044), closing
+  out the screen-by-screen design audit started in Phase 30. `ListPaymentsQueryHandler` now
+  dispatches `GetOrderContactInfoQuery` per row (`Payments.Application` already referenced
+  `Ordering.Contracts`) to show the real `OrderNumber` instead of a raw Guid link — same
+  enrichment shape as Phase 32's Stock-page fix. `Views/Checkout/Confirmation.cshtml`'s
+  Status/Payment badges had the identical "always the same color" bug as the Admin badges, just
+  with Bootstrap classes; new `Store.Web.Infrastructure.Storefront.OrderStatusBadge` fixes it.
+  Verified live end to end via a real guest checkout: placed a real order, confirmed the
+  confirmation badges started `bg-warning` (Pending) and flipped to `bg-success` after the
+  simulated payment (Confirmed/Paid), then confirmed that same order's real number rendered on the
+  admin Payments page. Also cleaned up 14 long-orphaned `PaymentTransaction` rows found incidental
+  to this verification (pre-existing dev-DB cruft, not a code defect). All 168 tests still passing.
 
 In Progress:
 - None.
@@ -369,9 +381,11 @@ Next:
   (Phase 24), EndToEndTests proves the full journey works (Phase 25), rate limiting and a real
   sitemap exist (Phases 26-27), Customers is wired into checkout (Phase 28), admin product image
   upload is real (Phase 29), Home/Account pages have a real Vanta.js treatment (Phase 30), the
-  Cart page has real product images + a working coupon UI (Phase 31), and the Admin area's status
-  badges/Stock page are fixed (Phase 32). No further actionable gaps are currently tracked; a
-  broader visual redesign beyond these scoped, defect-driven passes would need its own explicit ask.
+  Cart page has real product images + a working coupon UI (Phase 31), the Admin area's status
+  badges/Stock page are fixed (Phase 32), and the Payments page/Checkout confirmation badges are
+  fixed (Phase 33). The screen-by-screen design audit is now complete — no further actionable UI
+  gaps are currently tracked; a broader visual redesign beyond these scoped, defect-driven passes
+  would need its own explicit ask.
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
@@ -403,17 +417,18 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..043.
+- docs/decisions.md — ADR-001..044.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
 Payments, Notifications, Customers, Promotions, Shipping, Reviews). Brand/Category tables, and
 `Products.Images` / the `ProductImages` table Phase 29 now actually writes to, already existed in
 the `catalog` schema since Phase 4 — no new migration needed for those. Phase 31 adds
-`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Phase 32 is
-application-code-only (no migration) — Inventory reads Catalog data live via `IDispatcher`, no new
-column. Redis isn't a migrated `DbContext`. Phases 23-28, 30 were CI/workflow, Razor-views,
-new-test-project, and application-code-only work respectively — no schema changes in those.
+`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Phases 32-33 are
+application-code-only (no migration) — Inventory/Payments read Catalog/Ordering data live via
+`IDispatcher`, no new columns. Redis isn't a migrated `DbContext`. Phases 23-28, 30 were
+CI/workflow, Razor-views, new-test-project, and application-code-only work respectively — no
+schema changes in those.
 
 Decisions Made:
 See docs/decisions.md. Newest: ADR-036 (Phase 25 populates `EndToEndTests` with a real
@@ -445,4 +460,8 @@ banner that had rendered as completely unstyled text since Phase 20 because it u
 CSS class never loaded on the storefront), ADR-043 (Phase 32 fixes every Admin status pill —
 Orders/Payments/Products/Reviews had all hardcoded the same green class regardless of actual
 status — via a new centralized `StatusBadge` helper, and enriches the Stock page with real product
-names/SKUs instead of a bare Guid via Inventory's first-ever cross-module read from Catalog).
+names/SKUs instead of a bare Guid via Inventory's first-ever cross-module read from Catalog),
+ADR-044 (Phase 33 closes the design-audit series: the admin Payments page now shows a real
+`OrderNumber` instead of a raw Guid via `Ordering.Contracts.GetOrderContactInfoQuery`, and the
+Checkout confirmation page's badges get the same fix as Phase 32's Admin badges via a new,
+storefront-specific `OrderStatusBadge` helper).

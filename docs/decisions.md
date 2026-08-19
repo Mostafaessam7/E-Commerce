@@ -866,3 +866,30 @@ fetched the real admin Orders/Products pages post-login and confirmed a Pending 
 before); fetched the Stock page and confirmed a real seeded product's name/SKU renders instead of
 its Guid, with zero server errors in the log.
 Status: Accepted (Phase 32).
+
+---
+**ADR-044**
+Decision: Phase 33 closes out the screen-by-screen design audit (Phases 30-32) with the last two
+real defects found: the admin Payments page's order link showed a raw `OrderId` Guid as its own
+link text, and the storefront Checkout confirmation page had the exact same "one hardcoded badge
+class regardless of status" bug as the Admin badges (Phase 32, ADR-043) fixed — just using
+Bootstrap classes instead of `admin-ecomus`'s. `ListPaymentsQueryHandler` now dispatches
+`Ordering.Contracts.GetOrderContactInfoQuery` per row (ADR-014) to attach the real `OrderNumber`,
+same enrichment shape as Phase 32's Stock-page fix — `Payments.Application` already had a
+`ProjectReference` to `Ordering.Contracts` (it dispatches `MarkOrderAsPaidCommand` there since
+Phase 9), so no new module dependency was needed this time. New
+`Store.Web.Infrastructure.Storefront.OrderStatusBadge.CssClass` maps Order/PaymentStatus to real
+Bootstrap `bg-success`/`bg-warning`/`bg-danger`/`bg-info` classes — a separate, small helper from
+Admin's `StatusBadge` rather than a shared one, since the storefront has no `admin-ecomus` theme to
+draw color classes from and this is the only page on it that shows an order status.
+Reason: same standard as Phases 31-32 — concrete, verifiable defects surfaced by actually using
+the checkout flow and the admin panel, not a subjective restyle. Verified live via a real guest
+checkout end to end: added a real in-stock product to cart, placed a real order, confirmed the
+confirmation page showed `bg-warning` for the initial Pending status, paid via the simulated
+payment flow, confirmed both badges flipped to `bg-success` once Confirmed/Paid, then confirmed
+the same order's real `OrderNumber` (not its Guid) rendered on the admin Payments page. Also
+found and cleaned up, incidental to this verification: 14 `PaymentTransaction` rows in the dev DB
+whose `Order` no longer existed (orphaned test data left over from earlier phases' manual
+verification, predating this session's `EndToEndTests` cleanup discipline) — deleted, not a code
+defect.
+Status: Accepted (Phase 33).

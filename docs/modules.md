@@ -119,6 +119,11 @@ Dependencies line like theirs the moment another module gains one.
   `RefundPaymentCommand`, `GetPaymentQuery`, `ListPaymentsQuery` (admin-wide or narrowed to one
   order, Phase 21 — `IPaymentsQueries` is the read-side, `GetPaymentQuery` stayed on the write-side
   `IPaymentTransactionRepository` since it already existed and predates this read/write split).
+- Admin Payments page fixed (Phase 33, ADR-044): `ListPaymentsQueryHandler` now dispatches
+  `Ordering.Contracts.GetOrderContactInfoQuery` per row to attach the real `OrderNumber` — the
+  order link used to show the raw `OrderId` Guid as its own link text, nothing an admin can
+  recognize an order by. Degrades to the Guid if the order lookup fails (e.g. orphaned payment
+  data), same fallback shape as the Phase 32 Stock-page fix.
 - Admin: `Store.Web/Areas/Admin/Controllers/PaymentsController.cs` — lists every transaction and
   can trigger `RefundPaymentCommand` inline (`Permissions.Payments.View`/`Refund`, both defined
   since Phase 11 but unused until now).
@@ -326,6 +331,13 @@ show only the raw `ProductVariantId` Guid, which nobody can recognize a product 
   every validation error. Fetched the real `jquery-validation`/`jquery-validation-unobtrusive`
   packages into `wwwroot/lib/` so the existing `asp-validation-for` markup (already correct)
   finally gets a live client-side check instead of only a server-side one.
+- `Views/Checkout/Confirmation.cshtml`'s Status/Payment badges fixed (Phase 33, ADR-044): same bug
+  shape as the Admin badges (Phase 32) — hardcoded `bg-warning`/`bg-secondary` regardless of the
+  actual value, so a Cancelled order looked the same as a Confirmed one. New
+  `Store.Web.Infrastructure.Storefront.OrderStatusBadge.CssClass` maps to real Bootstrap
+  `bg-success`/`bg-warning`/`bg-danger`/`bg-info` — this page's only status display, so a
+  standalone small helper rather than reusing the Admin one (different CSS classes available: no
+  `admin-ecomus` theme on the storefront).
 
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
