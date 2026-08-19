@@ -550,3 +550,34 @@ direct DB mutation was *not* reflected until the cached entry's TTL expired (pro
 actually being served, not silently bypassed), and confirmed the mutated value appeared
 automatically once the TTL lapsed (self-healing, no manual invalidation needed).
 Status: Accepted (Phase 22).
+
+---
+**ADR-034**
+Decision: Phase 23 adds a `publish-images` job to `.github/workflows/build-test.yml` — builds and
+pushes both `Store.Web`/`Store.Worker` images to GHCR (`ghcr.io/<owner>/<repo>-store-web`/
+`...-store-worker`, tagged with the commit SHA and `latest`) on every push to `main`/`master`,
+gated on `build-and-test` passing first, using the workflow's own `GITHUB_TOKEN` (no extra secret
+to provision). Runs on `ubuntu-latest`, separate from `build-and-test`'s `windows-latest` (image
+builds need a Linux Docker daemon; LocalDB needs Windows — ADR-024). The same commit also fixed a
+real, previously-unnoticed bug: `build-and-test`'s per-context `dotnet ef database update` list
+still only covered the five contexts that existed when Phase 14 wrote it (Catalog/Inventory/
+Ordering/Payments/Identity) — every context Phases 15/17/18/19/20 added
+(Notifications/Customers/Promotions/Shipping/Reviews) was silently missing, meaning
+IntegrationTests would have started failing on this workflow the moment any test touched one of
+those five modules' tables, with no one having actually run it since a remote doesn't exist yet
+to trigger it on.
+Reason: image publish was the other Phase 14 gap named alongside branch protection in the original
+analysis (the latter needs a GitHub remote this repo doesn't have yet, genuinely out of reach, not
+deferred by choice). A real `docker compose up --build`/`docker build` run to verify the images
+actually work was attempted this session (not assumed unavailable from Phase 13's note) — Docker
+Desktop's backend process was launched and observed exiting within ~15 seconds every time (nested
+virtualization unavailable in this sandbox). Absent a running daemon, verification fell back to
+the closest available substitutes: `docker compose config` (validates and interpolates
+`docker-compose.yml`, including Phase 22's new `ConnectionStrings__Redis`, without needing a
+daemon), the workflow YAML parsing correctly end to end, and — the strongest substitute — running
+the exact `dotnet restore`/`dotnet publish` commands each Dockerfile's `RUN` steps execute against
+a byte-for-byte copy of the Dockerfiles' own build context, which succeeded for both projects and
+produced the exact DLLs each `ENTRYPOINT` expects. The one thing genuinely unverified is the
+container-runtime layer itself — worth a real `docker compose up --build` pass in an environment
+where Docker Desktop can actually start.
+Status: Accepted (Phase 23).

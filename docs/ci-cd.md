@@ -2,10 +2,14 @@
 
 ## `.github/workflows/build-test.yml`
 
-Triggers on every PR into `main`/`master` and every push to `main`/`master`. One job,
-`windows-latest`, sequential steps — no matrix, no parallel jobs (see ADR-024 for why
-`windows-latest` specifically). A second push to the same PR cancels the still-running check for
-the first (`concurrency` block) — no point finishing a run whose result nobody will look at.
+Triggers on every PR into `main`/`master` and every push to `main`/`master`. Two jobs:
+`build-and-test` (`windows-latest`, sequential steps — no matrix, no parallel jobs, see ADR-024
+for why `windows-latest` specifically) and `publish-images` (Phase 23 — `ubuntu-latest`, only on
+a push to `main`/`master`, gated on `build-and-test` passing first). A second push to the same PR
+cancels the still-running check for the first (`concurrency` block) — no point finishing a run
+whose result nobody will look at.
+
+### `build-and-test`
 
 Steps, in order:
 
@@ -19,21 +23,46 @@ Steps, in order:
    `Microsoft.EntityFrameworkCore*` versions in `Directory.Packages.props` exactly (a mismatched
    tool version only prints a warning, not an error, but keeping them in lockstep avoids the
    warning noise and any edge-case behavior drift).
-6. One `dotnet ef database update` per module context (Catalog/Inventory/Ordering/Payments/
-   Identity) — the exact same commands documented in `docs/database.md` for a developer setting
-   up a fresh clone, just scripted. Creates the `ECommerce` database on the runner's LocalDB
-   instance and applies every migration, because a fresh runner obviously doesn't have the schema
-   local dev machines accumulate over time.
+6. One `dotnet ef database update` per module context — Catalog/Inventory/Ordering/Payments/
+   Identity/Notifications/Customers/Promotions/Shipping/Reviews, all ten migrated contexts as of
+   Phase 20 — the exact same commands documented in `docs/database.md` for a developer setting up
+   a fresh clone, just scripted. Creates the `ECommerce` database on the runner's LocalDB instance
+   and applies every migration, because a fresh runner obviously doesn't have the schema local dev
+   machines accumulate over time. **Keep this list in sync** with every module that gains a real
+   `Infrastructure` project — a missing context here doesn't fail loudly at this step, it fails
+   later in Integration tests with a confusing "invalid object name" from whichever table that
+   context owns.
 7. **Integration tests** — now that the schema exists, `IntegrationTests`' hardcoded
    `Server=(localdb)\mssqllocaldb;Database=ECommerce;...` connection string (docs/testing.md) just
    works, unmodified.
 
+### `publish-images` (Phase 23)
+
+Builds and pushes both application images to GHCR (`ghcr.io/<owner>/<repo>-store-web` and
+`...-store-worker`), each tagged with the commit SHA and `latest`. Runs on `ubuntu-latest` (image
+builds need a Linux Docker daemon; `build-and-test` stays on `windows-latest` for LocalDB) using
+`docker/build-push-action`, authenticated via the workflow's own `GITHUB_TOKEN` — no extra secret
+to configure, `packages: write` permission is enough to push to the repo's own GHCR namespace.
+Guarded by `if: github.event_name == 'push' && ...main/master` so a PR (including one from a fork,
+which wouldn't have package-write permission anyway) never attempts a push, only builds.
+
+**Not independently verified against a real Docker daemon** — this sandbox's Docker Desktop
+backend process exits within ~15 seconds of launch (nested virtualization unavailable), a real
+attempt made in this session, not just an assumption carried over from Phase 13. What *was*
+verified without a daemon: `docker compose config` parses and correctly interpolates
+`docker-compose.yml` (including Phase 22's new `ConnectionStrings__Redis` wiring); the workflow
+YAML itself parses correctly (job/step structure, multi-line `tags:` strings); and — the strongest
+substitute for an actual `docker build` — running the exact `dotnet restore`/`dotnet publish`
+commands each Dockerfile's `RUN` steps execute, against a byte-for-byte copy of the Dockerfiles'
+own build context (repo root, `.dockerignore`'s `bin/`/`obj/`/`tests/` exclusions applied
+manually), succeeded for both `Store.Web.csproj` and `Store.Worker.csproj` and produced the exact
+`Store.Web.dll`/`Store.Worker.dll` each Dockerfile's `ENTRYPOINT` expects. The only step actually
+unverified is the container-runtime layer itself (`FROM mcr.microsoft.com/dotnet/aspnet:10.0`,
+`COPY --from=build`) — a real `docker compose up --build` pass is still worth doing in an
+environment where Docker Desktop can actually start.
+
 ## Not yet built
 
-- No image publish step — Phase 13's Dockerfiles aren't built/pushed by this workflow yet (the
-  phase was scoped to "build+test on PR" specifically, not a release pipeline). Adding a
-  `docker build` validation job (or push-to-registry on a tag) is a natural next step, not done
-  here to keep this phase's scope match what was asked.
 - No NuGet restore caching (`actions/cache` / `setup-dotnet`'s built-in cache needs a
   `packages-lock.json` this repo doesn't generate) — every run restores from scratch. Fine at this
   project's size; revisit if CI time becomes annoying.

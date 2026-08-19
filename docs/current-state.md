@@ -1,12 +1,12 @@
 Current Phase:
-Phase 10-22 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+Phase 10-23 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
 UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring/Reviews+moderation/
-Brand+Category admin+Payments admin UI/real Redis-backed caching). All five originally-empty
-placeholder modules now have real code, both named admin gaps from the original analysis are
-closed, and the provisioned-but-unused Redis container now has a real reader. In progress on a
-broader backlog: CI image publish, docker compose verification, admin-ecomus integration,
-EndToEndTests (user asked for "all of it"; working through it phase by phase, committing after
-each).
+Brand+Category admin+Payments admin UI/real Redis-backed caching/CI image publish). All five
+originally-empty placeholder modules now have real code, both named admin gaps from the original
+analysis are closed, the provisioned-but-unused Redis container now has a real reader, and CI
+pushes both images to GHCR on every push to main/master. In progress on a broader backlog:
+admin-ecomus integration, EndToEndTests (user asked for "all of it"; working through it phase by
+phase, committing after each).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -206,28 +206,54 @@ Completed:
   read, not silently bypassed); confirmed the mutated name appeared automatically once the TTL
   lapsed with no manual invalidation.
 - All tests passing: 102 unit + 30 integration + 29 architecture.
+- Phase 23: CI image publish (ADR-034) — new `publish-images` job in
+  `.github/workflows/build-test.yml` pushes `Store.Web`/`Store.Worker` images to GHCR
+  (SHA + `latest` tags) on every push to `main`/`master`, gated on `build-and-test` passing,
+  authenticated via the workflow's own `GITHUB_TOKEN`. Same commit fixed a real bug found while
+  touching this file: `build-and-test`'s per-context `dotnet ef database update` list was 5 years
+  — sorry, 5 *phases* — stale, missing every context Phases 15/17/18/19/20 added (Notifications/
+  Customers/Promotions/Shipping/Reviews); IntegrationTests would have started failing the moment
+  any test touched one of those tables, undetected only because no remote exists yet to actually
+  trigger this workflow. Docker itself remains genuinely unrunnable in this sandbox — Docker
+  Desktop was launched this session (not assumed unavailable from Phase 13's note) and its backend
+  process was observed exiting within ~15s every time (no nested virtualization here). Verified
+  everything short of that: `docker compose config` validates and interpolates `docker-compose.yml`
+  correctly (including Phase 22's new `ConnectionStrings__Redis`) without needing a daemon; the
+  workflow YAML parses correctly; and — the strongest available substitute for `docker build` —
+  running the exact `dotnet restore`/`dotnet publish` commands each Dockerfile's `RUN` steps
+  execute, against a byte-for-byte copy of the Dockerfiles' own build context, succeeded for both
+  projects and produced the exact `Store.Web.dll`/`Store.Worker.dll` each `ENTRYPOINT` expects.
+  Branch protection remains explicitly out of reach (needs a GitHub remote this repo doesn't have).
+- All tests passing: 102 unit + 30 integration + 29 architecture (unchanged — CI/workflow-only phase).
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — CI image publish,
-  docker compose verification, admin-ecomus integration, EndToEndTests.
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — admin-ecomus
+  integration, EndToEndTests.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
   Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20), both admin
-  gaps named in the original analysis are closed (Phase 21), and Redis has a real reader (Phase 22).
+  gaps named in the original analysis are closed (Phase 21), Redis has a real reader (Phase 22),
+  and CI publishes both images to GHCR (Phase 23).
 - Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
   see ADR-028.
 - No product image upload (Section on file storage not started).
 - `admin-ecomus` template not integrated — current Admin UI is a minimal hand-styled layout.
-- CI runs build+test only — no image publish/registry push, no branch protection rule configured
-  (that's a GitHub repo setting; enable it once this repo has a remote — docs/ci-cd.md).
+- No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
+  genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
 Known Issues:
-- Phase 13's `docker compose up`/`docker build` was not actually executed in the authoring
-  session (Docker Desktop installed but not running in that sandbox) — verified via
-  `docker compose config`, the exact `dotnet publish -c Release` commands the Dockerfiles run,
-  and inspecting publish output, but not a real container run. Worth a first real
-  `docker compose up --build` pass before relying on it.
+- `docker compose up --build` still hasn't been run against a real Docker daemon — genuinely
+  attempted in the Phase 23 session (not just carried over from Phase 13's note): Docker Desktop
+  was launched, its backend process observed exiting within ~15 seconds every time (this sandbox
+  has no nested virtualization). What *was* verified without a daemon: `docker compose config`
+  (validates/interpolates `docker-compose.yml`, including Phase 22's `ConnectionStrings__Redis`),
+  the `publish-images` workflow YAML parsing correctly, and — closest available substitute for
+  `docker build` — the exact `dotnet restore`/`dotnet publish` commands each Dockerfile's `RUN`
+  steps execute succeeding against a byte-for-byte copy of the Dockerfiles' own build context,
+  producing the exact DLLs each `ENTRYPOINT` expects. Only the container-runtime layer itself is
+  unverified. Worth a real `docker compose up --build` pass in an environment where Docker Desktop
+  can actually start.
 
 Important Files:
 - AGENTS.md — entry point; "EF Core gotchas" + "Other gotchas" sections, including the new
@@ -239,24 +265,26 @@ Important Files:
   credential handling (User Secrets only, never appsettings.json).
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis now really used (Phase 22).
-- docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..033.
+- docs/ci-cd.md — GitHub Actions build+test + publish-images workflow (Phase 14, Phase 23).
+- docs/decisions.md — ADR-001..034.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged by Phase 21/22
+Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged by Phase 21/22/23
 (Brand/Category tables already existed in the `catalog` schema since Phase 4, no new migration
-needed; Redis isn't a migrated `DbContext`).
+needed; Redis isn't a migrated `DbContext`; Phase 23 was CI/workflow-only).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-031 (Reviews' `Review` aggregate starts every submission
-`Pending`; only an admin `Approve`/`Reject` — one-way, blocked by `Review.NotPending` from
-re-moderating — moves it out, and the storefront query only ever returns `Approved` ones; no
-"verified purchase" check against Ordering, a deliberate scope cut), ADR-032 (Phase 21 closed the
-Brand/Category admin UI and Payments admin UI gaps named in the original analysis — both were
-"wire up what already exists" work, not new modules; no new permission categories needed since
-Catalog/Payments permissions already existed since Phase 11), ADR-033 (Phase 22 gives Redis its
+See docs/decisions.md. Newest: ADR-032 (Phase 21 closed the Brand/Category admin UI and Payments
+admin UI gaps named in the original analysis — both were "wire up what already exists" work, not
+new modules; no new permission categories needed since Catalog/Payments permissions already
+existed since Phase 11), ADR-033 (Phase 22 gives Redis its
 first real reader — `CachedProductQueries` decorates Catalog's storefront queries with a
 TTL-only, 60s/30s read-through cache; checkout's price/stock re-validation query and admin
 listings are deliberately never cached; falls back to an in-memory cache when Redis isn't
-configured, same "app never depends on this running" posture as `ApplyMigrationsOnStartup`).
+configured, same "app never depends on this running" posture as `ApplyMigrationsOnStartup`),
+ADR-034 (Phase 23's `publish-images` CI job pushes both images to GHCR on every push to
+`main`/`master`; also fixed a real bug found in passing — `build-and-test`'s migration list was
+missing five contexts added since Phase 14 wrote it; a real `docker compose up --build` remains
+unverified, genuinely attempted this session and blocked by this sandbox having no nested
+virtualization, not assumed unavailable).

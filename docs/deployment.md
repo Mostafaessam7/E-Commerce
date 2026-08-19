@@ -64,9 +64,9 @@ opt-in-without-hard-dependency posture as `ApplyMigrationsOnStartup`/`AdminUserB
 
 ## Not yet built
 
-Build+test-on-PR exists (`docs/ci-cd.md`, Phase 14) — pushing these images to a registry does
-not; that's still a manual `docker compose build`. Also missing: a production-shaped compose file
-(secrets manager instead of `.env`, no local SQL Server container, HTTPS termination), and a
+Image publish now exists (`docs/ci-cd.md`'s `publish-images` job, Phase 23) — pushes both images
+to GHCR on every push to `main`/`master`. Still missing: a production-shaped compose file (secrets
+manager instead of `.env`, no local SQL Server container, HTTPS termination), and a
 health-check-aware `HEALTHCHECK` instruction in the app Dockerfiles (skipped — the `aspnet`/
 `runtime` base images don't ship `curl`/`wget`, and installing one just for a `HEALTHCHECK`
 directive wasn't worth the extra image layer at this stage; `docker-compose.yml`'s `depends_on`

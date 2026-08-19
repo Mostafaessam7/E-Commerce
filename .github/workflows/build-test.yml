@@ -51,7 +51,10 @@ jobs:
       # runs locally after cloning, just scripted. Each module's IDesignTimeDbContextFactory (see
       # that file's doc comment) hardcodes the identical LocalDB connection string the test files
       # use, so this creates the same `ECommerce` database on the runner's LocalDB instance that
-      # IntegrationTests then connect to.
+      # IntegrationTests then connect to. Kept in sync with every migrated context as modules gain
+      # real Infrastructure (Phases 15/17/18/19/20 added Notifications/Customers/Promotions/
+      # Shipping/Reviews) — a context missing here means IntegrationTests fails on this runner
+      # with a "no such table" error despite passing everywhere the DB was already migrated.
       - name: Apply Catalog migrations
         run: dotnet ef database update --project src/Modules/Catalog/Catalog.Infrastructure --startup-project src/Web/Store.Web --context CatalogDbContext
       - name: Apply Inventory migrations
@@ -62,6 +65,66 @@ jobs:
         run: dotnet ef database update --project src/Modules/Payments/Payments.Infrastructure --startup-project src/Web/Store.Web --context PaymentsDbContext
       - name: Apply Identity migrations
         run: dotnet ef database update --project src/Modules/Identity/Identity.Infrastructure --startup-project src/Web/Store.Web --context AppIdentityDbContext
+      - name: Apply Notifications migrations
+        run: dotnet ef database update --project src/Modules/Notifications/Notifications.Infrastructure --startup-project src/Web/Store.Web --context NotificationsDbContext
+      - name: Apply Customers migrations
+        run: dotnet ef database update --project src/Modules/Customers/Customers.Infrastructure --startup-project src/Web/Store.Web --context CustomersDbContext
+      - name: Apply Promotions migrations
+        run: dotnet ef database update --project src/Modules/Promotions/Promotions.Infrastructure --startup-project src/Web/Store.Web --context PromotionsDbContext
+      - name: Apply Shipping migrations
+        run: dotnet ef database update --project src/Modules/Shipping/Shipping.Infrastructure --startup-project src/Web/Store.Web --context ShippingDbContext
+      - name: Apply Reviews migrations
+        run: dotnet ef database update --project src/Modules/Reviews/Reviews.Infrastructure --startup-project src/Web/Store.Web --context ReviewsDbContext
 
       - name: Integration tests
         run: dotnet test tests/IntegrationTests/IntegrationTests.csproj --configuration Release --no-build --no-restore
+
+  # Pushes both application images to GHCR — only on an actual push to main/master (never on a
+  # PR from a fork, which wouldn't have package-write permission anyway), and only after
+  # build-and-test passes on the same commit. Separate job/runner from build-and-test (that one
+  # is windows-latest for LocalDB, see the comment above) — image builds need a Linux Docker
+  # daemon, which ubuntu-latest ships with out of the box.
+  publish-images:
+    needs: build-and-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build context is the repo root, not the project folder — Directory.Packages.props/
+      # Directory.Build.props live there and these projects reference most of src/ (see
+      # docs/deployment.md's "Images" section — same reason `docker compose build` uses the repo
+      # root today). Each image gets two tags: the immutable commit SHA (for rollback/audit) and
+      # `latest` (for anyone just pulling the newest build).
+      - name: Build and push store-web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Web/Store.Web/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-store-web:${{ github.sha }}
+            ghcr.io/${{ github.repository }}-store-web:latest
+
+      - name: Build and push store-worker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/Workers/Store.Worker/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}-store-worker:${{ github.sha }}
+            ghcr.io/${{ github.repository }}-store-worker:latest
