@@ -2,9 +2,11 @@ using Catalog.Application.Brands;
 using Catalog.Application.Categories;
 using Catalog.Application.Products;
 using Catalog.Contracts;
+using Catalog.Infrastructure.Caching;
 using Catalog.Infrastructure.Persistence;
 using Messaging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Persistence.Interceptors;
@@ -25,7 +27,17 @@ public static class DependencyInjection
 
         services.AddScoped<IProductRepository, Repositories.ProductRepository>();
         services.AddScoped<ICatalogUnitOfWork, Repositories.CatalogUnitOfWork>();
-        services.AddScoped<IProductQueries, Repositories.ProductQueries>();
+
+        // Fallback-only registration (TryAdd, see AddDistributedMemoryCache's implementation) —
+        // if the composition root already called Caching.DistributedCachingExtensions
+        // .AddDistributedCaching (Store.Web does, wiring real Redis when configured), this is a
+        // no-op and that registration wins. Standalone compositions (tests, Store.Worker if it
+        // ever added this module) still get a working, just not shared, cache instead of a DI
+        // resolution failure.
+        services.AddDistributedMemoryCache();
+        services.AddScoped<Repositories.ProductQueries>();
+        services.AddScoped<IProductQueries>(sp =>
+            new CachedProductQueries(sp.GetRequiredService<Repositories.ProductQueries>(), sp.GetRequiredService<IDistributedCache>()));
 
         services.AddScoped<IRequestHandler<CreateProductCommand, Guid>, CreateProductCommandHandler>();
         services.AddScoped<IRequestHandler<GetProductBySlugQuery, ProductDetailsDto>, GetProductBySlugQueryHandler>();

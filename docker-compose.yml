@@ -19,10 +19,8 @@ services:
       retries: 10
       start_period: 20s
 
-  # Provisioned for the Redis usage named in the original spec (caching, distributed lock
-  # candidates) — no application code reads/writes it yet (see docs/deployment.md). Standing up
-  # the container ahead of the code that will use it is normal infra provisioning, not the kind of
-  # speculative C# abstraction this codebase otherwise avoids.
+  # Backs Catalog's storefront product-query cache (Phase 22, docs/deployment.md) — the first real
+  # reader of this container since it was provisioned in Phase 13.
   redis:
     image: redis:7-alpine
     ports:
@@ -40,10 +38,15 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ApplyMigrationsOnStartup: "true"
       ConnectionStrings__Database: "Server=sqlserver;Database=ECommerce;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      # No auth on the compose-local Redis (see the redis service above) — the connection string
+      # is just a host:port, not a credential, unlike SQL_SA_PASSWORD/Payments__WebhookSecret.
+      ConnectionStrings__Redis: "redis:6379"
       # Dev-only fake value (see docs/security.md) — safe to inline here, unlike SQL_SA_PASSWORD.
       Payments__WebhookSecret: "dev-fake-gateway-webhook-secret-not-a-real-credential"
     ports:

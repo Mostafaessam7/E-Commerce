@@ -23,6 +23,13 @@ like theirs the moment another module gains one.
   list/create/activate/deactivate; `ProductsController`'s Create/Edit actions now dispatch
   `ListBrandsQuery`/`ListCategoriesQuery` to populate the product form's Brand select and Category
   checkboxes, closing the "admin form omits BrandId/CategoryIds" gap noted since Phase 11.
+- Caching (Phase 22, ADR-033): `Catalog.Infrastructure.Caching.CachedProductQueries` decorates
+  `IProductQueries` with a Redis-backed (`BuildingBlocks/Caching`) read-through cache for the
+  storefront's `GetBySlugAsync`/`SearchAsync` — TTL-only (60s/30s), no write-side eviction.
+  `GetVariantSnapshotAsync` (checkout's price/stock re-validation, ADR-014) and admin listings
+  (`IncludeAllStatuses: true`) are never cached — the first because stale pricing is a
+  correctness bug, the second because an admin needs to see their own just-published product
+  immediately.
 
 ## Inventory
 - Responsibility: stock quantity, reservations, prevents overselling.

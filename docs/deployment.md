@@ -52,12 +52,15 @@ migration call doesn't assume that ordering held (safe to run twice against the 
 
 ## Redis
 
-`docker-compose.yml` provisions a `redis` container because the original spec named Redis as part
-of the stack (caching, distributed lock candidates) — **no application code reads or writes it
-yet**. Standing up the container ahead of the code that will use it is normal infrastructure
-provisioning, not the kind of speculative C# abstraction this codebase otherwise avoids (see
-`docs/coding-guidelines.md`'s "no abstraction without a concrete current caller"). Add the actual
-`IDistributedCache`/`StackExchange.Redis` wiring when a real caching need shows up.
+`docker-compose.yml`'s `redis` container backs a real read-through cache as of Phase 22 —
+`Caching.AddDistributedCaching` (`BuildingBlocks/Caching`) registers `AddStackExchangeRedisCache`
+against `ConnectionStrings:Redis`, which `docker-compose.yml`'s `store-web` service sets to
+`redis:6379`. `Catalog.Infrastructure`'s `CachedProductQueries` decorator is the actual reader —
+the storefront's product-detail-page and search/listing queries, TTL-only (60s/30s), never the
+checkout price/stock re-validation query or admin listings. See ADR-033 for the full reasoning.
+Local `dotnet run` against LocalDB with no Redis container running still works — `AddCatalogModule`
+falls back to `AddDistributedMemoryCache` when nothing already registered `IDistributedCache` (same
+opt-in-without-hard-dependency posture as `ApplyMigrationsOnStartup`/`AdminUserBootstrapper`).
 
 ## Not yet built
 

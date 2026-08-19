@@ -519,3 +519,34 @@ the five placeholder modules (ADR-025/026/028/029/030/031) which needed everythi
 scratch. Treating "wire up what already exists" as its own phase kept the diff reviewable instead
 of bundling it into a module phase it doesn't belong to.
 Status: Accepted (Phase 21).
+
+---
+**ADR-033**
+Decision: Phase 22 gives the Redis container (provisioned since Phase 13, unused until now) its
+first real reader — a read-through cache in front of Catalog's two storefront-facing queries
+(`GetBySlugAsync`/`SearchAsync`), via a new `BuildingBlocks/Caching` project and a
+`CachedProductQueries : IProductQueries` decorator in `Catalog.Infrastructure`. TTL-only
+invalidation (60s for a product page, 30s for search/listing) — no write-side cache eviction on
+`Create`/`Update`/`Publish`/`Archive`/`Delete`. `GetVariantSnapshotAsync` (checkout's price/stock
+re-validation, ADR-014) and admin listings (`IncludeAllStatuses: true`) are never cached — a stale
+price or a Draft product missing from the admin list right after creating it are correctness bugs,
+not acceptable staleness. `Caching.AddDistributedCaching` registers real Redis
+(`AddStackExchangeRedisCache`) when `ConnectionStrings:Redis` is configured (docker-compose.yml
+sets it) and falls back to `AddDistributedMemoryCache` otherwise — same "the app never depends on
+this running" posture as `ApplyMigrationsOnStartup`/`AdminUserBootstrapper`. `AddCatalogModule`
+itself also calls `AddDistributedMemoryCache()` as a `TryAdd`-based safety net, so any composition
+that never calls `AddDistributedCaching` (every integration test, potentially `Store.Worker` if it
+ever added this module) still resolves `IDistributedCache` instead of crashing — the composition
+root's own real registration wins wherever it ran first, since `TryAdd` no-ops once any
+implementation is present.
+Reason: TTL-only invalidation was chosen over write-side eviction (a version-stamped key, or an
+explicit evict-on-write call from every product command handler) because the latter adds a
+cross-cutting concern to every `Catalog.Application` write handler for a benefit — sub-60-second
+freshness instead of up-to-60-second freshness — that a demo-scale storefront doesn't need; the
+one place staleness would be a real bug (checkout pricing) is the one place that was deliberately
+excluded from caching altogether. Verified against a real local Redis instance (not just the
+in-memory fallback): confirmed real keys/TTLs in Redis after visiting a product page, confirmed a
+direct DB mutation was *not* reflected until the cached entry's TTL expired (proving the cache was
+actually being served, not silently bypassed), and confirmed the mutated value appeared
+automatically once the TTL lapsed (self-healing, no manual invalidation needed).
+Status: Accepted (Phase 22).

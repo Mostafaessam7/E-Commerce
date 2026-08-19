@@ -1,4 +1,5 @@
 using System.Globalization;
+using Caching;
 using Catalog.Infrastructure.Persistence;
 using Catalog.Infrastructure;
 using Customers.Infrastructure.Persistence;
@@ -61,6 +62,7 @@ try
     builder.Services.AddObservabilityCore();
     builder.Services.AddSecurityCore();
     builder.Services.AddSharedInfrastructure();
+    builder.Services.AddDistributedCaching(builder.Configuration);
 
     builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();

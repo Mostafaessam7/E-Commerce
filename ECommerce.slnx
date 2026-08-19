@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/" />
   <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/Caching/Caching.csproj" />
     <Project Path="src/BuildingBlocks/EventBus/EventBus.csproj" />
     <Project Path="src/BuildingBlocks/Infrastructure/Infrastructure.csproj" />
     <Project Path="src/BuildingBlocks/Messaging/Messaging.csproj" />

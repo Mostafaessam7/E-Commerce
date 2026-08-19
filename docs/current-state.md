@@ -1,11 +1,12 @@
 Current Phase:
-Phase 10-21 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+Phase 10-22 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
 UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring/Reviews+moderation/
-Brand+Category admin+Payments admin UI). All five originally-empty placeholder modules now have
-real code, and both named admin gaps from the original analysis are closed. In progress on a
-broader backlog: Redis usage, CI image publish, docker compose verification, admin-ecomus
-integration, EndToEndTests (user asked for "all of it"; working through it phase by phase,
-committing after each).
+Brand+Category admin+Payments admin UI/real Redis-backed caching). All five originally-empty
+placeholder modules now have real code, both named admin gaps from the original analysis are
+closed, and the provisioned-but-unused Redis container now has a real reader. In progress on a
+broader backlog: CI image publish, docker compose verification, admin-ecomus integration,
+EndToEndTests (user asked for "all of it"; working through it phase by phase, committing after
+each).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -187,22 +188,39 @@ Completed:
   picker, confirmed the selection persisted after reload; confirmed the Payments admin page
   renders correctly.
 - All tests passing: 96 unit + 30 integration + 29 architecture.
+- Phase 22: real Redis-backed caching (ADR-033) — the Redis container provisioned since Phase 13
+  gets its first reader. New `BuildingBlocks/Caching` project (`AddDistributedCaching` — real
+  Redis via `AddStackExchangeRedisCache` when `ConnectionStrings:Redis` is configured, in-memory
+  fallback otherwise). `Catalog.Infrastructure.Caching.CachedProductQueries` decorates
+  `IProductQueries`, read-through caching the storefront's `GetBySlugAsync`/`SearchAsync`
+  (TTL-only: 60s/30s, no write-side eviction). `GetVariantSnapshotAsync` (checkout's price/stock
+  re-validation) and admin listings are deliberately never cached. `AddCatalogModule` also calls
+  `AddDistributedMemoryCache()` as a `TryAdd` safety net so any composition that never calls
+  `AddDistributedCaching` (every integration test) still resolves `IDistributedCache`. Tests: 6 new
+  unit tests (`CachedProductQueries` — cache-hit avoids a second inner call, a miss is cached too,
+  different search criteria don't collide, admin listings and variant snapshots are never cached).
+  Verified against a **real local Redis instance** (not just the in-memory fallback): confirmed
+  real `ecommerce:catalog:product:*` keys/TTLs appeared in Redis after visiting a product page and
+  the shop listing; mutated the product's name directly in the DB and confirmed the *old* name
+  kept being served until the cached entry's TTL expired (proving the cache was actually being
+  read, not silently bypassed); confirmed the mutated name appeared automatically once the TTL
+  lapsed with no manual invalidation.
+- All tests passing: 102 unit + 30 integration + 29 architecture.
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — Redis usage, CI
-  image publish, docker compose verification, admin-ecomus integration, EndToEndTests.
+- Working through the rest of the user's "do all 4" backlog (see Next, below) — CI image publish,
+  docker compose verification, admin-ecomus integration, EndToEndTests.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
-  Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20), and both admin
-  gaps named in the original analysis are closed (Phase 21).
+  Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20), both admin
+  gaps named in the original analysis are closed (Phase 21), and Redis has a real reader (Phase 22).
 - Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
   see ADR-028.
 - No product image upload (Section on file storage not started).
 - `admin-ecomus` template not integrated — current Admin UI is a minimal hand-styled layout.
 - CI runs build+test only — no image publish/registry push, no branch protection rule configured
   (that's a GitHub repo setting; enable it once this repo has a remote — docs/ci-cd.md).
-- Redis container is provisioned in docker-compose.yml but no application code uses it yet.
 
 Known Issues:
 - Phase 13's `docker compose up`/`docker build` was not actually executed in the authoring
@@ -220,24 +238,25 @@ Important Files:
 - docs/security.md — Account controller, admin panel authorization, AdminUserBootstrapper
   credential handling (User Secrets only, never appsettings.json).
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
-- docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis provisioning (Phase 13).
+- docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis now really used (Phase 22).
 - docs/ci-cd.md — GitHub Actions build+test workflow (Phase 14).
-- docs/decisions.md — ADR-001..032.
+- docs/decisions.md — ADR-001..033.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
-Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged by Phase 21 (Brand/
-Category tables already existed in the `catalog` schema since Phase 4; no new migration needed).
+Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged by Phase 21/22
+(Brand/Category tables already existed in the `catalog` schema since Phase 4, no new migration
+needed; Redis isn't a migrated `DbContext`).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-030 (Shipping's `ShippingMethod` aggregate has no zone/region
-modeling — every active method applies everywhere; `PlaceOrderCommand`'s `ShippingCost: decimal`
-parameter is replaced with `ShippingMethodId: Guid`, looked up server-side via
-`GetShippingMethodQuery`, closing out the last hardcoded number — the flat `50m` — in the checkout
-write path), ADR-031 (Reviews' `Review` aggregate starts every submission `Pending`; only an admin
-`Approve`/`Reject` — one-way, blocked by `Review.NotPending` from re-moderating — moves it out, and
-the storefront query only ever returns `Approved` ones; no "verified purchase" check against
-Ordering, a deliberate scope cut), ADR-032 (Phase 21 closed the Brand/Category admin UI and
-Payments admin UI gaps named in the original analysis — both were "wire up what already exists"
-work, not new modules; no new permission categories needed since Catalog/Payments permissions
-already existed since Phase 11).
+See docs/decisions.md. Newest: ADR-031 (Reviews' `Review` aggregate starts every submission
+`Pending`; only an admin `Approve`/`Reject` — one-way, blocked by `Review.NotPending` from
+re-moderating — moves it out, and the storefront query only ever returns `Approved` ones; no
+"verified purchase" check against Ordering, a deliberate scope cut), ADR-032 (Phase 21 closed the
+Brand/Category admin UI and Payments admin UI gaps named in the original analysis — both were
+"wire up what already exists" work, not new modules; no new permission categories needed since
+Catalog/Payments permissions already existed since Phase 11), ADR-033 (Phase 22 gives Redis its
+first real reader — `CachedProductQueries` decorates Catalog's storefront queries with a
+TTL-only, 60s/30s read-through cache; checkout's price/stock re-validation query and admin
+listings are deliberately never cached; falls back to an in-memory cache when Redis isn't
+configured, same "app never depends on this running" posture as `ApplyMigrationsOnStartup`).
