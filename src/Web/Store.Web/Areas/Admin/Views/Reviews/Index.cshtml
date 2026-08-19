@@ -36,7 +36,7 @@
                     }
                     @review.Body
                 </div>
-                <div class="mt-4"><div class="block-available bg-1 fw-7">@review.Status</div></div>
+                <div class="mt-4"><div class="@StatusBadge.CssClass(review.Status) bg-1 fw-7">@review.Status</div></div>
                 <div class="body-text text-main-dark mt-4">@review.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</div>
                 <div class="list-icon-function">
                     @if (review.Status == "Pending")

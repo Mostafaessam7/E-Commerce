@@ -5,7 +5,7 @@
 
 <div class="flex items-center gap10 mb-20">
     <h4>@Model.Name</h4>
-    <div class="block-available bg-1 fw-7">@Model.Status</div>
+    <div class="@StatusBadge.CssClass(Model.Status) bg-1 fw-7">@Model.Status</div>
 </div>
 
 <div class="flex gap20 flex-wrap" style="align-items:flex-start">

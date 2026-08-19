@@ -5,8 +5,8 @@
 
 <div class="flex items-center gap10 mb-20 flex-wrap">
     <h4>Order @Model.OrderNumber</h4>
-    <div class="block-available bg-1 fw-7">@Model.Status</div>
-    <div class="block-available bg-1 fw-7">@Model.PaymentStatus</div>
+    <div class="@StatusBadge.CssClass(Model.Status) bg-1 fw-7">@Model.Status</div>
+    <div class="@StatusBadge.CssClass(Model.PaymentStatus) bg-1 fw-7">@Model.PaymentStatus</div>
 </div>
 
 <div class="wg-box mb-20">

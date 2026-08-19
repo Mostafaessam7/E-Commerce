@@ -31,7 +31,7 @@
                     </div>
                 </div>
                 <div class="body-text text-main-dark mt-4">@product.Slug</div>
-                <div class="mt-4"><div class="block-available bg-1 fw-7">@product.Status</div></div>
+                <div class="mt-4"><div class="@StatusBadge.CssClass(product.Status) bg-1 fw-7">@product.Status</div></div>
                 <div class="body-text text-main-dark mt-4">
                     @(product.MinPrice is decimal price ? $"{price:0.00} {product.Currency}" : "—")
                 </div>

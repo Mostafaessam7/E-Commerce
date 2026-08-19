@@ -345,6 +345,18 @@ Completed:
   renders in the cart row; applied a coupon and confirmed it persisted to `ordering.Carts` and
   removed cleanly; submitted a review and confirmed the success banner now has a real green
   background. All 168 tests still passing.
+- Phase 32: Admin area status badges + Stock page fixed (ADR-043), auditing the Admin area for the
+  same design-improvement ask. Every status pill across Orders/Payments/Products/Reviews had
+  hardcoded the theme's green `block-available` class regardless of actual status — a Cancelled
+  order looked identical to a Delivered one. New `Store.Web.Infrastructure.Admin.StatusBadge`
+  centralizes the status-string → theme-class mapping (`block-available`/`block-pending`/
+  `block-not-available`/`block-tracking`), applied across all 6 affected views. Stock page used to
+  show only a raw `ProductVariantId` Guid per row; `SearchStockQueryHandler` now enriches each row
+  with the real product name/SKU via `Catalog.Contracts.GetProductVariantSnapshotQuery` (ADR-014 —
+  first time Inventory reads across the module boundary this way). Verified live post-login: a
+  Pending order renders the orange `block-pending` class, an Active product renders the green
+  `block-available` class, and the Stock page shows a real seeded product's name instead of its
+  Guid. All 168 tests still passing.
 
 In Progress:
 - None.
@@ -356,10 +368,10 @@ Next:
   CI publishes both images to GHCR (Phase 23), the Admin area uses the real admin-ecomus template
   (Phase 24), EndToEndTests proves the full journey works (Phase 25), rate limiting and a real
   sitemap exist (Phases 26-27), Customers is wired into checkout (Phase 28), admin product image
-  upload is real (Phase 29), Home/Account pages have a real Vanta.js treatment (Phase 30), and the
-  Cart page has real product images + a working coupon UI (Phase 31). No further actionable gaps
-  are currently tracked; a broader visual redesign of the remaining storefront/admin screens beyond
-  this scoped pass would need its own explicit ask.
+  upload is real (Phase 29), Home/Account pages have a real Vanta.js treatment (Phase 30), the
+  Cart page has real product images + a working coupon UI (Phase 31), and the Admin area's status
+  badges/Stock page are fixed (Phase 32). No further actionable gaps are currently tracked; a
+  broader visual redesign beyond these scoped, defect-driven passes would need its own explicit ask.
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
@@ -391,16 +403,17 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..042.
+- docs/decisions.md — ADR-001..043.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
 Payments, Notifications, Customers, Promotions, Shipping, Reviews). Brand/Category tables, and
 `Products.Images` / the `ProductImages` table Phase 29 now actually writes to, already existed in
 the `catalog` schema since Phase 4 — no new migration needed for those. Phase 31 adds
-`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Redis isn't a
-migrated `DbContext`. Phases 23-28, 30 were CI/workflow, Razor-views, new-test-project, and
-application-code-only work respectively — no schema changes in those.
+`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Phase 32 is
+application-code-only (no migration) — Inventory reads Catalog data live via `IDispatcher`, no new
+column. Redis isn't a migrated `DbContext`. Phases 23-28, 30 were CI/workflow, Razor-views,
+new-test-project, and application-code-only work respectively — no schema changes in those.
 
 Decisions Made:
 See docs/decisions.md. Newest: ADR-036 (Phase 25 populates `EndToEndTests` with a real
@@ -429,4 +442,7 @@ UI — same "exists but was never registered in DI" bug shape as `MergeCartComma
 image commands — and adds real product-image thumbnails to cart line items via a new
 `PrimaryImageUrl` field on Catalog's cross-module variant snapshot; also fixed a storefront review
 banner that had rendered as completely unstyled text since Phase 20 because it used an Admin-only
-CSS class never loaded on the storefront).
+CSS class never loaded on the storefront), ADR-043 (Phase 32 fixes every Admin status pill —
+Orders/Payments/Products/Reviews had all hardcoded the same green class regardless of actual
+status — via a new centralized `StatusBadge` helper, and enriches the Stock page with real product
+names/SKUs instead of a bare Guid via Inventory's first-ever cross-module read from Catalog).

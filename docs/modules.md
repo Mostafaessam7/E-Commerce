@@ -53,10 +53,13 @@ Dependencies line like theirs the moment another module gains one.
   compensation shape Promotions' `RedeemCouponCommand`/`ReleaseCouponCommand` (ADR-029) and
   Shipping later reused. `GetStockQuery` stays admin-only in `Inventory.Application.Stock`, not
   Contracts — nothing outside this module calls it.
-- Dependencies: BuildingBlocks only. DB schema: `inventory`.
+- Dependencies: BuildingBlocks + `Catalog.Contracts` (ADR-014, Phase 32) — `SearchStockQueryHandler`
+  dispatches `GetProductVariantSnapshotQuery` to enrich the admin Stock list with each row's real
+  product name/SKU; `StockItem` itself still keys everything on a plain `ProductVariantId` Guid, no
+  FK/navigation. DB schema: `inventory`.
 - Application: `ReserveStockCommandHandler`/`ReleaseStockCommandHandler` (implement the Contracts
-  commands above), `GetStockQuery` (`Inventory.Application.Stock`). Concurrency conflicts surface
-  as `SharedKernel.Exceptions.ConflictException` (HTTP 409), not a raw EF exception.
+  commands above), `SearchStockQuery`/`GetStockQuery` (`Inventory.Application.Stock`). Concurrency
+  conflicts surface as `SharedKernel.Exceptions.ConflictException` (HTTP 409), not a raw EF exception.
 
 ## Ordering
 - Responsibility: cart → checkout → order lifecycle. Owns both `Cart` and `Order` — no separate
@@ -289,6 +292,18 @@ UI (Phase 24, ADR-035): `_AdminLayout.cshtml` and all 18 admin view files are bu
 curated-not-literal approach as the storefront's Phase 5) — real sidebar/header chrome, dark/light
 toggle, `wg-table`/`wg-box`/`form-style-1`/`tf-button` component classes throughout. Replaced the
 hand-styled placeholder Phase 11 shipped with.
+
+Status badges fixed (Phase 32, ADR-043): every status pill across Orders/Payments/Products/Reviews
+(`Store.Web.Infrastructure.Admin.StatusBadge.CssClass`) previously hardcoded the same
+`block-available` (green) class regardless of the actual status string, so a Cancelled order and a
+Delivered one were visually identical — the theme's real semantic classes
+(`block-available`/`block-pending`/`block-not-available`/`block-tracking`) existed but only
+Brands/Categories/Coupons/ShippingMethods' Active/Inactive toggles ever used more than one of
+them. `StatusBadge` is the single place that maps a status string to the right one now. Stock page
+(`Areas/Admin/Views/Stock/Index.cshtml`) also gained the product's actual name/SKU — it used to
+show only the raw `ProductVariantId` Guid, which nobody can recognize a product by;
+`SearchStockQueryHandler` now enriches each row via `Catalog.Contracts.GetProductVariantSnapshotQuery`
+(ADR-014 — the first time Inventory reads from Catalog this way; previously only Ordering did).
 
 ## Storefront UI polish (Phase 30, ADR-041 — not a module)
 - Vanta.js (`three.js` + the `VANTA.NET`/`VANTA.WAVES` effect bundles) self-hosted under

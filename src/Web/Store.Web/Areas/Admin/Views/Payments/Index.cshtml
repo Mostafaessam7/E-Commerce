@@ -25,7 +25,7 @@
                     <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@payment.OrderId">@payment.OrderId</a>
                 </div>
                 <div class="body-text text-main-dark mt-4">@payment.Provider</div>
-                <div class="mt-4"><div class="block-available bg-1 fw-7">@payment.Status</div></div>
+                <div class="mt-4"><div class="@StatusBadge.CssClass(payment.Status) bg-1 fw-7">@payment.Status</div></div>
                 <div class="body-text text-main-dark mt-4">@payment.Amount.ToString("0.00") @payment.Currency</div>
                 <div class="body-text text-main-dark mt-4">@payment.RefundedAmount.ToString("0.00")</div>
                 <div class="body-text text-main-dark mt-4">@payment.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</div>

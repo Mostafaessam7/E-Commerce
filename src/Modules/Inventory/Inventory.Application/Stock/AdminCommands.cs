@@ -1,3 +1,4 @@
+using Catalog.Contracts;
 using Infrastructure;
 using Messaging;
 using SharedKernel.Results;
@@ -43,7 +44,7 @@ public sealed class AdjustStockCommandHandler : IRequestHandler<AdjustStockComma
 
 public sealed record StockSummaryDto(
     Guid Id, Guid ProductVariantId, int QuantityOnHand, int QuantityReserved, int AvailableQuantity,
-    int LowStockThreshold, bool IsOutOfStock);
+    int LowStockThreshold, bool IsOutOfStock, string? ProductName = null, string? Sku = null);
 
 public sealed record StockSearchResultDto(IReadOnlyList<StockSummaryDto> Items, int TotalCount, int Page, int PageSize);
 
@@ -56,12 +57,37 @@ public interface IStockQueries
 
 public sealed record SearchStockQuery(int Page = 1, int PageSize = 20) : IQuery<StockSearchResultDto>;
 
+/// <summary>
+/// Enriches each row with the product's name/SKU via <see cref="GetProductVariantSnapshotQuery"/>
+/// (ADR-014) — <see cref="IStockQueries"/> itself only ever knows Inventory's own data (a
+/// <c>ProductVariantId</c> Guid, deliberately no FK/navigation into Catalog). Before this
+/// (Phase 32, ADR-043) the admin Stock page had nothing to show but the raw Guid, which nobody can
+/// actually recognize a product by.
+/// </summary>
 public sealed class SearchStockQueryHandler : IRequestHandler<SearchStockQuery, StockSearchResultDto>
 {
     private readonly IStockQueries _queries;
+    private readonly IDispatcher _dispatcher;
 
-    public SearchStockQueryHandler(IStockQueries queries) => _queries = queries;
+    public SearchStockQueryHandler(IStockQueries queries, IDispatcher dispatcher)
+    {
+        _queries = queries;
+        _dispatcher = dispatcher;
+    }
 
-    public async Task<Result<StockSearchResultDto>> Handle(SearchStockQuery request, CancellationToken cancellationToken = default) =>
-        Result.Success(await _queries.SearchAsync(request.Page, request.PageSize, cancellationToken));
+    public async Task<Result<StockSearchResultDto>> Handle(SearchStockQuery request, CancellationToken cancellationToken = default)
+    {
+        var page = await _queries.SearchAsync(request.Page, request.PageSize, cancellationToken);
+
+        var enriched = new List<StockSummaryDto>(page.Items.Count);
+        foreach (var item in page.Items)
+        {
+            var snapshot = await _dispatcher.Send(new GetProductVariantSnapshotQuery(item.ProductVariantId), cancellationToken);
+            enriched.Add(snapshot.IsSuccess
+                ? item with { ProductName = snapshot.Value.ProductName, Sku = snapshot.Value.Sku }
+                : item);
+        }
+
+        return Result.Success(page with { Items = enriched });
+    }
 }

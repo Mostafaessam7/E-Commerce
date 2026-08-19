@@ -833,3 +833,36 @@ in the cart line item; applied a coupon code, confirmed it persisted to `orderin
 in the real DB and rendered with a working Remove control; submitted a product review and confirmed
 the success banner now renders with a real green background instead of unstyled text.
 Status: Accepted (Phase 31).
+
+---
+**ADR-043**
+Decision: Phase 32 audits the Admin area for the same "which screens need design work" ask and
+fixes two real, verifiable defects, not a restyle:
+(1) Every status pill across Orders (list + detail), Payments, Products (list + edit), and Reviews
+hardcoded `block-available bg-1` (the `admin-ecomus` theme's *green* semantic class) regardless of
+the actual status value — a Cancelled order, a Failed payment, and a Rejected review all rendered
+as the same green "success" pill as a Delivered order. The theme ships four real semantic classes
+(`block-available` green, `block-pending` orange, `block-not-available` red, `block-tracking`
+blue) — only the four Active/Inactive toggles (Brands/Categories/Coupons/ShippingMethods) ever
+used more than one of them. New `Store.Web.Infrastructure.Admin.StatusBadge.CssClass(string)` maps
+every status string this codebase's enums actually produce to the right class in one place, so the
+mapping doesn't get re-derived (or re-forgotten) per view; the four already-correct Active/Inactive
+toggles were left as they were, not refactored onto it, since they weren't broken.
+(2) The admin Stock page showed only a raw `ProductVariantId` Guid per row — nothing an admin can
+actually recognize a product by, since `StockItem` deliberately has no FK/navigation into Catalog
+(by design, ADR-005-era module boundary). `SearchStockQueryHandler` now dispatches
+`Catalog.Contracts.GetProductVariantSnapshotQuery` per row (ADR-014) to attach the real product
+name/SKU — the first time Inventory reads across the module boundary this way (previously only
+Ordering did); `Inventory.Application` gained a `ProjectReference` to `Catalog.Contracts`, which
+`ArchitectureTests.DependencyRuleTests` already explicitly sanctions (any module's Application may
+depend on any other module's `*.Contracts`). A variant deleted from Catalog but still tracked in
+Inventory degrades to showing the Guid with a "Product not found in Catalog" note, not a broken
+page.
+Reason: same standard as Phase 31 — only fix concrete, verifiable defects found actually using the
+admin panel as an admin would, not subjective restyling. An admin scanning an order list needs to
+tell "needs action" from "done" at a glance; a monochrome badge list defeats that. Verified live:
+fetched the real admin Orders/Products pages post-login and confirmed a Pending order renders
+`block-pending` and an Active product renders `block-available` (not the same class both had
+before); fetched the Stock page and confirmed a real seeded product's name/SKU renders instead of
+its Guid, with zero server errors in the log.
+Status: Accepted (Phase 32).
