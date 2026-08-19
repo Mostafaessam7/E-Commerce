@@ -1,6 +1,8 @@
 using Messaging;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Payments.Application.Payments;
+using Store.Web.Infrastructure.RateLimiting;
 
 namespace Store.Web.Controllers.Api;
 
@@ -12,6 +14,7 @@ namespace Store.Web.Controllers.Api;
 /// </summary>
 [ApiController]
 [Route("api/webhooks/payments")]
+[EnableRateLimiting(RateLimiterExtensions.WebhookPolicy)]
 public sealed class WebhooksController : ControllerBase
 {
     private const string SignatureHeader = "X-Payment-Signature";

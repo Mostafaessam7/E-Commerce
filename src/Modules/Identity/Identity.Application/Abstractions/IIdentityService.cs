@@ -13,7 +13,10 @@ public interface IIdentityService
 {
     Task<Result<Guid>> RegisterAsync(string email, string password, CancellationToken cancellationToken = default);
 
-    Task<Result> LoginAsync(string email, string password, bool rememberMe, CancellationToken cancellationToken = default);
+    /// <summary>The signed-in user's id on success — Phase 28 needs it right after login to
+    /// merge the guest cart and ensure a Customer profile exists (ADR-028: <c>Customer.Id</c> is
+    /// always the same Guid), without a second round trip to look the user up by email again.</summary>
+    Task<Result<Guid>> LoginAsync(string email, string password, bool rememberMe, CancellationToken cancellationToken = default);
 
     Task LogoutAsync(CancellationToken cancellationToken = default);
 

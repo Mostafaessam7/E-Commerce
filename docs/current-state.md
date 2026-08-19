@@ -1,17 +1,13 @@
 Current Phase:
-Phase 10-25 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
-UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring/Reviews+moderation/
-Brand+Category admin+Payments admin UI/real Redis-backed caching/CI image publish/admin-ecomus
-template integration/EndToEndTests). All five originally-empty placeholder modules now have real
-code, both named admin gaps from the original analysis are closed, the provisioned-but-unused
-Redis container now has a real reader, CI pushes both images to GHCR on every push to
-main/master, the Admin area is now the real `admin-ecomus` template, and `EndToEndTests` now
-proves a full register-to-paid-order journey over real HTTP. **This closes out every item in the
-user's confirmed "all 4 categories, full scope" backlog** — the only things left open are
-genuinely out of reach in this environment (branch protection needs a GitHub remote; a real
-`docker compose up --build` needs a Docker daemon this sandbox can't run) or deliberate scope cuts
-recorded in their own ADRs (Customers not wired into checkout, no product image upload, no
-Tax module, no 2FA/social login).
+Phase 10-28 complete — everything through Phase 25 (see below) plus a second gap-analysis pass
+that found real issues: a misleading "Arabic+English localization" doc claim (fixed, no such
+feature exists), a dead Wishlist link (removed), no rate limiting (Phase 26), no sitemap/robots.txt
+(Phase 27), and Customers never actually wired into checkout despite the module existing since
+Phase 17 (Phase 28, ADR-039 — `MergeCartCommand` had existed since Phase 7/8, registered in DI, but
+was never once dispatched from anywhere until now). Only two items remain genuinely out of reach in
+this environment (branch protection needs a GitHub remote; a real `docker compose up --build` needs
+a Docker daemon this sandbox can't run) or are deliberate scope cuts recorded in their own ADRs (no
+product image upload, no Tax module, no 2FA/social login, no Wishlist module).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -268,22 +264,48 @@ Completed:
   test `HttpClient`, against the real endpoint with a real signature. `.github/workflows/
   build-test.yml` runs it as an eighth `build-and-test` step. All 3 new tests passing.
 - All tests passing: 102 unit + 30 integration + 29 architecture + 3 end-to-end.
+- Docs accuracy pass: fixed `Directory.Build.props`/`docs/deployment.md`'s misleading
+  "Arabic+English localization" claim (no translated UI, resource files, or RTL markup exist
+  anywhere — the `InvariantGlobalization=false` flag only keeps ICU data available for if it's
+  ever built) and removed `_Header.cshtml`'s dead Wishlist `href="#"` link (Wishlist was never one
+  of the fixed 10 modules).
+- Phase 26: rate limiting (ADR-037) — `Store.Web.Infrastructure.RateLimiting.RateLimiterExtensions`,
+  per-IP fixed-window, `"auth"` (10/5min) on Login/Register/ForgotPassword/ResetPassword,
+  `"webhook"` (30/min, more generous) on the payment webhook receiver. Verified with a real
+  integration test driving 11 real login attempts through the real pipeline and asserting the
+  11th gets a real 429.
+- Phase 27: `sitemap.xml`/`robots.txt` (ADR-038) — `SeoController`, generated on every request
+  from real, current Catalog data (`SearchProductsQuery`), not a static file that could go stale.
+  Verified with real integration tests seeding an actual published product.
+- Phase 28: Customers wired into checkout (ADR-039) — the follow-up ADR-028 explicitly deferred.
+  `AccountController.Login` now calls `GetOrCreateCustomerCommand` (idempotent) and dispatches
+  `MergeCartCommand` (existed since Phase 7/8, registered in DI, but never once dispatched from
+  anywhere — a real gap, not new code) on every successful sign-in.
+  `CartController`/`CheckoutController` resolve `CustomerId` from `ICurrentUser` instead of always
+  `null`; checkout pre-fills from the customer's saved default address (informational only — the
+  submitted form is still authoritative). `IIdentityService.LoginAsync` now returns
+  `Task<Result<Guid>>` (mirroring `RegisterAsync`) instead of plain `Task<Result>`. Verified live
+  in-browser end to end, including catching a real methodology bug along the way (a leftover admin
+  session in the browser tab made the first "guest" cart attempt not actually a guest) — added to
+  cart as a genuine guest, registered, confirmed via the real `NotificationLog` link, logged in,
+  confirmed the cart merged, saved a default address, confirmed checkout pre-filled from it, placed
+  the order, and confirmed in the database that `Order.CustomerId` matched the logged-in user's id
+  exactly — the first order in this system's history to ever carry one.
+- All tests passing: 102 unit + 30 integration + 29 architecture + 6 end-to-end (167 total).
 
 In Progress:
-- None — every item in the user's confirmed "all 4 categories, full scope" backlog is done.
+- None.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
   Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20), both admin
   gaps named in the original analysis are closed (Phase 21), Redis has a real reader (Phase 22),
   CI publishes both images to GHCR (Phase 23), the Admin area uses the real admin-ecomus template
-  (Phase 24), and EndToEndTests proves the full journey works (Phase 25).
-- Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
-  see ADR-028.
-- No product image upload (Section on file storage not started).
+  (Phase 24), EndToEndTests proves the full journey works (Phase 25), rate limiting and a real
+  sitemap exist (Phases 26-27), and Customers is wired into checkout (Phase 28).
+- No product image upload — the next actionable gap (Phase 29 in progress).
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
-- Whatever the user wants to build next — the originally-scoped backlog is complete.
 
 Known Issues:
 - `docker compose up --build` still hasn't been run against a real Docker daemon — genuinely
@@ -310,27 +332,25 @@ Important Files:
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis now really used (Phase 22).
 - docs/ci-cd.md — GitHub Actions build+test + publish-images workflow (Phase 14, Phase 23, Phase 25).
 - docs/testing.md — four test projects now, including the real-HTTP EndToEndTests (Phase 25).
-- docs/decisions.md — ADR-001..036.
+- docs/security.md — rate limiting section added (Phase 26).
+- docs/decisions.md — ADR-001..039.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
 Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged since Phase 20
 (Brand/Category tables already existed in the `catalog` schema since Phase 4, no new migration
-needed; Redis isn't a migrated `DbContext`; Phases 23-25 were CI/workflow, Razor-views, and
-new-test-project work respectively — no schema changes).
+needed; Redis isn't a migrated `DbContext`; Phases 23-28 were CI/workflow, Razor-views, new-test-
+project, and application-code-only work respectively — no schema changes anywhere in this range).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-034 (Phase 23's `publish-images` CI job pushes both images to
-GHCR on every push to `main`/`master`; also fixed a real bug found in passing — `build-and-test`'s
-migration list was missing five contexts added since Phase 14 wrote it; a real
-`docker compose up --build` remains unverified, genuinely attempted this session and blocked by
-this sandbox having no nested virtualization, not assumed unavailable), ADR-035 (Phase 24 replaces
-the Admin area's hand-styled placeholder with a real, curated `admin-ecomus` template integration
-— same curated-subset approach as the storefront's own Phase 5 — across the layout and all 18
-admin view files; no fake demo content — chart trend arrows, invented notification counts —
-carried over, only pieces backed by something real made it in), ADR-036 (Phase 25 populates
-`EndToEndTests` with a real register-to-paid-order journey driven over real HTTP via
-`WebApplicationFactory<Program>`, not `IntegrationTests`' plain `ServiceCollection` composition —
-proves a browser-driven journey works, not just the handlers behind it; hit and fixed a real bug
-along the way — the test client needs an `https://` `BaseAddress` or the app's `Secure` cookies
-never round-trip).
+See docs/decisions.md. Newest: ADR-036 (Phase 25 populates `EndToEndTests` with a real
+register-to-paid-order journey driven over real HTTP via `WebApplicationFactory<Program>`, not
+`IntegrationTests`' plain `ServiceCollection` composition; hit and fixed a real bug along the way —
+the test client needs an `https://` `BaseAddress` or the app's `Secure` cookies never round-trip),
+ADR-037 (Phase 26's per-IP rate limiting — `"auth"` 10/5min on Login/Register/ForgotPassword/
+ResetPassword, `"webhook"` 30/min on the payment receiver — sits in front of, not instead of,
+Identity's per-account lockout), ADR-038 (Phase 27's `sitemap.xml`/`robots.txt` generated on every
+request from real Catalog data, not a static file that could go stale), ADR-039 (Phase 28 wires
+Customers into checkout — `AccountController.Login` now dispatches the `MergeCartCommand` that had
+existed since Phase 7/8 but was never once called from anywhere; `CustomerId` flows through
+`Cart`/`Checkout` instead of always `null`; verified live end to end down to the database row).

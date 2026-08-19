@@ -26,21 +26,24 @@ internal sealed class IdentityService : IIdentityService
             : Result.Failure<Guid>(ToValidationError(result));
     }
 
-    public async Task<Result> LoginAsync(string email, string password, bool rememberMe, CancellationToken cancellationToken = default)
+    public async Task<Result<Guid>> LoginAsync(string email, string password, bool rememberMe, CancellationToken cancellationToken = default)
     {
         var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: true);
 
         if (result.Succeeded)
         {
-            return Result.Success();
+            // Re-fetched rather than captured before the call: PasswordSignInAsync looks the user
+            // up internally by the email string, this is the same lookup, not a second real cost.
+            var user = await _userManager.FindByEmailAsync(email);
+            return Result.Success(user!.Id);
         }
 
         if (result.IsLockedOut)
         {
-            return Result.Failure(Error.Forbidden("Identity.LockedOut", "This account is temporarily locked out."));
+            return Result.Failure<Guid>(Error.Forbidden("Identity.LockedOut", "This account is temporarily locked out."));
         }
 
-        return Result.Failure(Error.Unauthorized("Identity.InvalidCredentials", "Invalid email or password."));
+        return Result.Failure<Guid>(Error.Unauthorized("Identity.InvalidCredentials", "Invalid email or password."));
     }
 
     public async Task LogoutAsync(CancellationToken cancellationToken = default) => await _signInManager.SignOutAsync();

@@ -3,7 +3,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Catalog.Domain;
 using Catalog.Infrastructure.Persistence;
+using Customers.Infrastructure.Persistence;
 using FluentAssertions;
+using Identity.Infrastructure.Persistence;
 using Inventory.Domain;
 using Inventory.Infrastructure.Persistence;
 using Messaging;
@@ -112,9 +114,21 @@ public sealed class RegisterCartCheckoutPaymentFlowTests : IClassFixture<StoreWe
         var paymentsDb = scope.ServiceProvider.GetRequiredService<PaymentsDbContext>();
         await paymentsDb.ProcessedWebhookEvents.ExecuteDeleteAsync();
 
+        var identityDb = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
+        var user = await identityDb.Users.FirstOrDefaultAsync(u => u.Email == _email);
+
         var orderingDb = scope.ServiceProvider.GetRequiredService<OrderingDbContext>();
         await orderingDb.Orders.Where(o => o.Email == _email).ExecuteDeleteAsync();
-        await orderingDb.Carts.Where(c => c.AnonymousId != null).ExecuteDeleteAsync();
+        await orderingDb.Carts.Where(c => c.AnonymousId != null || (user != null && c.CustomerId == user.Id)).ExecuteDeleteAsync();
+
+        if (user is not null)
+        {
+            var customersDb = scope.ServiceProvider.GetRequiredService<CustomersDbContext>();
+            await customersDb.Customers.Where(c => c.Id == user.Id).ExecuteDeleteAsync();
+
+            identityDb.Users.Remove(user);
+            await identityDb.SaveChangesAsync();
+        }
 
         _client.Dispose();
     }

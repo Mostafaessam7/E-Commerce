@@ -30,6 +30,7 @@ using Serilog;
 using Serilog.Events;
 using Store.Web.Infrastructure.ExceptionHandling;
 using Store.Web.Infrastructure.Observability;
+using Store.Web.Infrastructure.RateLimiting;
 
 // Two-stage Serilog init (the documented Serilog.AspNetCore pattern): a minimal bootstrap logger
 // exists before the host is even built, so a failure during configuration/DI wiring itself still
@@ -68,6 +69,7 @@ try
     builder.Services.AddProblemDetails();
     builder.Services.AddMessagingCore();
     builder.Services.AddHttpClient();
+    builder.Services.AddAppRateLimiting();
 
     // --- Module composition root ---
     // Every module owns its own `Add{Module}Module(IServiceCollection, IConfiguration)` extension
@@ -147,6 +149,7 @@ try
 
     app.UseHttpsRedirection();
     app.UseRouting();
+    app.UseRateLimiter();
 
     app.UseAuthentication();
     app.UseAuthorization();

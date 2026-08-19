@@ -47,6 +47,8 @@
     <ProjectReference Include="..\..\src\Modules\Payments\Payments.Infrastructure\Payments.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Application\Shipping.Application.csproj" />
     <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Infrastructure\Shipping.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Identity\Identity.Infrastructure\Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Customers\Customers.Infrastructure\Customers.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -83,6 +83,20 @@
   query string. `AccountController` round-trips every token through
   `WebEncoders.Base64UrlEncode`/`Base64UrlDecode` before/after putting it in a URL.
 
+## Rate limiting (Phase 26)
+
+`Store.Web.Infrastructure.RateLimiting.RateLimiterExtensions` (`Microsoft.AspNetCore.RateLimiting`,
+built into the shared framework) — per-IP fixed-window policies, not a global limiter:
+- `"auth"` (10 requests / 5 minutes / IP) on `AccountController`'s Login/Register/ForgotPassword/
+  ResetPassword POST actions (`[EnableRateLimiting]`) — sits in front of, not instead of, the
+  per-account lockout above; blunts a credential-stuffing script trying many different accounts
+  from one source, which per-account lockout alone doesn't address.
+- `"webhook"` (30 requests / minute / IP, more generous — real providers legitimately burst-retry)
+  on `WebhooksController` — the signature check above still runs first regardless; this just stops
+  a redelivery storm from burning CPU on it.
+
+Rejections return 429, no custom body. See ADR-037.
+
 ## Not yet built
 
 2FA, social login.

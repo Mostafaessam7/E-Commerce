@@ -1,10 +1,15 @@
 using System.Text;
+using Customers.Application.Profile;
 using Identity.Application.Abstractions;
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
 using Notifications.Contracts;
+using Ordering.Application.Carts;
+using Store.Web.Infrastructure;
+using Store.Web.Infrastructure.RateLimiting;
 using Store.Web.Models;
 
 namespace Store.Web.Controllers;
@@ -35,6 +40,7 @@ public sealed class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting(RateLimiterExtensions.AuthPolicy)]
     public async Task<IActionResult> Login(LoginViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -48,6 +54,16 @@ public sealed class AccountController : Controller
             ModelState.AddModelError(string.Empty, result.Error.Message);
             return View(model);
         }
+
+        // Phase 28 (ADR-028's deferred follow-up): ensure the Customer profile exists (Customer.Id
+        // == the same Guid, so this is idempotent — GetOrCreateCustomerCommand only creates it the
+        // first time) and fold whatever the guest added to their cart before logging in into the
+        // customer's own cart (MergeCartCommand — no domain failure path, always succeeds; an
+        // unhandled exception here is a real bug, not something to swallow).
+        var customerId = result.Value;
+        await _dispatcher.Send(new GetOrCreateCustomerCommand(customerId, model.Email), cancellationToken);
+        var anonymousId = HttpContext.GetOrSetAnonymousId();
+        await _dispatcher.Send(new MergeCartCommand(customerId, anonymousId), cancellationToken);
 
         if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
         {
@@ -70,6 +86,7 @@ public sealed class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting(RateLimiterExtensions.AuthPolicy)]
     public async Task<IActionResult> Register(RegisterViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -112,6 +129,7 @@ public sealed class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting(RateLimiterExtensions.AuthPolicy)]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
@@ -143,6 +161,7 @@ public sealed class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting(RateLimiterExtensions.AuthPolicy)]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)

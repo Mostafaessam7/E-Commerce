@@ -113,17 +113,21 @@ Dependencies line like theirs the moment another module gains one.
 - Does not own: authentication/credentials (Identity) — `Customer.Email` is cached for display
   only, Identity remains the source of truth.
 - Public contracts: none yet (no cross-module consumer exists — Store.Web's `ProfileController`
-  talks to it directly via `IDispatcher`, same as every other module's storefront-facing
-  controller).
+  and (Phase 28) `CheckoutController`/`AccountController` talk to it directly via `IDispatcher`,
+  same as every other module's storefront-facing controller).
 - Dependencies: BuildingBlocks only. DB schema: `customers`.
 - Application (`Customers.Application.Profile`): `GetOrCreateCustomerCommand` (create-if-missing,
   same shape as Ordering's `GetOrCreateCartCommand`), `UpdateProfileCommand`, `AddAddressCommand`/
   `RemoveAddressCommand`/`SetDefaultAddressCommand`, `GetCustomerProfileQuery`. Exactly one address
   is ever marked default — enforced in the aggregate (first address added, or removing the
   current default, both auto-promote a new one).
-- Not wired into checkout yet: `PlaceOrderCommand` still always passes `CustomerId: null` (guest
-  checkout only) — pre-filling checkout from a saved default address, or attaching a real
-  `CustomerId` to an order, is a follow-up, not done in the phase that built this module.
+- Wired into checkout since Phase 28 (ADR-039): `AccountController.Login` calls
+  `GetOrCreateCustomerCommand` on every successful sign-in (idempotent) and dispatches Ordering's
+  `MergeCartCommand` to fold the guest cart into the customer's own; `CartController`/
+  `CheckoutController` resolve `CustomerId` from `ICurrentUser` instead of always `null`;
+  `PlaceOrderCommand` gets a real `CustomerId`. `CheckoutController`'s `GET` also pre-fills the
+  form from the customer's default address — informational only, `PlaceOrderCommand` still takes
+  the address from the submitted form, exactly like a guest checkout.
 
 ## Identity
 - Responsibility: authentication, roles, permissions (ASP.NET Core Identity).

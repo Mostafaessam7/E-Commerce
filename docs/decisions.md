@@ -656,3 +656,68 @@ every other test project) is deliberate: it is the one test surface in this repo
 Program.cs's actual middleware pipeline, MVC model binding, and Razor rendering together, which is
 exactly the layer none of the other three suites touch.
 Status: Accepted (Phase 25).
+
+---
+**ADR-037**
+Decision: Phase 26 adds per-IP fixed-window rate limiting (`Microsoft.AspNetCore.RateLimiting`,
+built into the shared framework, no new package) to the two endpoint families with a real abuse
+profile: `Store.Web.Infrastructure.RateLimiting.RateLimiterExtensions` defines an `"auth"` policy
+(10 requests / 5 minutes / IP) applied via `[EnableRateLimiting]` to `AccountController`'s
+Login/Register/ForgotPassword/ResetPassword POST actions, and a `"webhook"` policy (30 requests /
+1 minute / IP, deliberately more generous — real providers legitimately burst-retry) applied to
+`WebhooksController`. No global/blanket limiter — ordinary storefront/admin read traffic has no
+abuse profile that calls for throttling.
+Reason: this sits in front of, not instead of, ASP.NET Core Identity's own per-account lockout (5
+failed attempts, 15 min — docs/security.md); the per-IP layer blunts a credential-stuffing script
+trying many *different* accounts from one source, which per-account lockout alone doesn't address.
+The webhook endpoint already verifies an HMAC signature before anything else runs — this isn't
+about forged requests, it's about not burning CPU on signature verification during a redelivery
+storm. Verified with a real integration test (`RateLimitingTests`) that drives 11 real login
+attempts through the real pipeline and asserts the 11th gets a real 429, not a mocked assertion.
+Status: Accepted (Phase 26).
+
+---
+**ADR-038**
+Decision: Phase 27 adds `GET /sitemap.xml` and `GET /robots.txt` (`Store.Web.Controllers
+.SeoController`), generated on every request from real, current Catalog data — not a static file
+under `wwwroot/` that could drift from what's actually published. The sitemap lists the static
+pages plus every active product (`SearchProductsQuery`, `PageSize: 5000` — one page, not a
+sitemap index; this catalog's real scale doesn't come close to the ~50,000-URL point where an
+index earns its complexity). `robots.txt` disallows `/Admin/`, `/Account/`, `/Cart`, `/Checkout`,
+`/Profile` and points at the sitemap.
+Reason: a stale sitemap (generated once and left as a static file) is worse than no sitemap — it
+actively tells crawlers about archived/deleted products and misses newly published ones. Generating
+it from the same `SearchProductsQuery` the storefront's own `/Shop` page already uses keeps it
+honest by construction, not by remembering to regenerate a file. Verified with real integration
+tests seeding an actual published product and asserting it appears in the generated XML.
+Status: Accepted (Phase 27).
+
+---
+**ADR-039**
+Decision: Phase 28 wires Customers into checkout — the follow-up ADR-028 explicitly deferred.
+`AccountController.Login` now (on success) dispatches `GetOrCreateCustomerCommand` (idempotent —
+Customer.Id already equals the ApplicationUser.Id per ADR-028, so this only creates the profile
+the first time) and `MergeCartCommand` (already existed since Phase 7/8, registered in DI, but
+never once dispatched from anywhere — a real, previously-unnoticed gap, not new code) to fold
+whatever the guest added to their cart before logging in into the customer's own cart.
+`CartController`/`CheckoutController` now resolve `CustomerId` from `ICurrentUser` when
+authenticated instead of always passing `null`, so `GetOrCreateCartCommand`'s existing
+CustomerId-takes-priority-over-AnonymousId branch actually gets exercised. `CheckoutController`'s
+`GET /Checkout` now pre-fills the form from the customer's saved default address
+(`GetCustomerProfileQuery`) when one exists — informational only, `PlaceOrderCommand` still takes
+the address straight from the submitted form regardless, same as a guest checkout, so a stale
+pre-fill can never silently ship a wrong address. `IIdentityService.LoginAsync` changed from
+`Task<Result>` to `Task<Result<Guid>>` (mirroring `RegisterAsync`'s existing shape) so the
+just-signed-in user's id is available immediately without a second lookup.
+Reason: this was flagged as a deliberate scope cut, not forgotten, but a customer completing an
+order with `CustomerId` always null defeats the entire reason Customers exists as a module — order
+history, saved-address reuse, anything customer-facing all read "no purchases ever placed" for
+every account. Verified live in-browser end to end: added a product to cart as a genuine guest (no
+auth cookie at all — a first attempt at this verification was invalidated by a leftover admin
+session still being authenticated in the browser tab, a real methodology bug worth naming so it
+doesn't recur), registered, confirmed via the real `NotificationLog` link, logged in, confirmed the
+guest cart item survived the merge, saved a default address via `/Profile`, confirmed `/Checkout`
+pre-filled every field from it, placed the order, and confirmed directly in the database that the
+resulting `Order.CustomerId` matched the logged-in user's id exactly — the first order in this
+system's history to ever carry one.
+Status: Accepted (Phase 28).
