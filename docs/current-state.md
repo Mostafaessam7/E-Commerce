@@ -1,13 +1,17 @@
 Current Phase:
-Phase 10-24 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
+Phase 10-25 complete (Outbox/Admin/Observability/Docker/CI-CD/Notifications/self-service Account
 UI/Customers/Promotions+real discount wiring/Shipping+real shipping-cost wiring/Reviews+moderation/
 Brand+Category admin+Payments admin UI/real Redis-backed caching/CI image publish/admin-ecomus
-template integration). All five originally-empty placeholder modules now have real code, both
-named admin gaps from the original analysis are closed, the provisioned-but-unused Redis container
-now has a real reader, CI pushes both images to GHCR on every push to main/master, and the Admin
-area is now the real `admin-ecomus` template instead of a hand-styled placeholder. In progress on
-a broader backlog: EndToEndTests (user asked for "all of it"; working through it phase by phase,
-committing after each).
+template integration/EndToEndTests). All five originally-empty placeholder modules now have real
+code, both named admin gaps from the original analysis are closed, the provisioned-but-unused
+Redis container now has a real reader, CI pushes both images to GHCR on every push to
+main/master, the Admin area is now the real `admin-ecomus` template, and `EndToEndTests` now
+proves a full register-to-paid-order journey over real HTTP. **This closes out every item in the
+user's confirmed "all 4 categories, full scope" backlog** — the only things left open are
+genuinely out of reach in this environment (branch protection needs a GitHub remote; a real
+`docker compose up --build` needs a Docker daemon this sandbox can't run) or deliberate scope cuts
+recorded in their own ADRs (Customers not wired into checkout, no product image upload, no
+Tax module, no 2FA/social login).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -246,24 +250,40 @@ Completed:
   off-canvas at a mobile viewport (the theme's own responsive behavior).
 - All tests passing: 102 unit + 30 integration + 29 architecture (unchanged — Razor views only,
   no application code touched).
+- Phase 25: EndToEndTests populated (ADR-036) — the last item in the user's confirmed "all 4
+  categories, full scope" backlog. A real full-journey test (register → confirm email → log in →
+  add to cart → check out → pay → order shows Paid) driven over **real HTTP** via
+  `Microsoft.AspNetCore.Mvc.Testing`'s `WebApplicationFactory<Program>` — real MVC pipeline, real
+  Razor-rendered forms, real antiforgery tokens scraped out of the actual HTML, real
+  `NotificationLog`-sourced confirmation link, real cookie-based cart/auth identity. `Program.cs`
+  gained a trailing `public partial class Program;` marker (standard, non-functional ASP.NET Core
+  testing boilerplate) so the test project can reference it. Real bug hit and fixed while building
+  this: the test client's `BaseAddress` must be `https://localhost`, not the default `http://` —
+  both the cart-identity cookie and the auth cookie are `Secure`, so an `http://` client silently
+  never sent them back, making every request look like a new anonymous visitor ("Cannot check out
+  an empty cart"). One deliberate shortcut: payment initialization is dispatched directly via
+  `IDispatcher` rather than through the real `POST /Payments/Pay` action, which makes its own
+  outbound HTTP call back into the webhook endpoint — a self-referencing hop with no real socket
+  inside an in-memory `TestServer`; the webhook call itself is still made for real, through the
+  test `HttpClient`, against the real endpoint with a real signature. `.github/workflows/
+  build-test.yml` runs it as an eighth `build-and-test` step. All 3 new tests passing.
+- All tests passing: 102 unit + 30 integration + 29 architecture + 3 end-to-end.
 
 In Progress:
-- Working through the rest of the user's "do all 4" backlog (see Next, below) — EndToEndTests is
-  the one item left.
+- None — every item in the user's confirmed "all 4 categories, full scope" backlog is done.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
   Customers: Phase 17, Promotions: Phase 18, Shipping: Phase 19, Reviews: Phase 20), both admin
   gaps named in the original analysis are closed (Phase 21), Redis has a real reader (Phase 22),
-  CI publishes both images to GHCR (Phase 23), and the Admin area uses the real admin-ecomus
-  template (Phase 24).
+  CI publishes both images to GHCR (Phase 23), the Admin area uses the real admin-ecomus template
+  (Phase 24), and EndToEndTests proves the full journey works (Phase 25).
 - Customers isn't wired into checkout (`PlaceOrderCommand.CustomerId` always null) — a follow-up,
   see ADR-028.
 - No product image upload (Section on file storage not started).
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
-- `EndToEndTests` still not populated — the one remaining item from the user's "all 4 categories"
-  backlog.
+- Whatever the user wants to build next — the originally-scoped backlog is complete.
 
 Known Issues:
 - `docker compose up --build` still hasn't been run against a real Docker daemon — genuinely
@@ -288,27 +308,29 @@ Important Files:
   credential handling (User Secrets only, never appsettings.json).
 - docs/observability.md — Serilog, correlation id, health checks (Phase 12).
 - docs/deployment.md — Docker/docker-compose, migrations-in-container, Redis now really used (Phase 22).
-- docs/ci-cd.md — GitHub Actions build+test + publish-images workflow (Phase 14, Phase 23).
-- docs/decisions.md — ADR-001..035.
+- docs/ci-cd.md — GitHub Actions build+test + publish-images workflow (Phase 14, Phase 23, Phase 25).
+- docs/testing.md — four test projects now, including the real-HTTP EndToEndTests (Phase 25).
+- docs/decisions.md — ADR-001..036.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
 Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged since Phase 20
 (Brand/Category tables already existed in the `catalog` schema since Phase 4, no new migration
-needed; Redis isn't a migrated `DbContext`; Phases 23-24 were CI/workflow and Razor-views-only).
+needed; Redis isn't a migrated `DbContext`; Phases 23-25 were CI/workflow, Razor-views, and
+new-test-project work respectively — no schema changes).
 
 Decisions Made:
-See docs/decisions.md. Newest: ADR-033 (Phase 22 gives Redis its first real reader —
-`CachedProductQueries` decorates Catalog's storefront queries with a TTL-only, 60s/30s
-read-through cache; checkout's price/stock re-validation query and admin listings are
-deliberately never cached; falls back to an in-memory cache when Redis isn't configured, same
-"app never depends on this running" posture as `ApplyMigrationsOnStartup`), ADR-034 (Phase 23's
-`publish-images` CI job pushes both images to GHCR on every push to `main`/`master`; also fixed a
-real bug found in passing — `build-and-test`'s migration list was missing five contexts added
-since Phase 14 wrote it; a real `docker compose up --build` remains unverified, genuinely
-attempted this session and blocked by this sandbox having no nested virtualization, not assumed
-unavailable), ADR-035 (Phase 24 replaces the Admin area's hand-styled placeholder with a real,
-curated `admin-ecomus` template integration — same curated-subset approach as the storefront's
-own Phase 5 — across the layout and all 18 admin view files; no fake demo content — chart trend
-arrows, invented notification counts — carried over, only pieces backed by something real made
-it in).
+See docs/decisions.md. Newest: ADR-034 (Phase 23's `publish-images` CI job pushes both images to
+GHCR on every push to `main`/`master`; also fixed a real bug found in passing — `build-and-test`'s
+migration list was missing five contexts added since Phase 14 wrote it; a real
+`docker compose up --build` remains unverified, genuinely attempted this session and blocked by
+this sandbox having no nested virtualization, not assumed unavailable), ADR-035 (Phase 24 replaces
+the Admin area's hand-styled placeholder with a real, curated `admin-ecomus` template integration
+— same curated-subset approach as the storefront's own Phase 5 — across the layout and all 18
+admin view files; no fake demo content — chart trend arrows, invented notification counts —
+carried over, only pieces backed by something real made it in), ADR-036 (Phase 25 populates
+`EndToEndTests` with a real register-to-paid-order journey driven over real HTTP via
+`WebApplicationFactory<Program>`, not `IntegrationTests`' plain `ServiceCollection` composition —
+proves a browser-driven journey works, not just the handlers behind it; hit and fixed a real bug
+along the way — the test client needs an `https://` `BaseAddress` or the app's `Secure` cookies
+never round-trip).

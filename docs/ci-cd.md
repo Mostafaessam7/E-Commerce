@@ -35,6 +35,9 @@ Steps, in order:
 7. **Integration tests** — now that the schema exists, `IntegrationTests`' hardcoded
    `Server=(localdb)\mssqllocaldb;Database=ECommerce;...` connection string (docs/testing.md) just
    works, unmodified.
+8. **End-to-end tests** (Phase 25) — `EndToEndTests` boots the real `Store.Web` host in-memory
+   (`WebApplicationFactory<Program>`) and drives it over real HTTP against the same already-migrated
+   database; no separate migration step needed for it.
 
 ### `publish-images` (Phase 23)
 

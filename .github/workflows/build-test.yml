@@ -79,6 +79,13 @@ jobs:
       - name: Integration tests
         run: dotnet test tests/IntegrationTests/IntegrationTests.csproj --configuration Release --no-build --no-restore
 
+      # Boots the real Store.Web host in-memory (WebApplicationFactory<Program>, Phase 25) and
+      # drives it over real HTTP — register, confirm email, log in, add to cart, check out, pay
+      # through the real webhook endpoint. Runs last and against the same already-migrated
+      # database as Integration tests above; needs no separate migration step of its own.
+      - name: End-to-end tests
+        run: dotnet test tests/EndToEndTests/EndToEndTests.csproj --configuration Release --no-build --no-restore
+
   # Pushes both application images to GHCR — only on an actual push to main/master (never on a
   # PR from a fork, which wouldn't have package-write permission anyway), and only after
   # build-and-test passes on the same commit. Separate job/runner from build-and-test (that one

@@ -623,3 +623,36 @@ status pill flip live, viewed a real seeded Order's detail page, and confirmed t
 collapses off-canvas at a mobile viewport width (the theme's own responsive behavior, not
 something hand-rolled here).
 Status: Accepted (Phase 24).
+
+---
+**ADR-036**
+Decision: Phase 25 populates `EndToEndTests` (empty since Phase 1) with a real full-journey test —
+register → confirm email → log in → add to cart → check out → pay → order shows Paid — driven over
+**real HTTP** via `Microsoft.AspNetCore.Mvc.Testing`'s `WebApplicationFactory<Program>`, not the
+plain `ServiceCollection` composition `IntegrationTests` uses. `Store.Web/Program.cs` gained a
+trailing `public partial class Program;` so the test project can reference it (top-level statements
+otherwise generate an `internal` one — standard, non-functional ASP.NET Core testing boilerplate).
+Antiforgery tokens are scraped out of the real rendered HTML with a regex, not bypassed; the
+confirmation-email link is pulled out of the real `NotificationLog` row Notifications wrote, not
+short-circuited; cart/checkout identity rides on the real `Secure` cookies
+`AnonymousIdExtensions`/ASP.NET Core Identity set, which requires the test `HttpClient`'s
+`BaseAddress` to be `https://localhost` — the default `http://` base silently drops every `Secure`
+cookie, and the checkout step fails with "Cannot check out an empty cart" because each request
+looks like a brand-new anonymous visitor (a real bug hit and fixed while building this test, not a
+hypothetical). The one deliberate shortcut: payment initialization is dispatched directly via
+`IDispatcher` from a DI scope rather than through the real `POST /Payments/Pay` action, because
+that action makes its own outbound call via `IHttpClientFactory` back into the webhook endpoint —
+a self-referencing network hop with no real socket to land on inside an in-memory `TestServer`. The
+webhook call itself is still made for real, through the test `HttpClient`, against the real
+`/api/webhooks/payments/fake` endpoint, with a real HMAC signature — the one thing the shortcut
+would have additionally exercised is that self-referencing hop, not applicable business logic.
+`.github/workflows/build-test.yml` runs it as an eighth `build-and-test` step, after Integration
+tests, reusing the same already-migrated database.
+Reason: `IntegrationTests` already proves every handler works in isolation and every cross-module
+dispatch works — what it structurally cannot prove is that a real browser session (real forms,
+real antiforgery, real cookies, real redirects) can actually complete the journey a customer would.
+Testing through `WebApplicationFactory` instead of a raw `ServiceCollection` composition (like
+every other test project) is deliberate: it is the one test surface in this repo that exercises
+Program.cs's actual middleware pipeline, MVC model binding, and Razor rendering together, which is
+exactly the layer none of the other three suites touch.
+Status: Accepted (Phase 25).

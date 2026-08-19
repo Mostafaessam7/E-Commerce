@@ -5,10 +5,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- CA1707: xUnit's community-standard test naming (Should_Do_X_When_Y) is underscored by
+         convention; enforcing PascalCase-without-underscores here would fight the ecosystem norm. -->
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
@@ -16,6 +21,32 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- These tests share one real, mutable database with IntegrationTests (docs/testing.md) —
+         running test classes in parallel produces the same spurious concurrency exceptions
+         ADR-019 already documented there. -->
+    <None Update="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Web\Store.Web\Store.Web.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\SharedKernel\SharedKernel.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Security\Security.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Messaging\Messaging.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\Catalog.Domain\Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Inventory\Inventory.Domain\Inventory.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Inventory\Inventory.Infrastructure\Inventory.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Ordering\Ordering.Infrastructure\Ordering.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Payments.Application\Payments.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Payments\Payments.Infrastructure\Payments.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Application\Shipping.Application.csproj" />
+    <ProjectReference Include="..\..\src\Modules\Shipping\Shipping.Infrastructure\Shipping.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

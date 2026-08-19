@@ -175,3 +175,9 @@ finally
 {
     Log.CloseAndFlush();
 }
+
+// Top-level statements generate an implicit `internal partial class Program` — this explicit,
+// otherwise-empty declaration widens it to `public` so `WebApplicationFactory<Program>`
+// (tests/EndToEndTests, Phase 25) can reference it from another assembly. Standard ASP.NET Core
+// testing pattern, not a functional change — the runtime behavior above is untouched.
+public partial class Program;
