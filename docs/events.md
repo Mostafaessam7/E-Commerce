@@ -38,21 +38,23 @@ touched it (see ADR-020's real bug).
 `{Entity}{PastTenseAction}IntegrationEvent`, e.g. `OrderPlacedIntegrationEvent`,
 `PaymentSucceededIntegrationEvent`, `InventoryReservedIntegrationEvent`.
 
-## First real implementation: `OrderPlacedIntegrationEvent`
+## `OrderPlacedIntegrationEvent`
 
 `Ordering.Contracts.OrderPlacedIntegrationEvent`, enqueued via
 `IOrderingUnitOfWork.EnqueueIntegrationEvent(...)` → `OrderingDbContext.EnqueueIntegrationEvent(...)`
 (a public wrapper around the protected `AppDbContextBase.EnqueueOutboxMessage`) inside
-`PlaceOrderCommandHandler`, in the same `SaveChangesAsync` call as the Order insert. No consumer
-yet (Payments/Notifications aren't built) and no processor yet (Phase 10) — the row just sits in
-`ordering.OutboxMessages` until then.
+`PlaceOrderCommandHandler`, in the same `SaveChangesAsync` call as the Order insert. Consumed by
+Notifications' `OrderPlacedNotificationHandler` since Phase 15 (writes a `NotificationLog` row,
+Order confirmation).
 
-## Second real implementation: `PaymentSucceededIntegrationEvent`
+## `PaymentSucceededIntegrationEvent`
 
 `Payments.Contracts.PaymentSucceededIntegrationEvent`, enqueued via `IPaymentsUnitOfWork.EnqueueIntegrationEvent(...)`
 inside `ProcessWebhookCommand`'s handler, same transaction as the `PaymentTransaction` state
-change. No consumer yet (Notifications isn't built) — sits in `payments.OutboxMessages` until
-Phase 10's processor exists. Note this event does **not** update Order state — see below.
+change. Consumed by Notifications' `PaymentSucceededNotificationHandler` since Phase 15 (payment
+receipt) — that handler carries no email of its own, so it dispatches
+`Ordering.Contracts.GetOrderContactInfoQuery` (ADR-014) to look one up. Note this event does
+**not** update Order state — see below.
 
 ## Cross-module *synchronous* calls are not this
 

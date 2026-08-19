@@ -49,8 +49,13 @@
   dotnet ef migrations add InitialCreate --project src/Modules/Catalog/Catalog.Infrastructure --startup-project src/Web/Store.Web --context CatalogDbContext --output-dir Persistence/Migrations
   dotnet ef database update --project src/Modules/Catalog/Catalog.Infrastructure --startup-project src/Web/Store.Web --context CatalogDbContext
   ```
-  Currently migrated: `CatalogDbContext`, `AppIdentityDbContext`, `InventoryDbContext`,
-  `OrderingDbContext`, `PaymentsDbContext` — every module with a DbContext so far.
+  Currently migrated (all 10 modules that have a DbContext): `CatalogDbContext`,
+  `AppIdentityDbContext`, `InventoryDbContext`, `OrderingDbContext`, `PaymentsDbContext`,
+  `NotificationsDbContext` (Phase 15), `CustomersDbContext` (Phase 17), `PromotionsDbContext`
+  (Phase 18), `ShippingDbContext` (Phase 19), `ReviewsDbContext` (Phase 20). Keep
+  `.github/workflows/build-test.yml`'s per-context `dotnet ef database update` steps in sync with
+  this list — a missing one doesn't fail loudly, it fails later in IntegrationTests with a
+  confusing "invalid object name" (this happened for real, see ADR-034).
 - **Concurrency**: EF Core shadow rowversion property per aggregate that needs it (ADR-006), not
   a Domain model property — applied to `StockItem` (`StockItemConfiguration`). Proven by
   `tests/IntegrationTests/Inventory/StockConcurrencyTests.cs`: two DbContexts reserving the same
@@ -58,3 +63,6 @@
   persists.
 - Connection string placeholder: `src/Web/Store.Web/appsettings.json` → `ConnectionStrings:Database`
   (localdb, trusted auth, no secret).
+- Redis (`ConnectionStrings:Redis`) is a separate, non-relational store — not a migrated
+  `DbContext`, no schema, no EF Core involvement. Backs Catalog's read-through query cache since
+  Phase 22; see docs/deployment.md's Redis section and ADR-033.

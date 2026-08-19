@@ -34,15 +34,21 @@ status, elapsed ms) on top of this.
 
 ## Health checks
 
-- `Store.Web`: `builder.Services.AddHealthChecks().AddDbContextCheck<T>()` — one check per module
-  `DbContext` (Catalog/Inventory/Ordering/Payments/Identity), all against the one shared database
-  (docs/database.md) — mapped at `GET /health` (`app.MapHealthChecks("/health")`), anonymous,
-  returns `Healthy`/`Unhealthy` plain text (ASP.NET Core's default writer — no custom JSON
-  formatter added; not needed yet).
-- `Store.Worker`: same `AddDbContextCheck<T>()` registrations (Ordering/Payments — the two
-  modules it wires) but no inbound HTTP listener to expose an endpoint on (plain
-  `Microsoft.NET.Sdk.Worker` host). `Microsoft.Extensions.Diagnostics.HealthChecks`' generic-host
-  equivalent of polling an endpoint is `IHealthCheckPublisher` — `LoggingHealthCheckPublisher`
+- `Store.Web`: `builder.Services.AddHealthChecks().AddDbContextCheck<T>()` — one check per migrated
+  `DbContext`, all 10 (Catalog/Inventory/Ordering/Payments/Identity/Notifications/Customers/
+  Promotions/Shipping/Reviews), all against the one shared database (docs/database.md) — mapped at
+  `GET /health` (`app.MapHealthChecks("/health")`), anonymous, returns `Healthy`/`Unhealthy` plain
+  text (ASP.NET Core's default writer — no custom JSON formatter added; not needed yet). Redis
+  (Phase 22) has no health check registered — `IDistributedCache` degrading isn't fatal (the
+  storefront still works, just uncached) the way a `DbContext` being unreachable is.
+- `Store.Worker`: `AddDbContextCheck<T>()` for the two contexts it actually processes Outbox
+  messages for (Ordering/Payments) — it also wires Notifications' module (as a consumer, see
+  docs/events.md) but doesn't health-check that context, same reasoning as Redis above: a
+  Notifications DB hiccup means a missed confirmation email, not something worth surfacing as
+  unhealthy the way losing the order/payment write path would be. No inbound HTTP listener to
+  expose an endpoint on (plain `Microsoft.NET.Sdk.Worker` host).
+  `Microsoft.Extensions.Diagnostics.HealthChecks`' generic-host equivalent of polling an endpoint
+  is `IHealthCheckPublisher` — `LoggingHealthCheckPublisher`
   (`Store.Worker/LoggingHealthCheckPublisher.cs`) runs the same checks on a timer
   (`HealthCheckPublisherOptions.Period`, 5 minutes) and logs the result. Swap for a real publisher
   (a monitoring system's push API) if one is ever wired up — nothing else changes.

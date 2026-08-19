@@ -19,7 +19,7 @@ via transactional Outbox). No microservices. Full rationale: `docs/architecture.
 ## Solution structure
 
 ```
-src/BuildingBlocks/  SharedKernel, EventBus, Observability, Security, Infrastructure, Persistence, Messaging
+src/BuildingBlocks/  SharedKernel, EventBus, Observability, Security, Infrastructure, Persistence, Messaging, Caching
 src/Modules/{Catalog,Inventory,Ordering,Payments,Customers,Identity,Promotions,Shipping,Reviews,Notifications}/
     each: *.Domain / *.Application / *.Infrastructure / *.Contracts
 src/Web/Store.Web       composition root, MVC
@@ -27,7 +27,9 @@ src/Workers/Store.Worker  background host (Outbox processor from Phase 10)
 tests/{UnitTests,IntegrationTests,ArchitectureTests,EndToEndTests}
 ```
 (`Persistence` = EF Core-dependent shared code, `*.Infrastructure`-only, never
-`*.Application` — ADR-008. `Messaging` = in-house CQRS dispatcher, `*.Application`-only — ADR-010.)
+`*.Application` — ADR-008. `Messaging` = in-house CQRS dispatcher, `*.Application`-only — ADR-010.
+`Caching` = `IDistributedCache`/Redis registration, `Store.Web`-only today — ADR-033, Phase 22.
+All ten modules listed here have real code as of Phase 20 — none are placeholders anymore.)
 
 ## EF Core gotchas already paid for (read before touching a DbContext)
 

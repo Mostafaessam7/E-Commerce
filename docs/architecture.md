@@ -55,18 +55,23 @@ telling them apart):
   layer dispatches a command/query defined in *another* module's `*.Contracts` project, through
   the shared `Messaging.IDispatcher` — never a direct reference to that module's Domain/
   Application/Infrastructure. For "is this true *right now*, before I commit" needs: Ordering
-  calls Catalog (`GetProductVariantSnapshotQuery`, re-validate price/availability) and Inventory
-  (`ReserveStockCommand`/`ReleaseStockCommand`) at checkout; Payments calls Ordering
-  (`MarkOrderAsPaidCommand`, ADR-018) once a webhook confirms a payment. `*.Contracts` may
-  reference `Messaging` specifically so it can host these dispatchable request types, not only
-  DTOs/integration events (ArchitectureTests enforce this — any module's Application may reference
-  any module's Contracts, never another module's Domain/Application/Infrastructure).
+  calls Catalog (`GetProductVariantSnapshotQuery`, re-validate price/availability), Inventory
+  (`ReserveStockCommand`/`ReleaseStockCommand`), Promotions (`RedeemCouponCommand`/
+  `ReleaseCouponCommand`, ADR-029, same reserve/release compensation shape as Inventory's), and
+  Shipping (`GetShippingMethodQuery`, ADR-030) at checkout; Payments calls Ordering
+  (`MarkOrderAsPaidCommand`, ADR-018) once a webhook confirms a payment; Notifications calls
+  Ordering (`GetOrderContactInfoQuery`, ADR-025) when a payment-succeeded event carries no email.
+  `*.Contracts` may reference `Messaging` specifically so it can host these dispatchable request
+  types, not only DTOs/integration events (ArchitectureTests enforce this — any module's
+  Application may reference any module's Contracts, never another module's Domain/Application/
+  Infrastructure).
 - **Cross-module side effect, eventual** (Phase 2 write-side, Phase 10 processor): publish an
   `IIntegrationEvent` via `IEventBus`, written to the Outbox in the same DB transaction as the
   triggering change. `Store.Worker` polls it and dispatches through the in-process `IEventBus`;
   the consuming module's Application layer implements `IIntegrationEventHandler<TEvent>`,
-  idempotently (see `docs/events.md`). Two real publishers so far (`OrderPlacedIntegrationEvent`,
-  `PaymentSucceededIntegrationEvent`), no consumers registered yet.
+  idempotently (see `docs/events.md`). Two publishers (`OrderPlacedIntegrationEvent`,
+  `PaymentSucceededIntegrationEvent`), one consumer since Phase 15 (Notifications — both handlers
+  write a `NotificationLog` row).
 - **Never**: direct reference to another module's `DbContext`, entities, or
   repositories.
 

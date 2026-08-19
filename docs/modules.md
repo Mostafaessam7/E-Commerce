@@ -1,9 +1,9 @@
 # Modules
 
 Format per module: Responsibility / Owns / Does not own / Public contracts / Dependencies.
-Most modules still depend only on BuildingBlocks — Ordering and Payments are the exceptions
-(ADR-014's cross-module Contracts dispatch, see their sections below); add a Dependencies line
-like theirs the moment another module gains one.
+Most modules still depend only on BuildingBlocks — Ordering, Payments, and Notifications are the
+exceptions (ADR-014's cross-module Contracts dispatch, see their sections below); add a
+Dependencies line like theirs the moment another module gains one.
 
 ## Catalog
 - Responsibility: products, categories, brands, attributes/variants, search/listing.
@@ -13,7 +13,10 @@ like theirs the moment another module gains one.
   (`Activate`/`Deactivate`), `ProductAttribute`/`AttributeValue`.
 - Does not own: stock levels (Inventory — variants are referenced by Guid only), pricing
   promotions (Promotions).
-- Public contracts: none yet (no cross-module consumer exists).
+- Public contracts: `Catalog.Contracts.GetProductVariantSnapshotQuery`/`ProductVariantSnapshotDto`
+  (ADR-014) — dispatched by Ordering at checkout to re-validate a variant's current price and
+  purchasability; never the full `ProductVariant` entity, which would leak Catalog.Domain across
+  the module boundary.
 - Dependencies: BuildingBlocks only. DB schema: `catalog`.
 - Application: `CreateProductCommand`, `GetProductBySlugQuery`, `SearchProductsQuery`
   (`Catalog.Application.Products`); `Catalog.Application.Brands`/`Categories` — `Create*Command`/
@@ -36,11 +39,15 @@ like theirs the moment another module gains one.
 - Owns: `StockItem` (aggregate root, keyed by `ProductVariantId` — a plain Guid, no FK/navigation
   into Catalog), `StockTransaction` (append-only history child entity).
 - Does not own: product catalog data.
-- Public contracts: none yet.
+- Public contracts: `Inventory.Contracts.ReserveStockCommand`/`ReleaseStockCommand` (ADR-014) —
+  dispatched by Ordering at checkout (reserve) and on partial-failure compensation (release); the
+  compensation shape Promotions' `RedeemCouponCommand`/`ReleaseCouponCommand` (ADR-029) and
+  Shipping later reused. `GetStockQuery` stays admin-only in `Inventory.Application.Stock`, not
+  Contracts — nothing outside this module calls it.
 - Dependencies: BuildingBlocks only. DB schema: `inventory`.
-- Application: `ReserveStockCommand`, `ReleaseStockCommand`, `GetStockQuery`
-  (`Inventory.Application.Stock`). Concurrency conflicts surface as
-  `SharedKernel.Exceptions.ConflictException` (HTTP 409), not a raw EF exception.
+- Application: `ReserveStockCommandHandler`/`ReleaseStockCommandHandler` (implement the Contracts
+  commands above), `GetStockQuery` (`Inventory.Application.Stock`). Concurrency conflicts surface
+  as `SharedKernel.Exceptions.ConflictException` (HTTP 409), not a raw EF exception.
 
 ## Ordering
 - Responsibility: cart → checkout → order lifecycle. Owns both `Cart` and `Order` — no separate
@@ -49,17 +56,25 @@ like theirs the moment another module gains one.
 - Owns: `Cart`/`CartItem` (guest via AnonymousId or customer via CustomerId, mergeable at login),
   `Order`/`OrderItem`/`OrderStatusHistoryEntry` (Status/PaymentStatus/FulfillmentStatus, each only
   mutable through named domain methods — `MarkAsPaid()`, `Cancel()`, etc., never a public setter).
-- Does not own: actual payment processing (Payments, not built), shipping rate calculation
-  (Shipping, not built — checkout takes a shipping cost as input for now), tax rules (a flat
-  placeholder rate lives in `PlaceOrderCommandHandler`, see docs/decisions.md).
+- Does not own: actual payment processing (Payments, Phase 9), shipping rate calculation
+  (Shipping, Phase 19 — `PlaceOrderCommand` takes a `ShippingMethodId` and looks the real cost up
+  via `GetShippingMethodQuery`, ADR-030), discount calculation (Promotions, Phase 18 —
+  `RedeemCouponCommand`, ADR-029). Tax remains the one permanent exception: a flat 14% placeholder
+  rate lives in `PlaceOrderCommandHandler` (`TaxRate` constant) — no Tax module exists in the fixed
+  10, this isn't a phase that was skipped, it's out of this project's scope entirely.
 - Public contracts: `OrderPlacedIntegrationEvent` (`Ordering.Contracts`), enqueued via the Outbox
-  when `PlaceOrderCommand` succeeds.
-- Dependencies: BuildingBlocks + **Catalog.Contracts and Inventory.Contracts** (ADR-014) — the
-  first module doing real cross-module reads: `GetProductVariantSnapshotQuery` (re-validate price/
-  availability) and `ReserveStockCommand`/`ReleaseStockCommand` (reserve at checkout, release on
-  partial-failure compensation), all via the shared `IDispatcher`. DB schema: `ordering`.
+  when `PlaceOrderCommand` succeeds. `GetOrderContactInfoQuery` (Phase 15, ADR-025) — dispatched by
+  Notifications when a `PaymentSucceededIntegrationEvent` carries no email of its own.
+- Dependencies: BuildingBlocks + four other modules' `*.Contracts` (ADR-014) — the first module
+  doing real cross-module reads, now the module with the most of them: `Catalog.Contracts`
+  (`GetProductVariantSnapshotQuery` — re-validate price/availability), `Inventory.Contracts`
+  (`ReserveStockCommand`/`ReleaseStockCommand` — reserve at checkout, release on partial-failure
+  compensation), `Promotions.Contracts` (`RedeemCouponCommand`/`ReleaseCouponCommand`, Phase 18),
+  `Shipping.Contracts` (`GetShippingMethodQuery`/`ListShippingMethodsQuery`, Phase 19) — all via the
+  shared `IDispatcher`. DB schema: `ordering`.
 - Application: `Ordering.Application.Carts` (Get/AddItem/RemoveItem/UpdateQuantity/ApplyCoupon/
-  Merge/GetCart) and `Ordering.Application.Checkout` (`PlaceOrderCommand`, `GetOrderQuery`).
+  Merge/GetCart) and `Ordering.Application.Checkout` (`PlaceOrderCommand`, `GetOrderQuery`,
+  `GetOrderContactInfoQuery`).
 
 ## Payments
 - Responsibility: payment gateway abstraction, transactions, refunds, webhooks (Section 9).
@@ -75,7 +90,7 @@ like theirs the moment another module gains one.
   `ProcessedWebhookEvent` ledger dedupes by provider event id). Swapping in a real provider means
   adding one new class, not touching Application/Domain or any other module.
 - Public contracts: `PaymentSucceededIntegrationEvent` (`Payments.Contracts`), enqueued via the
-  Outbox — no consumer yet.
+  Outbox — consumed by Notifications' `PaymentSucceededNotificationHandler` since Phase 15.
 - Dependencies: BuildingBlocks + **Ordering.Contracts** (for `MarkOrderAsPaidCommand`). DB schema:
   `payments`.
 - Application: `Payments.Application.Payments` — `InitializePaymentCommand`,
@@ -115,14 +130,17 @@ like theirs the moment another module gains one.
 - Owns: `ApplicationUser`/`ApplicationRole` (`IdentityUser<Guid>`/`IdentityRole<Guid>` —
   framework-coupled, so they live in `Identity.Infrastructure`, not `Identity.Domain`), permission
   claims.
-- Does not own: customer profile data (Customers, not built).
+- Does not own: customer profile data (Customers, Phase 17 — `Customer.Id` deliberately equals the
+  owning `ApplicationUser.Id`, no DB-level FK between the two modules, see that section's
+  ADR-028 note).
 - Public contracts: none yet (no cross-module consumer exists — `IIdentityService` is consumed
   directly by `Store.Web/Controllers/AccountController.cs`, not through Contracts, since nothing
   outside the composition root needs it).
 - Dependencies: BuildingBlocks only. DB schema: `identity`.
 - Application: `Identity.Application.Abstractions.IIdentityService` — Register/Login/Logout/
-  ConfirmEmail/GeneratePasswordResetToken/ResetPassword, all returning `Result`/`Result<T>`, kept
-  free of `UserManager`/`SignInManager` (implemented by `IdentityService` in Infrastructure).
+  ConfirmEmail/GenerateEmailConfirmationToken/GeneratePasswordResetToken/ResetPassword, all
+  returning `Result`/`Result<T>`, kept free of `UserManager`/`SignInManager` (implemented by
+  `IdentityService` in Infrastructure).
 - Infrastructure extras: `PermissionRoleSeeder` (idempotently grants an "Admin" role every
   `Permissions.*` claim, never creates a user) and `AdminUserBootstrapper` (dev-only, opt-in via
   `Identity:DefaultAdmin:Email`/`Password` config — creates one pre-confirmed admin user, ADR-021)
@@ -233,13 +251,21 @@ uses; new Application-layer surface added specifically for it:
 - `Inventory.Application.Stock`: `AdjustStockCommand` (wraps `StockItem.AdjustTo`),
   `IStockQueries`/`SearchStockQuery` for the admin list.
 
+- `Catalog.Application.Brands`/`Categories`, `Promotions.Application.Coupons`,
+  `Shipping.Application.Methods`, `Reviews.Application.Reviews` (Approve/Reject side), and
+  `Payments.Application.Payments.ListPaymentsQuery` — the same admin command shape (list/create/
+  activate/deactivate, or moderate) repeated across `BrandsController`/`CategoriesController`/
+  `CouponsController`/`ShippingMethodsController`/`ReviewsController`/`PaymentsController` (Phases
+  18/19/20/21).
+
 Authorization: `[Authorize(Policy = Permissions.X)]` per action (`Permissions` catalog, Security
 BB) — never role-name checks. `Identity.Infrastructure.Seeding.AdminUserBootstrapper` is a
 dev-only, opt-in (config-gated) hosted service that creates one pre-confirmed admin user; see
 ADR-021 and docs/security.md.
 
 ---
-As of Phase 14: Catalog, Inventory, Ordering, Payments, and Identity have real Domain/Application/
-Infrastructure code (sections above). Customers, Promotions, Shipping, Reviews, and Notifications
-are still placeholders — their sections above describe intended ownership only, guiding whichever
-phase builds them next, not current code.
+As of Phase 21: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
+Customers, Promotions, Shipping, Reviews) have real Domain/Application/Infrastructure code — none
+are placeholders. See docs/current-state.md for exactly which phase built each one and what
+remains genuinely open (Customers not wired into checkout, no product image upload, `admin-ecomus`
+not integrated, `EndToEndTests` not populated).
