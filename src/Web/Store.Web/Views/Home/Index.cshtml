@@ -3,10 +3,9 @@
     ViewData["Title"] = "Home";
 }
 
-<section class="tf-slideshow slider-effect-fade position-relative">
-    <div class="wrap-slider">
-        <img class="lazyload w-100" src="~/ecomus/images/demo/home-01.jpg" alt="hero" style="max-height:640px;object-fit:cover" />
-        <div class="box-content position-absolute top-50 start-0 translate-middle-y ps-5 text-white" style="max-width:520px">
+<section class="position-relative">
+    <div id="vanta-hero" class="vanta-hero">
+        <div class="box-content position-absolute top-50 start-0 translate-middle-y ps-5 text-white" style="max-width:520px;z-index:2">
             <h2 class="display-5 fw-bold">New Season Arrivals</h2>
             <p class="mt-3 fs-18">Discover the latest collection, curated for you.</p>
             <a asp-controller="Shop" asp-action="Index" class="tf-btn btn-fill radius-3 mt-4">Shop now<i class="icon icon-arrow1-top-left"></i></a>
@@ -60,3 +59,51 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script src="~/vendor/vanta/three.min.js"></script>
+    <script src="~/vendor/vanta/vanta.net.min.js"></script>
+    <script>
+        // Phase 30 (ADR-041): animated brand-colored hero background. Guarded behind
+        // prefers-reduced-motion and a WebGL capability check — VANTA.NET throws if WebGL isn't
+        // available, and a static hero is a perfectly fine fallback rather than a broken page.
+        (function () {
+            function supportsWebGl() {
+                try {
+                    var canvas = document.createElement("canvas");
+                    return !!(window.WebGLRenderingContext &&
+                        (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            var prefersReducedMotion = window.matchMedia &&
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            if (prefersReducedMotion || !supportsWebGl() || typeof VANTA === "undefined") {
+                document.getElementById("vanta-hero").style.backgroundImage =
+                    "url('/ecomus/images/demo/home-01.jpg')";
+                document.getElementById("vanta-hero").style.backgroundSize = "cover";
+                document.getElementById("vanta-hero").style.backgroundPosition = "center";
+                return;
+            }
+
+            VANTA.NET({
+                el: "#vanta-hero",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0xdb1215,
+                backgroundColor: 0x0a0a0a,
+                points: 9.00,
+                maxDistance: 22.00,
+                spacing: 18.00
+            });
+        })();
+    </script>
+}

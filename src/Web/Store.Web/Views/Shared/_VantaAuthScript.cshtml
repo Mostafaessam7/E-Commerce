@@ -1,0 +1,47 @@
+@* Phase 30 (ADR-041): shared Vanta.WAVES init for the auth-family split panel (#vanta-auth) —
+   used by Login/Register/ForgotPassword/ResetPassword so the four pages get one consistent
+   treatment instead of four copies of the same script. Same reduced-motion/WebGL guard as the
+   Home hero (_Home/Index.cshtml). *@
+<script src="~/vendor/vanta/three.min.js"></script>
+<script src="~/vendor/vanta/vanta.waves.min.js"></script>
+<script>
+    (function () {
+        function supportsWebGl() {
+            try {
+                var canvas = document.createElement("canvas");
+                return !!(window.WebGLRenderingContext &&
+                    (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        var prefersReducedMotion = window.matchMedia &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var el = document.getElementById("vanta-auth");
+        if (!el) {
+            return;
+        }
+
+        if (prefersReducedMotion || !supportsWebGl() || typeof VANTA === "undefined") {
+            el.style.background = "linear-gradient(135deg, #0a0a0a 0%, #db1215 100%)";
+            return;
+        }
+
+        VANTA.WAVES({
+            el: "#vanta-auth",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x0a0a0a,
+            shininess: 40.00,
+            waveHeight: 18.00,
+            waveSpeed: 0.85,
+            zoom: 0.85
+        });
+    })();
+</script>

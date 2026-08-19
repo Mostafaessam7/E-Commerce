@@ -282,9 +282,31 @@ curated-not-literal approach as the storefront's Phase 5) — real sidebar/heade
 toggle, `wg-table`/`wg-box`/`form-style-1`/`tf-button` component classes throughout. Replaced the
 hand-styled placeholder Phase 11 shipped with.
 
+## Storefront UI polish (Phase 30, ADR-041 — not a module)
+- Vanta.js (`three.js` + the `VANTA.NET`/`VANTA.WAVES` effect bundles) self-hosted under
+  `wwwroot/vendor/vanta/` — same "curated local assets, no runtime CDN dependency" discipline as
+  `ecomus`/`admin-ecomus`. Home's hero (`#vanta-hero`, `VANTA.NET`, brand red-on-black) and the
+  four Account pages' split visual panel (`#vanta-auth`, `VANTA.WAVES`, shared init in
+  `Views/Shared/_VantaAuthScript.cshtml`) are the only two treatments — deliberately not applied
+  to product/cart/checkout/admin screens, where an animated background would hurt readability and
+  add unnecessary render cost for zero UX benefit. Both guarded behind a `prefers-reduced-motion`
+  check and a real WebGL capability probe, falling back to a static gradient/image rather than a
+  broken or thrashing page when either is absent.
+- `Views/Account/{Login,Register,ForgotPassword,ResetPassword}.cshtml` rebuilt onto a shared
+  `.auth-split` two-column layout (`wwwroot/css/site-custom.css`) — form on one side, the Vanta
+  visual on the other, single column on mobile. Submit buttons switched from a one-off `btn
+  btn-dark` to the same `tf-btn btn-fill radius-3` class every other storefront CTA uses.
+- Real bug fixed, not just a redesign: `Views/Shared/_ValidationScriptsPartial.cshtml` referenced
+  `~/lib/jquery-validation*` files that were never actually present in `wwwroot/lib` — client-side
+  validation had been silently dead on every page that included it (Checkout since Phase 7/8,
+  now also all four Account pages) the whole time, falling back to a full server round-trip for
+  every validation error. Fetched the real `jquery-validation`/`jquery-validation-unobtrusive`
+  packages into `wwwroot/lib/` so the existing `asp-validation-for` markup (already correct)
+  finally gets a live client-side check instead of only a server-side one.
+
 ---
-As of Phase 21: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
+As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
 Customers, Promotions, Shipping, Reviews) have real Domain/Application/Infrastructure code — none
-are placeholders. See docs/current-state.md for exactly which phase built each one and what
-remains genuinely open (Customers not wired into checkout, no product image upload, `admin-ecomus`
-not integrated, `EndToEndTests` not populated).
+are placeholders, and every gap flagged in the last full-project review (rate limiting, sitemap,
+Customers-in-checkout, product image upload) has been closed. See docs/current-state.md for
+exactly which phase built each one and what (if anything) remains open.

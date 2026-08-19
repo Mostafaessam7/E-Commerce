@@ -311,6 +311,22 @@ Completed:
   page, then removed it and confirmed the DB row and the physical file's URL both disappeared from
   the UI.
 - All tests passing: 102 unit + 31 integration + 29 architecture + 6 end-to-end (168 total).
+- Phase 30: Vanta.js animated backgrounds + Account-pages polish (ADR-041) — user-requested
+  ("عايز UI UX احترافي, استخدم vanta.js"), scoped to Home's hero (`VANTA.NET`) and a shared
+  split-panel visual on all four Account pages (`VANTA.WAVES`), not every screen — an animated
+  background earns its cost on a landing hero/auth screen and actively hurts product grids/tables/
+  checkout forms. `three.js`/Vanta self-hosted under `wwwroot/vendor/vanta/` (no CDN dependency,
+  same discipline as `ecomus`/`admin-ecomus`), guarded behind `prefers-reduced-motion` + a real
+  WebGL probe with a static fallback. Login/Register/ForgotPassword/ResetPassword rebuilt onto a
+  shared `.auth-split` layout (new `wwwroot/css/site-custom.css`), buttons unified onto `tf-btn
+  btn-fill radius-3`. Real bug found and fixed while auditing these pages: `_ValidationScriptsPartial`
+  pointed at `~/lib/jquery-validation*` files that were never actually present in `wwwroot/lib` —
+  client-side validation had been silently dead on Checkout (since Phase 7/8) and now these four
+  pages the entire time, degrading every validation error to a full server round-trip. Fetched the
+  real packages into `wwwroot/lib/`. Verified live: Home hero renders a real animated canvas behind
+  the CTA text; Login/Register render the split panel with a live Vanta canvas; submitting Register
+  empty now shows all three "field is required" messages instantly with no page reload. All 168
+  tests still passing (view-markup-only change, no application code touched).
 
 In Progress:
 - None.
@@ -321,8 +337,10 @@ Next:
   gaps named in the original analysis are closed (Phase 21), Redis has a real reader (Phase 22),
   CI publishes both images to GHCR (Phase 23), the Admin area uses the real admin-ecomus template
   (Phase 24), EndToEndTests proves the full journey works (Phase 25), rate limiting and a real
-  sitemap exist (Phases 26-27), Customers is wired into checkout (Phase 28), and admin product
-  image upload is real (Phase 29). No further actionable gaps are currently tracked.
+  sitemap exist (Phases 26-27), Customers is wired into checkout (Phase 28), admin product image
+  upload is real (Phase 29), and Home/Account pages have a real Vanta.js treatment (Phase 30). No
+  further actionable gaps are currently tracked; a broader visual redesign of the remaining
+  storefront/admin screens beyond this scoped pass would need its own explicit ask.
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
@@ -352,7 +370,9 @@ Important Files:
 - docs/ci-cd.md — GitHub Actions build+test + publish-images workflow (Phase 14, Phase 23, Phase 25).
 - docs/testing.md — four test projects now, including the real-HTTP EndToEndTests (Phase 25).
 - docs/security.md — rate limiting section added (Phase 26).
-- docs/decisions.md — ADR-001..040.
+- docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
+  redesign, right after the Admin area section.
+- docs/decisions.md — ADR-001..041.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
@@ -378,4 +398,9 @@ ADR-040 (Phase 29 adds admin product image upload — `Product.AddImage` finally
 new `Product.RemoveImage` promotes the next primary, and the actual file write lives behind a new
 `IProductImageStorage` seam in `Store.Web` so Catalog itself only ever deals in a URL string; hit
 and fixed a real bug along the way — the two new command handlers weren't registered in Catalog's
-hand-written DI list, invisible to the build, only surfacing as a live 500 on first click).
+hand-written DI list, invisible to the build, only surfacing as a live 500 on first click), ADR-041
+(Phase 30 adds self-hosted Vanta.js to Home's hero and the Account pages' split panel, scoped down
+from "every screen" to the two places an animated background actually helps rather than hurts;
+found and fixed a real, previously-invisible bug along the way — client-side validation had been
+silently dead everywhere `_ValidationScriptsPartial` was used since Phase 7/8 because the vendor
+files it referenced were never actually present in `wwwroot/lib`).

@@ -1,0 +1,66 @@
+/* Site-wide additions on top of the curated `ecomus` theme (Phase 5/24) — kept in its own file
+   rather than edited into styles.css so a future template re-curation doesn't have to hand-merge
+   custom rules back in. Phase 30 (ADR-041): Vanta.js hero/auth treatments. */
+
+/* ---- Home hero (Vanta.NET) ---- */
+.vanta-hero {
+    position: relative;
+    height: 640px;
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.vanta-hero canvas {
+    display: block;
+}
+
+@media (max-width: 767px) {
+    .vanta-hero {
+        height: 480px;
+    }
+}
+
+/* ---- Auth split panel (Login/Register/ForgotPassword/ResetPassword — Vanta.WAVES) ---- */
+.auth-split {
+    min-height: calc(100vh - 400px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+}
+
+.auth-visual {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    min-height: 320px;
+}
+
+.auth-visual .auth-visual-copy {
+    position: relative;
+    z-index: 2;
+    padding: 48px;
+    color: var(--white);
+}
+
+.auth-form-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 32px;
+}
+
+.auth-form-panel .auth-form-inner {
+    width: 100%;
+    max-width: 380px;
+}
+
+@media (max-width: 991px) {
+    .auth-split {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-visual {
+        min-height: 220px;
+    }
+}

@@ -3,34 +3,51 @@
     ViewData["Title"] = "Create Account";
 }
 
-<div class="container" style="max-width: 420px; padding: 60px 0;">
-    <h2 class="mb-4">Create Account</h2>
+<div class="auth-split">
+    <div class="auth-form-panel">
+        <div class="auth-form-inner">
+            <h2 class="mb-2">Create your account</h2>
+            <p class="text-muted mb-4">Join us for order history, saved addresses, and a faster checkout.</p>
 
-    <form asp-action="Register" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-        <div class="mb-3">
-            <label asp-for="Email" class="form-label"></label>
-            <input asp-for="Email" class="form-control" autocomplete="username" />
-            <span asp-validation-for="Email" class="text-danger"></span>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" autocomplete="username" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="tf-btn btn-fill radius-3 w-100 justify-content-center">Create Account<i class="icon icon-arrow1-top-left"></i></button>
+            </form>
+
+            <div class="mt-3">
+                <a asp-action="Login">Already have an account? Sign in</a>
+            </div>
         </div>
+    </div>
 
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label"></label>
-            <input asp-for="Password" class="form-control" autocomplete="new-password" />
-            <span asp-validation-for="Password" class="text-danger"></span>
+    <div id="vanta-auth" class="auth-visual">
+        <div class="auth-visual-copy">
+            <div class="fs-28 fw-6">Join the club</div>
+            <p class="mt-2 mb-0">Create an account to track orders and check out faster next time.</p>
         </div>
-
-        <div class="mb-3">
-            <label asp-for="ConfirmPassword" class="form-label"></label>
-            <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
-            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-        </div>
-
-        <button type="submit" class="btn btn-dark w-100">Create Account</button>
-    </form>
-
-    <div class="mt-3">
-        <a asp-action="Login">Already have an account? Sign in</a>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_VantaAuthScript" />
+}

@@ -761,3 +761,35 @@ real bug this way, not just in a test: the two new command handlers were never r
 `Catalog.Infrastructure/DependencyInjection.cs` (this module registers handlers by hand, not via
 assembly scanning) — invisible to `dotnet build`, only surfaced as a live 500 once actually clicked.
 Status: Accepted (Phase 29).
+
+---
+**ADR-041**
+Decision: Phase 30 adds a Vanta.js animated-background treatment to two places — Home's hero
+(`VANTA.NET`) and a shared split-panel visual on all four Account pages, Login/Register/
+ForgotPassword/ResetPassword (`VANTA.WAVES`) — plus a real UI polish pass on those same four pages.
+`three.js`/the two Vanta effect bundles are self-hosted under `wwwroot/vendor/vanta/`, same
+"curated local assets, no runtime CDN dependency" discipline the storefront (Phase 5) and admin
+(Phase 24) template integrations already established — a page render should never depend on a
+third-party CDN being reachable. Both instances are guarded behind `prefers-reduced-motion` and a
+real WebGL capability probe (`canvas.getContext('webgl')`), falling back to a static
+gradient/image rather than a broken canvas or an accessibility violation. Account pages rebuilt
+onto a shared `.auth-split` two-column layout (new `wwwroot/css/site-custom.css`, kept separate
+from the curated `ecomus/css/styles.css` so a future template re-curation never has to hand-merge
+custom rules back in) and their submit buttons switched from a one-off `btn btn-dark` to the same
+`tf-btn btn-fill radius-3` every other storefront CTA already uses.
+Reason: explicit user request ("عايز UI UX احترافي, استخدم vanta.js") scoped down from "every
+screen" to the two places an animated background actually earns its cost — a landing hero and an
+auth screen are both low-information, high-first-impression surfaces; product grids, tables, and
+checkout forms are not, and get worse (readability, GPU cost, distraction) from the same
+treatment, not better, so they were deliberately left alone. While auditing the Account views for
+this pass, found a real, previously-invisible bug worth fixing in the same commit rather than
+filing separately: `Views/Shared/_ValidationScriptsPartial.cshtml` (used by Checkout since Phase
+7/8) pointed at `~/lib/jquery-validation*` files that had never actually been added to
+`wwwroot/lib` — every `<span asp-validation-for>` on every page including it had been rendering
+correctly but never once *firing* client-side, silently degrading every validation error to a full
+server round-trip since the very first checkout form shipped. Fetched the real npm packages into
+`wwwroot/lib/` (no build-time bundler in this project, so a plain vendored file is the correct fix,
+same reasoning as every other vendor asset here) — confirmed live: submitting Register with every
+field empty now shows all three "field is required" messages instantly, no page reload, no server
+round-trip.
+Status: Accepted (Phase 30).
