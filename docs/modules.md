@@ -33,6 +33,15 @@ Dependencies line like theirs the moment another module gains one.
   (`IncludeAllStatuses: true`) are never cached — the first because stale pricing is a
   correctness bug, the second because an admin needs to see their own just-published product
   immediately.
+- Image upload (Phase 29, ADR-040): `AddProductImageCommand`/`RemoveProductImageCommand`
+  (`Catalog.Application.Products.AdminCommands`) call `Product.AddImage`/`RemoveImage` — the domain
+  method existed since Phase 4 but nothing dispatched it until now. The actual file write is a
+  `Store.Web`-only concern behind `IProductImageStorage`/`LocalProductImageStorage`
+  (`Store.Web/Infrastructure/Uploads`) — Catalog only ever receives a URL string, same as always.
+  Files land in `wwwroot/uploads/products/{productId}/` (gitignored), served by a plain
+  `app.UseStaticFiles()` alongside the build-time `MapStaticAssets()` pipeline, since the latter
+  never sees anything written at runtime. Admin UI: `ProductsController.UploadImage`/`RemoveImage`
+  + the Images panel on `Areas/Admin/Views/Products/Edit.cshtml`.
 
 ## Inventory
 - Responsibility: stock quantity, reservations, prevents overselling.

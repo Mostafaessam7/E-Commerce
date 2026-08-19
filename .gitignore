@@ -42,3 +42,6 @@ Thumbs.db
 
 ## Node (frontend tooling, if used for template asset build)
 node_modules/
+
+## Admin-uploaded product images (Phase 29) — local-disk storage, not app content
+src/Web/Store.Web/wwwroot/uploads/

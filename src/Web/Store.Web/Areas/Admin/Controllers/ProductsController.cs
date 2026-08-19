@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Security;
 using Store.Web.Areas.Admin.Models;
+using Store.Web.Infrastructure.Uploads;
 
 namespace Store.Web.Areas.Admin.Controllers;
 
@@ -14,8 +15,13 @@ namespace Store.Web.Areas.Admin.Controllers;
 public sealed class ProductsController : Controller
 {
     private readonly IDispatcher _dispatcher;
+    private readonly IProductImageStorage _imageStorage;
 
-    public ProductsController(IDispatcher dispatcher) => _dispatcher = dispatcher;
+    public ProductsController(IDispatcher dispatcher, IProductImageStorage imageStorage)
+    {
+        _dispatcher = dispatcher;
+        _imageStorage = imageStorage;
+    }
 
     public async Task<IActionResult> Index(int page = 1, CancellationToken cancellationToken = default)
     {
@@ -137,6 +143,42 @@ public sealed class ProductsController : Controller
         var result = await _dispatcher.Send(new ArchiveProductCommand(id), cancellationToken);
         TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Product archived." : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [RequestSizeLimit(5_242_880)] // 5 MB — matches LocalProductImageStorage.MaxFileSizeBytes
+    [Authorize(Policy = Permissions.Catalog.Edit)]
+    public async Task<IActionResult> UploadImage(Guid productId, IFormFile? file, bool isPrimary, CancellationToken cancellationToken)
+    {
+        if (file is null)
+        {
+            TempData["Error"] = "Choose an image file first.";
+            return RedirectToAction(nameof(Edit), new { id = productId });
+        }
+
+        var saveResult = await _imageStorage.SaveAsync(productId, file, cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            TempData["Error"] = saveResult.Error.Message;
+            return RedirectToAction(nameof(Edit), new { id = productId });
+        }
+
+        var result = await _dispatcher.Send(
+            new AddProductImageCommand(productId, saveResult.Value, file.FileName, isPrimary), cancellationToken);
+
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Image uploaded." : result.Error.Message;
+        return RedirectToAction(nameof(Edit), new { id = productId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Policy = Permissions.Catalog.Edit)]
+    public async Task<IActionResult> RemoveImage(Guid productId, Guid imageId, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.Send(new RemoveProductImageCommand(productId, imageId), cancellationToken);
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Image removed." : result.Error.Message;
+        return RedirectToAction(nameof(Edit), new { id = productId });
     }
 
     [HttpPost]

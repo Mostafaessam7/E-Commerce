@@ -195,6 +195,25 @@ public sealed class Product : AggregateRoot<Guid>, ISoftDeletableEntity
         _images.Add(new ProductImage(Guid.NewGuid(), url, altText, _images.Count, isPrimary));
     }
 
+    public Result RemoveImage(Guid imageId)
+    {
+        var image = _images.FirstOrDefault(i => i.Id == imageId);
+        if (image is null)
+        {
+            return Result.Failure(Error.NotFound("Product.ImageNotFound", "Image was not found."));
+        }
+
+        var wasPrimary = image.IsPrimary;
+        _images.Remove(image);
+
+        if (wasPrimary && _images.Count > 0)
+        {
+            _images[0].MakePrimary();
+        }
+
+        return Result.Success();
+    }
+
     public Result UpdateDetails(string name, string? shortDescription, string? description)
     {
         Guard.Against.NullOrWhiteSpace(name, nameof(name));

@@ -31,6 +31,7 @@ using Serilog.Events;
 using Store.Web.Infrastructure.ExceptionHandling;
 using Store.Web.Infrastructure.Observability;
 using Store.Web.Infrastructure.RateLimiting;
+using Store.Web.Infrastructure.Uploads;
 
 // Two-stage Serilog init (the documented Serilog.AspNetCore pattern): a minimal bootstrap logger
 // exists before the host is even built, so a failure during configuration/DI wiring itself still
@@ -70,6 +71,7 @@ try
     builder.Services.AddMessagingCore();
     builder.Services.AddHttpClient();
     builder.Services.AddAppRateLimiting();
+    builder.Services.AddScoped<IProductImageStorage, LocalProductImageStorage>();
 
     // --- Module composition root ---
     // Every module owns its own `Add{Module}Module(IServiceCollection, IConfiguration)` extension
@@ -148,6 +150,13 @@ try
     }
 
     app.UseHttpsRedirection();
+
+    // MapStaticAssets (below) only serves the build-time fingerprinted manifest of wwwroot files
+    // baked in at compile time — it never sees files written at runtime. Admin-uploaded product
+    // images (Phase 29, wwwroot/uploads/products/...) need this plain, non-manifest static file
+    // middleware alongside it.
+    app.UseStaticFiles();
+
     app.UseRouting();
     app.UseRateLimiter();
 

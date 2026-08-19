@@ -1,13 +1,14 @@
 Current Phase:
-Phase 10-28 complete — everything through Phase 25 (see below) plus a second gap-analysis pass
+Phase 10-29 complete — everything through Phase 25 (see below) plus a second gap-analysis pass
 that found real issues: a misleading "Arabic+English localization" doc claim (fixed, no such
 feature exists), a dead Wishlist link (removed), no rate limiting (Phase 26), no sitemap/robots.txt
-(Phase 27), and Customers never actually wired into checkout despite the module existing since
-Phase 17 (Phase 28, ADR-039 — `MergeCartCommand` had existed since Phase 7/8, registered in DI, but
-was never once dispatched from anywhere until now). Only two items remain genuinely out of reach in
-this environment (branch protection needs a GitHub remote; a real `docker compose up --build` needs
-a Docker daemon this sandbox can't run) or are deliberate scope cuts recorded in their own ADRs (no
-product image upload, no Tax module, no 2FA/social login, no Wishlist module).
+(Phase 27), Customers never actually wired into checkout despite the module existing since Phase 17
+(Phase 28, ADR-039 — `MergeCartCommand` had existed since Phase 7/8, registered in DI, but was
+never once dispatched from anywhere until now), and no way for an admin to attach a product image
+despite the storefront already rendering `PrimaryImageUrl` everywhere (Phase 29, ADR-040). Only two
+items remain genuinely out of reach in this environment (branch protection needs a GitHub remote; a
+real `docker compose up --build` needs a Docker daemon this sandbox can't run) or are deliberate
+scope cuts recorded in their own ADRs (no Tax module, no 2FA/social login, no Wishlist module).
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -292,6 +293,24 @@ Completed:
   the order, and confirmed in the database that `Order.CustomerId` matched the logged-in user's id
   exactly — the first order in this system's history to ever carry one.
 - All tests passing: 102 unit + 30 integration + 29 architecture + 6 end-to-end (167 total).
+- Phase 29: admin product image upload (ADR-040) — the last actionable gap from the "do everything
+  missing" backlog. New `AddProductImageCommand`/`RemoveProductImageCommand` call the pre-existing
+  (since Phase 4, never dispatched) `Product.AddImage` and a new `Product.RemoveImage` domain
+  method (promotes the next image to primary when the removed one was primary). File writes are a
+  `Store.Web`-only concern behind `IProductImageStorage`/`LocalProductImageStorage`
+  (`wwwroot/uploads/products/{productId}/`, gitignored) — Catalog only ever sees a URL string.
+  `Program.cs` gained a plain `app.UseStaticFiles()` alongside `MapStaticAssets()` since the latter
+  only serves the build-time manifest, never files written at runtime. New Images panel on the
+  admin Product Edit page (upload + thumbnail grid + Remove). New integration test proves
+  add/remove round-trips through the real DB and promotes the next primary. Real bug caught during
+  live verification, not by any test: the two new command handlers were never registered in
+  `Catalog.Infrastructure/DependencyInjection.cs` (this module registers handlers by hand) — built
+  clean, only surfaced as a live 500 on the first real click; fixed and re-verified. Verified live:
+  uploaded a real PNG through the admin panel, confirmed it served back as `200 image/png` from the
+  new static-file path and appeared as the thumbnail on both the product list and its own edit
+  page, then removed it and confirmed the DB row and the physical file's URL both disappeared from
+  the UI.
+- All tests passing: 102 unit + 31 integration + 29 architecture + 6 end-to-end (168 total).
 
 In Progress:
 - None.
@@ -302,8 +321,8 @@ Next:
   gaps named in the original analysis are closed (Phase 21), Redis has a real reader (Phase 22),
   CI publishes both images to GHCR (Phase 23), the Admin area uses the real admin-ecomus template
   (Phase 24), EndToEndTests proves the full journey works (Phase 25), rate limiting and a real
-  sitemap exist (Phases 26-27), and Customers is wired into checkout (Phase 28).
-- No product image upload — the next actionable gap (Phase 29 in progress).
+  sitemap exist (Phases 26-27), Customers is wired into checkout (Phase 28), and admin product
+  image upload is real (Phase 29). No further actionable gaps are currently tracked.
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
@@ -333,14 +352,15 @@ Important Files:
 - docs/ci-cd.md — GitHub Actions build+test + publish-images workflow (Phase 14, Phase 23, Phase 25).
 - docs/testing.md — four test projects now, including the real-HTTP EndToEndTests (Phase 25).
 - docs/security.md — rate limiting section added (Phase 26).
-- docs/decisions.md — ADR-001..039.
+- docs/decisions.md — ADR-001..040.
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
 Payments, Notifications, Customers, Promotions, Shipping, Reviews) — unchanged since Phase 20
-(Brand/Category tables already existed in the `catalog` schema since Phase 4, no new migration
-needed; Redis isn't a migrated `DbContext`; Phases 23-28 were CI/workflow, Razor-views, new-test-
-project, and application-code-only work respectively — no schema changes anywhere in this range).
+(Brand/Category tables, and `Products.Images` / the `ProductImages` table Phase 29 now actually
+writes to, already existed in the `catalog` schema since Phase 4, no new migration needed; Redis
+isn't a migrated `DbContext`; Phases 23-29 were CI/workflow, Razor-views, new-test-project, and
+application-code-only work respectively — no schema changes anywhere in this range).
 
 Decisions Made:
 See docs/decisions.md. Newest: ADR-036 (Phase 25 populates `EndToEndTests` with a real
@@ -353,4 +373,9 @@ Identity's per-account lockout), ADR-038 (Phase 27's `sitemap.xml`/`robots.txt` 
 request from real Catalog data, not a static file that could go stale), ADR-039 (Phase 28 wires
 Customers into checkout — `AccountController.Login` now dispatches the `MergeCartCommand` that had
 existed since Phase 7/8 but was never once called from anywhere; `CustomerId` flows through
-`Cart`/`Checkout` instead of always `null`; verified live end to end down to the database row).
+`Cart`/`Checkout` instead of always `null`; verified live end to end down to the database row),
+ADR-040 (Phase 29 adds admin product image upload — `Product.AddImage` finally gets dispatched, a
+new `Product.RemoveImage` promotes the next primary, and the actual file write lives behind a new
+`IProductImageStorage` seam in `Store.Web` so Catalog itself only ever deals in a URL string; hit
+and fixed a real bug along the way — the two new command handlers weren't registered in Catalog's
+hand-written DI list, invisible to the build, only surfacing as a live 500 on first click).

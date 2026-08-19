@@ -98,6 +98,44 @@
             </form>
         </div>
 
+        <div class="wg-box mb-20">
+            <h5 class="mb-14">Images</h5>
+            @if (Model.Images.Count > 0)
+            {
+                <div class="flex flex-wrap gap10 mb-14">
+                    @foreach (var image in Model.Images)
+                    {
+                        <div style="position:relative;width:100px">
+                            <img src="@image.Url" alt="@image.AltText" style="width:100px;height:100px;object-fit:cover;border-radius:8px" />
+                            @if (image.IsPrimary)
+                            {
+                                <span class="block-available bg-1 fw-7" style="position:absolute;top:4px;left:4px;font-size:10px">Primary</span>
+                            }
+                            <form asp-action="RemoveImage" method="post" onsubmit="return confirm('Remove this image?');" class="mt-4">
+                                <input type="hidden" name="productId" value="@Model.Id" />
+                                <input type="hidden" name="imageId" value="@image.Id" />
+                                <button type="submit" class="tf-button style-2 w-100" style="font-size:11px;padding:4px">Remove</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-14">No images yet.</p>
+            }
+
+            <form asp-action="UploadImage" method="post" enctype="multipart/form-data" class="form-style-1">
+                <input type="hidden" name="productId" value="@Model.Id" />
+                <fieldset class="name"><input name="file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif" class="flex-grow" required /></fieldset>
+                <label style="display:flex;align-items:center;gap:6px" class="mb-14">
+                    <input type="checkbox" name="isPrimary" value="true" />
+                    <span class="body-text">Set as primary</span>
+                </label>
+                <button type="submit" class="tf-button style-2 w208">Upload Image</button>
+            </form>
+        </div>
+
         <div class="wg-box">
             <h5 class="mb-14">Status</h5>
             <div class="flex gap10 flex-wrap">

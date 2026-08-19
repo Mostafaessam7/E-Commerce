@@ -83,6 +83,65 @@ public sealed class AddProductVariantCommandHandler : IRequestHandler<AddProduct
     }
 }
 
+public sealed record AddProductImageCommand(Guid ProductId, string Url, string? AltText, bool IsPrimary) : ICommand<Unit>;
+
+public sealed class AddProductImageCommandHandler : IRequestHandler<AddProductImageCommand, Unit>
+{
+    private readonly IProductRepository _repository;
+    private readonly ICatalogUnitOfWork _unitOfWork;
+
+    public AddProductImageCommandHandler(IProductRepository repository, ICatalogUnitOfWork unitOfWork)
+    {
+        _repository = repository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result<Unit>> Handle(AddProductImageCommand request, CancellationToken cancellationToken = default)
+    {
+        var product = await _repository.GetByIdAsync(request.ProductId, cancellationToken);
+        if (product is null)
+        {
+            return Result.Failure<Unit>(Error.NotFound("Product.NotFound", "Product was not found."));
+        }
+
+        product.AddImage(request.Url, request.AltText, request.IsPrimary);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(Unit.Value);
+    }
+}
+
+public sealed record RemoveProductImageCommand(Guid ProductId, Guid ImageId) : ICommand<Unit>;
+
+public sealed class RemoveProductImageCommandHandler : IRequestHandler<RemoveProductImageCommand, Unit>
+{
+    private readonly IProductRepository _repository;
+    private readonly ICatalogUnitOfWork _unitOfWork;
+
+    public RemoveProductImageCommandHandler(IProductRepository repository, ICatalogUnitOfWork unitOfWork)
+    {
+        _repository = repository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result<Unit>> Handle(RemoveProductImageCommand request, CancellationToken cancellationToken = default)
+    {
+        var product = await _repository.GetByIdAsync(request.ProductId, cancellationToken);
+        if (product is null)
+        {
+            return Result.Failure<Unit>(Error.NotFound("Product.NotFound", "Product was not found."));
+        }
+
+        var result = product.RemoveImage(request.ImageId);
+        if (result.IsFailure)
+        {
+            return Result.Failure<Unit>(result.Error);
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(Unit.Value);
+    }
+}
+
 public sealed record PublishProductCommand(Guid ProductId) : ICommand<Unit>;
 
 public sealed class PublishProductCommandHandler : IRequestHandler<PublishProductCommand, Unit>

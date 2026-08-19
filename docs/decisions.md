@@ -721,3 +721,43 @@ pre-filled every field from it, placed the order, and confirmed directly in the 
 resulting `Order.CustomerId` matched the logged-in user's id exactly — the first order in this
 system's history to ever carry one.
 Status: Accepted (Phase 28).
+
+---
+**ADR-040**
+Decision: Phase 29 adds admin product image upload. `Catalog.Domain.Product.AddImage`/the
+`ProductImageDto` projection already existed (Phase 4) but nothing ever called `AddImage` outside
+tests, and there was no way for an admin to get a file onto disk in the first place — this phase
+closes both gaps. New `AddProductImageCommand`/`RemoveProductImageCommand` (Catalog.Application,
+same thin repository-load/call-domain-method/save shape as every other admin command in
+`AdminCommands.cs`) — `RemoveImage` (new `Product` domain method) promotes the next remaining
+image to primary when the removed one was primary, mirroring how `AddImage` demotes the others when
+a new primary is added. The actual file write is a Web-layer concern, not Application/Domain: a new
+`IProductImageStorage`/`LocalProductImageStorage` (`Store.Web/Infrastructure/Uploads`) validates
+extension (jpg/jpeg/png/webp/gif) and a 5 MB size cap, then saves to
+`wwwroot/uploads/products/{productId}/{guid}{ext}` — Catalog only ever receives the resulting URL
+string via the command, same as if an admin had typed a CDN URL in by hand; swapping to real blob
+storage later only means swapping this one implementation behind the same interface.
+`Program.cs` needed a plain `app.UseStaticFiles()` alongside the existing `MapStaticAssets()` (the
+.NET 9+ manifest-based pipeline serves only files known at *build* time, never anything written by
+the app at runtime) so the browser can actually load an uploaded image back. `ProductsController`
+gained `UploadImage`/`RemoveImage` actions (`[Authorize(Policy = Permissions.Catalog.Edit)]`,
+`[RequestSizeLimit(5_242_880)]` matching the storage cap) and `Edit.cshtml` gained an Images panel
+(thumbnail grid, Remove button, upload form) next to the existing Variants panel.
+Reason: an admin with no way to attach a picture to a product was the last "how would this ever
+ship" gap flagged in the most recent full-project review — every storefront product card/detail
+page already renders `PrimaryImageUrl` (Phase 4/11), so this was a genuinely dead capability, not a
+speculative one. Deliberately local-disk storage, not blob storage: this is a single-instance
+dev/demo deployment (docs/deployment.md), and adding a cloud storage dependency for it would be
+solving a scaling problem this project doesn't have yet — `IProductImageStorage` exists specifically
+so that decision is revisited in one place, not scattered through Catalog, if it ever needs to be.
+Known simplification: `RemoveImage` deletes the DB row only, not the physical file — an orphaned
+file on disk costs nothing at this scale and periodic cleanup is a fair thing to defer, unlike a
+dangling *DB reference* to a missing file, which this design never produces. Verified live: uploaded
+a real PNG through the admin panel, confirmed the exact bytes round-tripped back with a `200
+image/png` response from the new static-file path, confirmed it appeared as the storefront-facing
+thumbnail on both `/Admin/Products` and the product's own admin edit page, then removed it and
+confirmed the DB row was gone and the panel fell back to "No images yet." Also caught and fixed a
+real bug this way, not just in a test: the two new command handlers were never registered in
+`Catalog.Infrastructure/DependencyInjection.cs` (this module registers handlers by hand, not via
+assembly scanning) — invisible to `dotnet build`, only surfaced as a live 500 once actually clicked.
+Status: Accepted (Phase 29).

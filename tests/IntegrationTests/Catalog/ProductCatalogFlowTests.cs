@@ -70,6 +70,50 @@ public sealed class ProductCatalogFlowTests : IAsyncLifetime
         searchResult.Items.Should().Contain(i => i.Slug == slug);
     }
 
+    [Fact]
+    public async Task Adding_then_removing_a_product_image_round_trips_and_promotes_the_next_primary()
+    {
+        var slug = $"integration-test-{Guid.NewGuid():N}";
+        Guid firstImageId;
+        Guid secondImageId;
+
+        await using (var writeDb = CreateContext())
+        {
+            var product = Product.Create("Image Test Product", slug, "short desc", "long desc", brandId: null).Value;
+            product.AddVariant("ITEST-IMG-1", 49.99m, "USD", salePrice: null, barcode: null, weightKg: null);
+            writeDb.Products.Add(product);
+            await writeDb.SaveChangesAsync();
+            _createdProductId = product.Id;
+        }
+
+        await using (var db1 = CreateContext())
+        {
+            var product = await db1.Products.Include(p => p.Images).FirstAsync(p => p.Id == _createdProductId);
+            product.AddImage("/uploads/products/x/first.jpg", "first", isPrimary: true);
+            product.AddImage("/uploads/products/x/second.jpg", "second", isPrimary: false);
+            await db1.SaveChangesAsync();
+
+            firstImageId = product.Images.Single(i => i.Url.EndsWith("first.jpg", StringComparison.Ordinal)).Id;
+            secondImageId = product.Images.Single(i => i.Url.EndsWith("second.jpg", StringComparison.Ordinal)).Id;
+        }
+
+        await using (var db2 = CreateContext())
+        {
+            var product = await db2.Products.Include(p => p.Images).FirstAsync(p => p.Id == _createdProductId);
+            product.Images.Should().HaveCount(2);
+            product.Images.Single(i => i.Id == firstImageId).IsPrimary.Should().BeTrue();
+
+            var removeResult = product.RemoveImage(firstImageId);
+            removeResult.IsSuccess.Should().BeTrue();
+            await db2.SaveChangesAsync();
+        }
+
+        await using var readDb = CreateContext();
+        var reloaded = await readDb.Products.Include(p => p.Images).FirstAsync(p => p.Id == _createdProductId);
+        reloaded.Images.Should().ContainSingle(i => i.Id == secondImageId);
+        reloaded.Images.Single().IsPrimary.Should().BeTrue("removing the primary image should promote the remaining one");
+    }
+
     private static CatalogDbContext CreateContext() =>
         new(new DbContextOptionsBuilder<CatalogDbContext>().UseSqlServer(ConnectionString).Options);
 }
