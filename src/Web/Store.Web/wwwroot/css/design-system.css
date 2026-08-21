@@ -108,6 +108,12 @@
    Hero copy — serif display accent + more breathing room on the headline.
    ========================================================================== */
 .vanta-hero .box-content .display-5 {
+    /* The theme's own `h1,h2,...{ color: var(--main) }` rule (styles.css) targets this element
+       directly, which wins over inheriting `.text-white` from the parent — inheritance only
+       applies when nothing else matches the element itself, regardless of the parent's
+       `!important`. Real, pre-existing bug (not introduced by this file): the heading has always
+       rendered in the theme's near-black `--main`, invisible against a dark hero background. */
+    color: var(--ds-ink-inverse);
     font-family: var(--ds-font-display);
     font-weight: 500;
     letter-spacing: -0.01em;

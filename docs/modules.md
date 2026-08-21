@@ -374,7 +374,15 @@ changed. Re-themed so far: Header (now sticky + solid white, was `.header-absolu
 with black-on-dark-Vanta nav text — a real Phase 30 contrast bug, fixed as a side effect), Footer
 (now dark/inverse — the deliberate tonal shift premium DTC footers use), hero/section headings
 (serif `Young Serif` display accent), product cards (soft shadow + hover lift), buttons (consistent
-radius/motion). Not yet re-themed: Product Details, Shop filters, Cart/Checkout, Auth pages (Phase
+radius/motion). A second real contrast bug surfaced immediately by live user feedback after the
+first push: the Home hero's `<h2>` itself (not just the header) rendered in the theme's near-black
+`--main` — `styles.css`'s `h1,h2,...{color: var(--main)}` targets the heading element directly,
+which wins over inheriting `.text-white` from its parent regardless of that parent's `!important`
+(inheritance only applies when nothing else matches the element itself). Fixed by giving the hero
+heading its own explicit white color in `design-system.css`. Checked every other `.text-white`
+usage on the storefront for the same shape of bug (Home's two collection banners, the Phase 30 auth
+split-panel's copy) — both use a bare `<div>`, not an `h1-h6` tag, so neither is affected; left
+alone. Not yet re-themed: Product Details, Shop filters, Cart/Checkout, Auth pages (Phase
 30's split-panel already looks reasonably premium but doesn't yet draw from the new tokens), Admin
 area (out of scope — the request was the storefront/"e-commerce website", not the admin panel).
 See docs/current-state.md "Next" for the phase-by-phase remainder.
