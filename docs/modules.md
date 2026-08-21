@@ -364,6 +364,21 @@ show only the raw `ProductVariantId` Guid, which nobody can recognize a product 
   (`padding: 70px 0`) — found via a systematic class-name audit (every class token used in Views
   cross-referenced against every loaded stylesheet), not another one-off page read.
 
+## Design system (Phase 36, ADR-047 — in progress, not a module)
+Explicit user-requested full premium redesign of the storefront, executed as a foundation phase
+first (this one) then page-by-page, not a single sweep. `wwwroot/css/design-system.css` — CSS
+custom-property tokens (color, an 8px spacing scale, two-tier radius, layered shadows, 220ms
+motion) loaded after `styles.css`/`site-custom.css`, additive only: every rule targets the curated
+`ecomus` theme's existing classes, never renames/restructures markup, so no Razor/JS/test surface
+changed. Re-themed so far: Header (now sticky + solid white, was `.header-absolute` transparent
+with black-on-dark-Vanta nav text — a real Phase 30 contrast bug, fixed as a side effect), Footer
+(now dark/inverse — the deliberate tonal shift premium DTC footers use), hero/section headings
+(serif `Young Serif` display accent), product cards (soft shadow + hover lift), buttons (consistent
+radius/motion). Not yet re-themed: Product Details, Shop filters, Cart/Checkout, Auth pages (Phase
+30's split-panel already looks reasonably premium but doesn't yet draw from the new tokens), Admin
+area (out of scope — the request was the storefront/"e-commerce website", not the admin panel).
+See docs/current-state.md "Next" for the phase-by-phase remainder.
+
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
 Customers, Promotions, Shipping, Reviews) have real Domain/Application/Infrastructure code — none

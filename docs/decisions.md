@@ -967,3 +967,40 @@ fetching the file through a completely independent HTTP client (`curl`, includin
 authenticated admin session) and getting the exact up-to-date byte-for-byte content every time —
 a genuinely served, correct file, not a browser-cache-shaped code defect.
 Status: Accepted (Phase 35).
+
+---
+**ADR-047**
+Decision: Phase 36 begins a full premium-UI/UX redesign of the storefront, explicitly requested
+("redesign the whole website... modern, premium, clean, professionally designed brand, not a
+generic template"), executed the same way every large task in this project has been: a foundation
+phase first, verified live, then page-by-page — not a single unverified sweep across 20+ views.
+This phase ships the foundation: a new `wwwroot/css/design-system.css` token layer (colors,
+an 8px spacing scale, two-tier border radius, layered neutral shadows, 220ms motion — all CSS
+custom properties) loaded after `styles.css`/`site-custom.css` so it wins the cascade, plus the
+first components re-themed against it: Header, Footer, hero/section headings, product cards,
+buttons. Deliberately additive, not a rewrite: every rule targets the curated `ecomus` theme's own
+existing classes (`.card-product`, `.tf-btn`, `#header`, `#footer`, ...) rather than renaming or
+restructuring markup, so no Razor binding, controller, JS behavior (`main.js`/swiper/lazysize), or
+test scrapes a page's HTML for anything that changed. Kept `Albert Sans` (already loaded, already a
+premium geometric sans) as the UI font and added the already-loaded `Young Serif` as a serif
+display accent for headings — a sans-body/serif-display pairing is what separates a considered DTC
+brand from a generic template, and both fonts were already in the project, unused for this. Kept
+the red accent (`#db1215`) the user confirmed liking (see this conversation's earlier design
+feedback round) but scoped its use to CTAs/accents only, never flooded backgrounds — the actual
+mechanism behind "premium" being mostly neutral with one disciplined accent color, not a new
+palette.
+Reason: while rebuilding the header, found and fixed a real, previously-unnoticed contrast bug from
+Phase 30: `#header` was `.header-absolute` (transparent, floating over the hero with a `-64px`
+negative margin) with default black nav-link text — legible over the original static hero image,
+but the Home page's hero background has been a dark `VANTA.NET` canvas since Phase 30, and nobody
+re-checked header-text legibility against it. The redesign's sticky solid-white header (a change
+already planned as the more common premium-DTC pattern anyway, not a special-case fix) resolves it
+as a side effect. Verified live: computed styles confirm the header is `position: sticky`, solid
+white, with `rgb(18,18,18)` nav text (was invisible-on-dark before); confirmed the footer computes
+`rgb(18,18,18)` background (was white); confirmed hero/section headings compute the `Young Serif`
+font stack; confirmed product cards compute `14px` radius and the new soft-shadow token; confirmed
+no horizontal overflow at a 375px mobile viewport. All 168 tests still passing — a purely additive
+CSS layer, no application code or existing markup touched.
+Status: Accepted (Phase 36) — first phase of an ongoing redesign; see docs/current-state.md "Next"
+for the remaining pages (Product Details, Shop filters, Cart/Checkout, Auth-pages token alignment,
+empty/loading states).

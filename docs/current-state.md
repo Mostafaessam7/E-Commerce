@@ -402,9 +402,22 @@ Completed:
   confirmed the fix was actually correct by fetching the file through `curl` (a fully independent
   HTTP client, including through a real authenticated admin session), which got the exact
   up-to-date content every time. All 168 tests still passing.
+- Phase 36: design-system foundation for a full premium storefront redesign (ADR-047), explicit
+  user request. New `wwwroot/css/design-system.css` — CSS custom-property tokens (color, 8px
+  spacing scale, two-tier radius, layered shadows, 220ms motion), additive-only on top of the
+  curated `ecomus` theme (no markup renamed/restructured, so no Razor/JS/test surface changed).
+  Re-themed: Header (sticky + solid white — also fixes a real Phase 30 bug, black nav text on the
+  now-dark Vanta hero background was nearly invisible), Footer (dark/inverse tone), hero/section
+  headings (`Young Serif` display accent), product cards (soft shadow + hover lift), buttons
+  (consistent radius/motion). Verified live: header computes `position: sticky` + solid white +
+  dark nav text; footer computes a dark background; headings compute the serif font stack; product
+  cards compute the new radius/shadow tokens; no horizontal overflow at 375px mobile. All 168 tests
+  still passing (purely additive CSS, no application code touched).
 
 In Progress:
-- None.
+- Phase 37+: continuing the premium redesign page-by-page onto the Phase 36 token layer — Product
+  Details, Shop/filters, Cart/Checkout, Auth-pages token alignment, empty/loading states. Not yet
+  started.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
@@ -416,11 +429,10 @@ Next:
   upload is real (Phase 29), Home/Account pages have a real Vanta.js treatment (Phase 30), the
   Cart page has real product images + a working coupon UI (Phase 31), the Admin area's status
   badges/Stock page are fixed (Phase 32), the Payments page/Checkout confirmation badges are
-  fixed (Phase 33), and a site-wide CSS class-name audit found and fixed long-standing
-  zero-padding/broken-flex/wrong-width/missing-margin defects across 20+ files (Phases 34-35). The
-  screen-by-screen design audit is now complete — no further actionable UI gaps are currently
-  tracked; a broader visual redesign beyond these scoped, defect-driven passes would need its own
-  explicit ask.
+  fixed (Phase 33), a site-wide CSS class-name audit found and fixed long-standing
+  zero-padding/broken-flex/wrong-width/missing-margin defects across 20+ files (Phases 34-35), and
+  a full premium storefront redesign is underway on a new design-token foundation (Phase 36,
+  in progress — see "In Progress" above).
 - No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
   genuinely out of reach until this repo has a remote (docs/ci-cd.md).
 
@@ -452,7 +464,9 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..046.
+- docs/decisions.md — ADR-001..047.
+- docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after
+  "Storefront UI polish".
 
 Database Changes:
 Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inventory, Ordering,
@@ -506,4 +520,9 @@ padding and 11 admin list views had their row columns block-stacked instead of f
 via a systematic class-name audit rather than another one-off page read), ADR-046 (Phase 35
 continues the same audit into numeric-scale gaps — `w150`/`w100` don't exist on 12 admin buttons,
 `.mt-10`/`.mt-14`/`.mt-20` don't exist despite the theme's richer `.mb-*` scale, and `.fs-14` was a
-bug this session introduced itself in Phase 32 by borrowing a storefront-only class).
+bug this session introduced itself in Phase 32 by borrowing a storefront-only class), ADR-047
+(Phase 36 starts a full premium storefront redesign, explicit user request — a new
+`design-system.css` token layer, additive over the curated `ecomus` theme, applied so far to
+Header/Footer/hero/headings/product-cards/buttons; fixed a real Phase 30 bug as a side effect —
+the header's black nav text was invisible against the dark Vanta hero background it's floated over
+since Phase 30).

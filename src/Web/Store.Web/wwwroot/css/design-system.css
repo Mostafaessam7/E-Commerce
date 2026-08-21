@@ -1,0 +1,247 @@
+/* ==========================================================================
+   Design system (Phase 36, ADR-047) — a token layer + component refinements
+   on top of the curated `ecomus` theme (Phase 5), not a replacement for it.
+   Every rule here targets the theme's own existing classes so no Razor
+   markup, JS behavior (main.js/swiper/lazysize), or asp-for binding changes
+   — this file is purely an additive visual layer, loaded after styles.css
+   and site-custom.css so it wins the cascade on anything it touches.
+   ========================================================================== */
+
+:root {
+    /* --- Color: neutral-first, red reserved for CTAs/accents only — never
+       flooded backgrounds. Built on top of the theme's own --main/--primary
+       rather than replacing them, so anything not re-themed here still
+       matches. --- */
+    --ds-ink: #121212;
+    --ds-ink-soft: #5c5c5c;
+    --ds-ink-faint: #8f8f8f;
+    --ds-bg: #ffffff;
+    --ds-bg-soft: #faf9f7;
+    --ds-bg-sunk: #f3f2ef;
+    --ds-border: #e9e7e2;
+    --ds-border-strong: #d8d5cd;
+    --ds-accent: #db1215;
+    --ds-accent-dark: #a80e10;
+    --ds-accent-soft: #fdecec;
+    --ds-ink-inverse: #ffffff;
+    --ds-bg-inverse: #121212;
+    --ds-bg-inverse-soft: #1c1c1c;
+
+    /* --- Type --- */
+    --ds-font-display: "Young Serif", "Albert Sans", serif;
+    --ds-font-body: "Albert Sans", sans-serif;
+
+    /* --- Space: 8px rhythm --- */
+    --ds-space-1: 4px;
+    --ds-space-2: 8px;
+    --ds-space-3: 12px;
+    --ds-space-4: 16px;
+    --ds-space-5: 24px;
+    --ds-space-6: 32px;
+    --ds-space-7: 48px;
+    --ds-space-8: 64px;
+    --ds-space-9: 96px;
+
+    /* --- Radius: soft, two-tier --- */
+    --ds-radius-sm: 8px;
+    --ds-radius-md: 14px;
+    --ds-radius-lg: 22px;
+    --ds-radius-pill: 999px;
+
+    /* --- Shadow: layered, neutral (not pure black) --- */
+    --ds-shadow-sm: 0 1px 2px rgba(18, 18, 18, 0.05), 0 1px 1px rgba(18, 18, 18, 0.03);
+    --ds-shadow-md: 0 12px 28px rgba(18, 18, 18, 0.08), 0 2px 8px rgba(18, 18, 18, 0.04);
+    --ds-shadow-lg: 0 24px 56px rgba(18, 18, 18, 0.14), 0 6px 18px rgba(18, 18, 18, 0.06);
+
+    /* --- Motion --- */
+    --ds-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --ds-duration: 220ms;
+}
+
+/* ==========================================================================
+   Header — solid, sticky, premium. Was `header-absolute` (transparent,
+   floating over the hero) with default black nav text — invisible against
+   the dark Vanta hero added in Phase 30. A solid header is also the more
+   common premium-DTC pattern (Aesop, Everlane, Cuyana) vs. a transparent
+   overlay gimmick, so this fixes a real contrast bug and matches the brief.
+   ========================================================================== */
+#header.header-default {
+    position: sticky;
+    top: 0;
+    margin-bottom: 0;
+    background-color: var(--ds-bg);
+    border-bottom: 1px solid var(--ds-border);
+    z-index: 999;
+}
+
+#header .box-nav-ul .item-link {
+    color: var(--ds-ink);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: color var(--ds-duration) var(--ds-ease);
+}
+
+#header .box-nav-ul .item-link:hover {
+    color: var(--ds-accent);
+}
+
+#header .nav-icon-item {
+    color: var(--ds-ink);
+    transition: color var(--ds-duration) var(--ds-ease);
+}
+
+#header .nav-icon-item:hover {
+    color: var(--ds-accent);
+}
+
+#header .count-box {
+    background-color: var(--ds-accent);
+    color: var(--ds-ink-inverse);
+}
+
+/* The hero no longer needs the header's negative-margin overlay trick. */
+.vanta-hero {
+    margin-top: 0;
+}
+
+/* ==========================================================================
+   Hero copy — serif display accent + more breathing room on the headline.
+   ========================================================================== */
+.vanta-hero .box-content .display-5 {
+    font-family: var(--ds-font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+.vanta-hero .box-content p {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+/* ==========================================================================
+   Section headings — the serif accent shows up anywhere a section uses the
+   theme's own .flat-title/.title pattern (Home's "Featured Products", etc.)
+   ========================================================================== */
+.flat-title .title {
+    font-family: var(--ds-font-display);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--ds-ink);
+}
+
+/* ==========================================================================
+   Product card — softer shadow-on-hover lift instead of the theme's flat
+   default, consistent radius, calmer price typography.
+   ========================================================================== */
+.card-product .card-product-wrapper {
+    border-radius: var(--ds-radius-md);
+    box-shadow: var(--ds-shadow-sm);
+    transition: box-shadow var(--ds-duration) var(--ds-ease);
+}
+
+.card-product:hover .card-product-wrapper {
+    box-shadow: var(--ds-shadow-md);
+}
+
+.card-product .card-product-wrapper img {
+    transition: transform 600ms var(--ds-ease), opacity var(--ds-duration) var(--ds-ease);
+}
+
+.card-product:hover .card-product-wrapper img {
+    transform: scale(1.04);
+}
+
+.card-product .title {
+    color: var(--ds-ink);
+    font-weight: 500;
+}
+
+.card-product .price .new-price {
+    color: var(--ds-ink);
+    font-weight: 600;
+}
+
+.card-product .price .old-price {
+    color: var(--ds-ink-faint);
+}
+
+/* ==========================================================================
+   Buttons — consistent radius/motion on top of the theme's existing
+   .tf-btn/.tf-button variants (never renamed, so every asp-action form still
+   targets the same classes).
+   ========================================================================== */
+.tf-btn,
+.tf-button {
+    border-radius: var(--ds-radius-sm) !important;
+    transition: transform var(--ds-duration) var(--ds-ease), box-shadow var(--ds-duration) var(--ds-ease), background-color var(--ds-duration) var(--ds-ease), color var(--ds-duration) var(--ds-ease);
+}
+
+.tf-btn.btn-fill:hover,
+.tf-button.style-1:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--ds-shadow-sm);
+}
+
+/* ==========================================================================
+   Footer — dark, premium. Was the same off-white as the body; a deliberate
+   tonal shift on the footer is one of the clearest "considered" signals a
+   premium DTC site sends.
+   ========================================================================== */
+#footer.footer {
+    background-color: var(--ds-bg-inverse);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+#footer .footer-heading h6,
+#footer .footer-infor .footer-logo img {
+    filter: none;
+}
+
+#footer .footer-heading h6 {
+    color: var(--ds-ink-inverse);
+    font-family: var(--ds-font-display);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+#footer .footer-menu_item,
+#footer .footer-infor p,
+#footer .footer-infor a {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+#footer .footer-menu_item:hover,
+#footer a:hover {
+    color: var(--ds-ink-inverse);
+}
+
+#footer .footer-logo img {
+    filter: invert(1) brightness(2);
+}
+
+#footer .box-icon {
+    border-color: rgba(255, 255, 255, 0.24);
+    color: rgba(255, 255, 255, 0.72);
+}
+
+#footer .subscribe-email {
+    background-color: var(--ds-bg-inverse-soft);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--ds-ink-inverse);
+}
+
+#footer .subscribe-email::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+#footer .footer-bottom {
+    border-top-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+#footer .footer-bottom .footer-menu_item {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#footer .tf-payment img {
+    filter: grayscale(1) invert(1) brightness(1.8);
+    opacity: 0.7;
+}
