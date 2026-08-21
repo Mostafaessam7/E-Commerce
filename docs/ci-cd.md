@@ -69,9 +69,13 @@ environment where Docker Desktop can actually start.
 - No NuGet restore caching (`actions/cache` / `setup-dotnet`'s built-in cache needs a
   `packages-lock.json` this repo doesn't generate) — every run restores from scratch. Fine at this
   project's size; revisit if CI time becomes annoying.
-- No branch protection rule requiring this check to pass before merge — that's a GitHub repo
-  setting, not something a workflow file can express; turn it on in the repo's Settings once this
-  workflow has a remote to run against.
+- No branch protection rule requiring this check to pass before merge yet — that's a GitHub repo
+  setting, not something a workflow file can express, and can't be turned on from this sandbox
+  (needs the repo owner's GitHub UI/an authenticated `gh`/API session, neither available here). The
+  repo has had a real remote (`github.com/Mostafaessam7/E-Commerce`) since this session's
+  corresponding phase, so this is no longer blocked on "no remote to run against" — it's just an
+  action only the repo owner can take. Steps: Settings → Branches → Add branch ruleset on `main` →
+  require the `build-and-test` status check.
 - No automatic dependency/vulnerability scanning (Dependabot, `dotnet list package
   --vulnerable`) beyond the one-time manual pins already in `Directory.Packages.props`
   (docs/decisions.md ADR mentions e.g. the `System.Security.Cryptography.Xml` pin).

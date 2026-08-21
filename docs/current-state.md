@@ -457,8 +457,10 @@ Next:
   zero-padding/broken-flex/wrong-width/missing-margin defects across 20+ files (Phases 34-35), and
   a full premium storefront redesign is underway on a new design-token foundation (Phase 36,
   in progress — see "In Progress" above).
-- No branch protection rule requiring CI to pass before merge — that's a GitHub repo setting,
-  genuinely out of reach until this repo has a remote (docs/ci-cd.md).
+- No branch protection rule requiring CI to pass before merge — the repo has had a real remote
+  (`github.com/Mostafaessam7/E-Commerce`) since a couple of phases back, so this is no longer
+  blocked on "no remote"; it's a GitHub repo Settings action only the repo owner can take (walked
+  through with them once already — see docs/ci-cd.md for the exact steps).
 
 Known Issues:
 - `docker compose up --build` still hasn't been run against a real Docker daemon — genuinely
