@@ -2,6 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
+    @* Phase 40 (ADR-051): set the theme attribute before first paint so there's no light-mode
+       flash on a dark-mode visit. Deliberately inline/blocking, not deferred to main.js — the
+       whole point is this runs before the browser paints anything. *@
+    <script>
+        (function () {
+            var stored = localStorage.getItem("theme");
+            var theme = stored || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            document.documentElement.setAttribute("data-theme", theme);
+        })();
+    </script>
     <title>@(ViewData["Title"] is not null ? $"{ViewData["Title"]} - ECommerce" : "ECommerce")</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta name="description" content="@(ViewData["Description"] ?? "Shop the latest products at ECommerce.")" />
@@ -39,6 +49,20 @@
     <script src="~/ecomus/js/lazysize.min.js"></script>
     <script src="~/ecomus/js/wow.min.js"></script>
     <script src="~/ecomus/js/main.js"></script>
+    <script>
+        (function () {
+            var toggle = document.getElementById("themeToggle");
+            if (!toggle) {
+                return;
+            }
+            toggle.addEventListener("click", function () {
+                var current = document.documentElement.getAttribute("data-theme");
+                var next = current === "dark" ? "light" : "dark";
+                document.documentElement.setAttribute("data-theme", next);
+                localStorage.setItem("theme", next);
+            });
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -463,11 +463,29 @@ Completed:
   codes, then fixed and re-run cleanly. Verified live: Home's Category/Brand/Featured/New-Arrivals
   sections and Shop's listing all render the real seeded data with correct pricing; a product
   detail page's uploaded image loads for real (`naturalWidth: 720`). All 168 tests still passing.
+- Phase 40: real storefront dark mode (ADR-051), explicit user request. `data-theme` attribute on
+  `<html>`, set before first paint by a blocking script (reads `localStorage`, falls back to OS
+  preference), toggled by a new header button, persisted across navigation. Overrides only the
+  `design-system.css` `--ds-*` tokens for `:root[data-theme="dark"]` — deliberately never the
+  theme's own `--main`/`--white` (used as text color in 223 places vs only 112 as background;
+  inverting them would break every text usage). Every component `design-system.css` already
+  governs (Phases 36-38) picks up dark mode automatically; a few base rules needed an explicit
+  override. Admin's dark mode already existed (`admin-ecomus`'s own toggle since Phase 24) — not
+  rebuilt. Verified live (in a fresh tab, after the sandboxed browser's known static-CSS-caching
+  quirk gave a stale false negative in the original tab — see Phase 35/38): header/body/nav-text/
+  product-card-shadow all compute correct dark values; toggle flips instantly and survives
+  navigation; no horizontal overflow at 375px mobile. All 168 tests still passing.
+- Arabic/English bilingual support (explicit user request, "الموقع كله بما فيه لوحة الأدمن" — the
+  whole site including the admin panel) is a separate, much larger effort — real resource-based
+  localization across ~58 view files plus proper RTL layout mirroring, not a handful of translated
+  strings. Not started yet; scoped as its own multi-phase rollout the same way the Phase 36-38
+  redesign was, starting with the localization infrastructure (resource files, culture-switching
+  middleware, RTL CSS) and the highest-traffic pages first.
 
 In Progress:
-- None. The design-system rollout (Phases 36-38) is complete for every page explicitly named in
-  the redesign request. Any further visual work (Admin area, empty/loading-state polish beyond
-  what already exists, a deeper Shop-filters redesign) would need its own explicit ask.
+- Arabic/English localization infrastructure + highest-traffic pages (Header/Footer/Home/Shop/
+  Product Details first), then working outward to Cart/Checkout/Account and finally the Admin area.
+  Not yet started.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
@@ -516,7 +534,7 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..050.
+- docs/decisions.md — ADR-001..051.
 - docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after
   "Storefront UI polish".
 
@@ -589,4 +607,7 @@ loading later, so the new input radius was silently losing until given a scoped 
 ADR-050 (Phase 39 seeds real demo catalog data — 4 brands, 6 categories, 12 products — through the
 app's own real admin HTTP endpoints; required building `FeatureProductCommand`/`UnfeatureProductCommand`
 first since `Product.Feature`/`Unfeature` had never been wired to any admin command, the fourth time
-this session found that exact dead-domain-method shape).
+this session found that exact dead-domain-method shape), ADR-051 (Phase 40 adds a real storefront
+dark mode via a `data-theme` attribute toggle, overriding only `design-system.css`'s own `--ds-*`
+tokens rather than the theme's dual-purpose `--main`/`--white` variables, which would have broken
+223 existing text-color usages).

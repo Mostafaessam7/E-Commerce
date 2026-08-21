@@ -59,6 +59,111 @@
 }
 
 /* ==========================================================================
+   Dark mode (Phase 40, ADR-051) — toggled via a `data-theme` attribute on
+   <html> (set by an inline script in _Layout.cshtml's <head>, before first
+   paint, so there's no light-mode flash; persisted to localStorage), not
+   `prefers-color-scheme` alone, so there's a real manual switch. Overrides
+   only the --ds-* tokens, never the theme's own --main/--white — those two
+   are used as *both* background AND text color across ~550 combined rules
+   in ecomus/css/styles.css (e.g. white button text on a colored fill), so
+   inverting them site-wide would break every one of those, not just page
+   backgrounds. Every component design-system.css already governs (header,
+   footer, hero, product cards, forms, tables, badges, buttons, filter
+   sidebar) picks up the dark palette automatically since they already read
+   --ds-* tokens; this section is what actually flips those tokens, plus a
+   handful of base-page rules (body/section backgrounds) that read the
+   theme's own variables directly and need an explicit override here.
+   ========================================================================== */
+:root[data-theme="dark"] {
+    --ds-ink: #f0f0ef;
+    --ds-ink-soft: #b8b6b1;
+    --ds-ink-faint: #83817c;
+    --ds-bg: #141413;
+    --ds-bg-soft: #1c1c1a;
+    --ds-bg-sunk: #101010;
+    --ds-border: #302f2c;
+    --ds-border-strong: #3f3e3a;
+    --ds-accent: #ff4d4f;
+    --ds-accent-dark: #e0393b;
+    --ds-accent-soft: rgba(255, 77, 79, 0.16);
+    --ds-ink-inverse: #141413;
+    --ds-bg-inverse: #f0f0ef;
+    --ds-bg-inverse-soft: #e2e2df;
+}
+
+:root[data-theme="dark"] body {
+    background-color: var(--ds-bg);
+    color: var(--ds-ink);
+}
+
+:root[data-theme="dark"] .flat-title .title,
+:root[data-theme="dark"] .card-product .title,
+:root[data-theme="dark"] .tf-product-info-wrap h1,
+:root[data-theme="dark"] .form-label,
+:root[data-theme="dark"] h1, :root[data-theme="dark"] h2, :root[data-theme="dark"] h3,
+:root[data-theme="dark"] h4, :root[data-theme="dark"] h5, :root[data-theme="dark"] h6 {
+    color: var(--ds-ink);
+}
+
+:root[data-theme="dark"] .text-muted {
+    color: var(--ds-ink-faint) !important;
+}
+
+:root[data-theme="dark"] .form-control,
+:root[data-theme="dark"] .form-select {
+    background-color: var(--ds-bg-soft);
+    color: var(--ds-ink);
+}
+
+:root[data-theme="dark"] .table tbody tr:hover {
+    background-color: var(--ds-bg-soft);
+}
+
+/* Footer/hero were already dark in light mode (Phase 36) — keep them
+   visually distinct from the now-dark body via the (unchanged) --ds-bg-inverse
+   role, so the page doesn't read as one flat block. */
+:root[data-theme="dark"] #footer.footer {
+    background-color: #0b0b0a;
+}
+
+:root[data-theme="dark"] .offcanvas {
+    background-color: var(--ds-bg);
+    color: var(--ds-ink);
+}
+
+/* Theme toggle button (header) */
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-pill);
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--ds-ink);
+    transition: border-color var(--ds-duration) var(--ds-ease), color var(--ds-duration) var(--ds-ease);
+}
+
+.theme-toggle:hover {
+    border-color: var(--ds-accent);
+    color: var(--ds-accent);
+}
+
+.theme-toggle .icon-moon-svg {
+    display: none;
+}
+
+:root[data-theme="dark"] .theme-toggle .icon-sun-svg {
+    display: none;
+}
+
+:root[data-theme="dark"] .theme-toggle .icon-moon-svg {
+    display: block;
+}
+
+/* ==========================================================================
    Header — solid, sticky, premium. Was `header-absolute` (transparent,
    floating over the hero) with default black nav text — invisible against
    the dark Vanta hero added in Phase 30. A solid header is also the more

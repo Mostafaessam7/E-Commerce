@@ -429,6 +429,17 @@ enforced the same as if an admin had typed it in by hand. The 3 leftover phase-v
 products and the "Phase 21 Verify" Brand/Category were archived/deactivated (not deleted) through
 the same real admin actions.
 
+Dark mode (Phase 40, ADR-051): a real `data-theme` attribute toggle (header button, inline sun/moon
+SVGs), set before first paint by a blocking script at the top of `_Layout.cshtml`'s `<head>` and
+persisted to `localStorage`. Overrides only `design-system.css`'s own `--ds-*` tokens for
+`:root[data-theme="dark"]` — deliberately never the curated `ecomus` theme's `--main`/`--white`
+(those serve double duty as both background and text color across ~330 combined rules; inverting
+them would break every text-color usage, not just backgrounds). Every component already governed
+by `design-system.css` (header, footer, hero, cards, forms, tables, buttons, filter sidebar) picks
+up dark mode automatically; a handful of base rules (`body`, headings, `.text-muted`, `.offcanvas`)
+needed an explicit dark override since they read the theme's variables directly. Admin's dark mode
+already existed (`admin-ecomus`'s own `.dark-theme` toggle, noted since Phase 24) — not rebuilt.
+
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
 Customers, Promotions, Shipping, Reviews) have real Domain/Application/Infrastructure code — none

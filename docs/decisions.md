@@ -1122,3 +1122,38 @@ sections all render actual seeded data with correct sale-price formatting; fetch
 confirmed all 12 products list with correct prices; fetched a product detail page and confirmed its
 real uploaded image loads (`naturalWidth: 720`, not a broken image). All 168 tests still passing.
 Status: Accepted (Phase 39).
+
+---
+**ADR-051**
+Decision: Phase 40 adds a real, manually-toggled dark mode to the storefront, explicit user
+request. A `data-theme` attribute on `<html>` (not `prefers-color-scheme` alone) drives it — set by
+a small blocking inline script at the very top of `_Layout.cshtml`'s `<head>`, before the browser
+paints anything, reading `localStorage.theme` first and falling back to the OS preference only if
+nothing is stored, so there's no light-mode flash on a repeat dark-mode visit. A toggle button
+(`#themeToggle`, inline sun/moon SVGs — the icon font has neither) in the header flips the
+attribute and persists the choice.
+The CSS side deliberately overrides only the `--ds-*` tokens `design-system.css` already introduced
+(Phases 36-38), never the curated `ecomus` theme's own `--main`/`--white` variables, even though
+redefining those two would have given broader "automatic" coverage for free. `--white` alone is
+used as *text* color in 223 places in `ecomus/css/styles.css` (button labels, badge text, header
+overlays) versus only 112 as a background — inverting it for dark mode would have made every one
+of those 223 read dark-on-dark, not just repainted page backgrounds. Every component
+`design-system.css` already governs (header, footer, hero, product cards, forms, tables, buttons,
+filter sidebar) picks up the dark palette automatically since it already reads `--ds-*` tokens; a
+handful of base rules (`body`, headings, `.text-muted`, `.offcanvas`) needed an explicit
+`:root[data-theme="dark"]` override since they read the theme's own variables directly. Admin's
+dark mode was **not** built here — `admin-ecomus`'s template already ships a fully working
+`.dark-theme` body-class toggle with its own `localStorage` persistence (Phase 24 already noted
+this; confirmed still present, not something this phase needed to add).
+Reason: same reasoning as every dark-mode/light-mode split in a design system that wasn't built
+dark-first — a wholesale variable inversion is the tempting shortcut and the wrong one the moment a
+variable serves double duty. Scoped, explicit overrides on the tokens this project already owns are
+slower to write but don't risk silently breaking 223 existing rules to save writing a few more
+lines. Verified live: confirmed via computed styles (in a fresh browser tab, after the sandboxed
+preview browser's known static-CSS-caching quirk — see Phase 35/38 — produced a stale false
+negative in the original tab) that the header/body/nav text/product-card shadow all compute the
+correct dark values; clicking the toggle flips `data-theme` and `localStorage` immediately; the
+choice survives a navigation to a different page; no horizontal overflow at a 375px mobile
+viewport. All 168 tests still passing — CSS/small-inline-script-only change, no application code
+touched.
+Status: Accepted (Phase 40).
