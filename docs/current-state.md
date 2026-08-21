@@ -437,11 +437,22 @@ Completed:
   Orders page, confirmed via an anonymous `curl` request that the order's Confirmation URL now
   404s instead of leaking it; confirmed a category tile correctly filters Shop to the one real
   product in that category. All 168 tests still passing.
+- Phase 38: redesign's last planned phase — Product Details, Shop filters, Cart, Checkout, Profile/
+  My Orders, and the Phase 30 Auth pages all re-themed at once (ADR-049) by targeting the shared
+  Bootstrap primitives they all already use (`.form-control`/`.form-select`, `.table`, `.alert`,
+  `.badge`, `.pagination`) in `design-system.css`, rather than a page-by-page pass. Real bug hit
+  verifying: `ecomus/css/styles.css`'s `input[type="text"], input[type="search"], ...` selector is
+  more specific than a bare `.form-control` class, so the new input radius was silently losing
+  despite loading last in the cascade — fixed with a scoped `!important`. Verified live via a real
+  cart round-trip (added a product, confirmed the Cart table's new header/border treatment;
+  confirmed the Shop search input now computes `8px` radius, not the theme's `3px`; confirmed
+  Product Details' media container and heading font; no horizontal overflow at 375px mobile). All
+  168 tests still passing. Every page named in the original redesign request has now been covered.
 
 In Progress:
-- Phase 38+: continuing the premium redesign page-by-page onto the Phase 36 token layer — Product
-  Details, Shop/filters, Cart/Checkout, Auth-pages token alignment, empty/loading states. Not yet
-  started.
+- None. The design-system rollout (Phases 36-38) is complete for every page explicitly named in
+  the redesign request. Any further visual work (Admin area, empty/loading-state polish beyond
+  what already exists, a deeper Shop-filters redesign) would need its own explicit ask.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
@@ -490,7 +501,7 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..048.
+- docs/decisions.md — ADR-001..049.
 - docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after
   "Storefront UI polish".
 
@@ -555,4 +566,8 @@ since Phase 30), ADR-048 (Phase 37 adds real homepage sections — Category/Bran
 using pre-existing data never surfaced before — and turns nine dead footer/header links into real
 content pages; found and fixed two real gaps while doing it, no customer order history existed
 despite `Order.CustomerId` being set since Phase 28, and `Checkout/Confirmation` had no ownership
-check at all — any order's details were viewable by anyone holding its Guid).
+check at all — any order's details were viewable by anyone holding its Guid), ADR-049 (Phase 38,
+the redesign's last planned phase — Product Details/Shop/Cart/Checkout/Profile/Auth pages re-themed
+at once by targeting their shared Bootstrap primitives in `design-system.css`; hit and fixed a real
+CSS-specificity bug, an element+attribute selector in the theme beat a plain class selector despite
+loading later, so the new input radius was silently losing until given a scoped `!important`).

@@ -1054,3 +1054,35 @@ product in that category). All 168 tests still passing; two new call sites (`Adm
 and one integration test) needed a positional-argument fix after `OrderSearchCriteria` gained a
 new parameter — caught by the build, not runtime.
 Status: Accepted (Phase 37).
+
+---
+**ADR-049**
+Decision: Phase 38 continues the Phase 36 redesign onto the remaining storefront pages — Product
+Details, Shop's filter sidebar, Cart's table, Checkout, and (indirectly, since they share the same
+primitives) Profile/My Orders and the Phase 30 Auth pages. Rather than a page-by-page pass, this
+phase re-themes the shared Bootstrap primitives every one of those pages already uses
+(`.form-control`/`.form-select`, `.table`, `.alert`, `.badge`, `.pagination`) once in
+`design-system.css`, plus a few page-specific rules (`.tf-product-media-main` radius/shadow,
+`.widget-facet` filter-sidebar card treatment, section `h5`s onto the serif display font). Same
+additive discipline as Phase 36 — no markup renamed or restructured.
+Reason: real bug hit while verifying, not a design taste call — `ecomus/css/styles.css` has
+`input[type="text"], input[type="search"], ...` (an element+attribute selector, specificity
+(0,1,1)) setting `border-radius: 3px`, which is *more specific* than a bare `.form-control` class
+selector (0,1,0) — my rule was silently losing on every text/search/email/etc. input despite
+loading last in the cascade (source order only breaks ties at equal specificity; it never beats
+higher specificity). Confirmed by walking every CSS rule actually matching the element via
+`document.styleSheets` rather than guessing from computed output, then fixed with a scoped
+`!important` (same convention the theme's own spacing utilities already use, e.g. `.mb-14
+{ ... !important }`) rather than trying to out-specify a selector list that could grow. Also
+unified `.card-product .price .new-price` (Phase 36, product-grid cards) onto the same accent red
+as the new `.tf-product-info-wrap .price .new-price` (Product Details) — both only ever render when
+there's a genuine discount, so highlighting the deal in the accent color is a legitimate "draw the
+eye" signal consistent across both places it appears, not a random color choice.
+Verified live via a real cart round-trip: added a real in-stock product to cart, confirmed the
+Cart page's `.table` renders the new uppercase/muted header treatment and real row borders;
+confirmed the Shop search input now computes the intended `8px` radius (was silently `3px`);
+confirmed Product Details' media container computes the new radius/shadow and its `h1` computes the
+serif font stack; confirmed the Shop filter sidebar (`.widget-facet`) computes the new soft
+card treatment; no horizontal overflow at a 375px mobile viewport. All 168 tests still passing —
+CSS-only change, no application code or markup touched.
+Status: Accepted (Phase 38).

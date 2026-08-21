@@ -162,7 +162,7 @@
 }
 
 .card-product .price .new-price {
-    color: var(--ds-ink);
+    color: var(--ds-accent);
     font-weight: 600;
 }
 
@@ -185,6 +185,140 @@
 .tf-button.style-1:hover {
     transform: translateY(-1px);
     box-shadow: var(--ds-shadow-sm);
+}
+
+/* ==========================================================================
+   Phase 38 (ADR-049) — forms, tables, and the remaining storefront pages
+   (Product Details, Shop, Cart, Checkout, Profile, Auth). These primitives
+   (Bootstrap .form-control/.form-select/.table/.alert/.badge/.pagination)
+   are shared across every page listed above, so one rule set here reaches
+   all of them consistently instead of a page-by-page repeat.
+   ========================================================================== */
+.form-control,
+.form-select {
+    /* !important on radius/border-color only: ecomus/css/styles.css has
+       `input[type="text"], input[type="search"], ...` (an element+attribute selector, higher
+       specificity than a single .form-control class) setting radius: 3px — without !important
+       this rule silently loses on every text/search/email/etc. input despite loading last. */
+    border-radius: var(--ds-radius-sm) !important;
+    border-color: var(--ds-border-strong) !important;
+    padding-top: var(--ds-space-2);
+    padding-bottom: var(--ds-space-2);
+    transition: border-color var(--ds-duration) var(--ds-ease), box-shadow var(--ds-duration) var(--ds-ease);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--ds-accent);
+    box-shadow: 0 0 0 3px var(--ds-accent-soft);
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--ds-ink);
+    margin-bottom: var(--ds-space-1);
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead th {
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    color: var(--ds-ink-faint);
+    border-bottom: 1px solid var(--ds-border);
+    padding-bottom: var(--ds-space-3);
+}
+
+.table tbody td {
+    border-top: 1px solid var(--ds-border);
+    padding-top: var(--ds-space-3);
+    padding-bottom: var(--ds-space-3);
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition: background-color var(--ds-duration) var(--ds-ease);
+}
+
+.table tbody tr:hover {
+    background-color: var(--ds-bg-soft);
+}
+
+.alert {
+    border-radius: var(--ds-radius-sm);
+    border-width: 1px;
+}
+
+.badge {
+    border-radius: var(--ds-radius-sm);
+    font-weight: 500;
+    padding: var(--ds-space-1) var(--ds-space-2);
+}
+
+.pagination .page-link {
+    border-radius: var(--ds-radius-sm) !important;
+    margin: 0 2px;
+    color: var(--ds-ink);
+    border-color: var(--ds-border);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--ds-ink);
+    border-color: var(--ds-ink);
+}
+
+/* ---- Product Details ---- */
+.tf-product-media-main {
+    border-radius: var(--ds-radius-md);
+    overflow: hidden;
+    box-shadow: var(--ds-shadow-sm);
+}
+
+.tf-product-info-wrap h1 {
+    font-family: var(--ds-font-display);
+    font-weight: 500;
+}
+
+.tf-product-info-wrap .price .new-price {
+    color: var(--ds-accent);
+}
+
+/* ---- Shop filters sidebar ---- */
+.widget-facet {
+    background-color: var(--ds-bg-soft);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-md);
+    padding: var(--ds-space-5);
+}
+
+/* ---- Cart coupon panel ---- */
+.badge.bg-light.text-dark.border {
+    background-color: var(--ds-bg-soft) !important;
+    border-color: var(--ds-border) !important;
+    color: var(--ds-ink-soft) !important;
+}
+
+/* ---- Checkout section headings ---- */
+.flat-spacing-1 h5 {
+    font-family: var(--ds-font-display);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+}
+
+/* ---- Radios/checkboxes (shipping method picker, billing-same-as-shipping, etc.) ---- */
+.form-check-input:checked {
+    background-color: var(--ds-accent);
+    border-color: var(--ds-accent);
+}
+
+.form-check-input:focus {
+    border-color: var(--ds-accent);
+    box-shadow: 0 0 0 3px var(--ds-accent-soft);
 }
 
 /* ==========================================================================

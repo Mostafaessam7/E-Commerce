@@ -407,6 +407,17 @@ footer/header links that had been `href="#"` since Phase 5 are now real pages: `
 "My Orders" customer page and fixed a real order-viewing security gap found while building it — see
 the Ordering section above.
 
+Remaining pages re-themed (Phase 38, ADR-049): rather than page-by-page, re-themed the shared
+Bootstrap primitives every remaining page already uses — `.form-control`/`.form-select`, `.table`,
+`.alert`, `.badge`, `.pagination` — once in `design-system.css`, which reaches Product Details,
+Shop, Cart, Checkout, Profile/My Orders, and the Phase 30 Auth pages simultaneously, plus a few
+page-specific rules (`.tf-product-media-main` radius/shadow, `.widget-facet` filter-sidebar card
+treatment). Real bug hit verifying, not a taste call: `ecomus/css/styles.css`'s
+`input[type="text"], input[type="search"], ...` element+attribute selector is *more specific* than
+a bare `.form-control` class, so the new radius silently lost despite loading last — fixed with a
+scoped `!important`, the same convention the theme's own spacing utilities already use. This is
+the redesign's last planned phase — every page named in the original request has now been covered.
+
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
 Customers, Promotions, Shipping, Reviews) have real Domain/Application/Infrastructure code — none
