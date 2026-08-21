@@ -1,4 +1,4 @@
-@model IReadOnlyList<ProductSummaryDto>
+@model HomeViewModel
 @{
     ViewData["Title"] = "Home";
 }
@@ -13,13 +13,34 @@
     </div>
 </section>
 
+@if (Model.Categories.Count > 0)
+{
+    <section class="flat-spacing-1">
+        <div class="container">
+            <div class="flat-title">
+                <span class="section-eyebrow">Browse</span>
+                <span class="title fs-28 fw-6">Shop by Category</span>
+            </div>
+            <div class="row g-3">
+                @foreach (var category in Model.Categories.Where(c => c.IsActive).Take(6))
+                {
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <a class="category-tile" asp-controller="Shop" asp-action="Index" asp-route-categoryId="@category.Id">@category.Name</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
 <section class="flat-spacing-1" id="featured">
     <div class="container">
         <div class="flat-title">
+            <span class="section-eyebrow">Handpicked</span>
             <span class="title fs-28 fw-6">Featured Products</span>
         </div>
 
-        @if (Model.Count == 0)
+        @if (Model.FeaturedProducts.Count == 0)
         {
             <div class="text-center py-5">
                 <p class="text-muted">No featured products yet — add and publish some from the admin panel once it ships (Phase 11).</p>
@@ -28,7 +49,7 @@
         else
         {
             <div class="tf-grid-layout tf-col-2 md-col-3 xl-col-4">
-                @foreach (var product in Model)
+                @foreach (var product in Model.FeaturedProducts)
                 {
                     <partial name="_ProductCard" model="product" />
                 }
@@ -36,6 +57,24 @@
         }
     </div>
 </section>
+
+@if (Model.NewArrivals.Count > 0)
+{
+    <section class="flat-spacing-1">
+        <div class="container">
+            <div class="flat-title">
+                <span class="section-eyebrow">Just In</span>
+                <span class="title fs-28 fw-6">New Arrivals</span>
+            </div>
+            <div class="tf-grid-layout tf-col-2 md-col-4">
+                @foreach (var product in Model.NewArrivals)
+                {
+                    <partial name="_ProductCard" model="product" />
+                }
+            </div>
+        </div>
+    </section>
+}
 
 <section class="flat-spacing-1">
     <div class="container">
@@ -59,6 +98,24 @@
         </div>
     </div>
 </section>
+
+@if (Model.Brands.Count > 0)
+{
+    <section class="flat-spacing-1">
+        <div class="container">
+            <div class="flat-title">
+                <span class="section-eyebrow">Trusted</span>
+                <span class="title fs-28 fw-6">Shop by Brand</span>
+            </div>
+            <div class="brand-strip">
+                @foreach (var brand in Model.Brands.Where(b => b.IsActive))
+                {
+                    <a class="brand-chip" asp-controller="Shop" asp-action="Index" asp-route-brandId="@brand.Id">@brand.Name</a>
+                }
+            </div>
+        </div>
+    </section>
+}
 
 @section Scripts {
     <script src="~/vendor/vanta/three.min.js"></script>

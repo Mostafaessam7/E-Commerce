@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "Terms & Conditions";
+}
+
+<section class="flat-spacing-1">
+    <div class="container" style="max-width:840px">
+        <h1 class="fs-28 fw-6 mb-4">Terms &amp; Conditions</h1>
+        <p class="text-muted mb-5">Last updated: @DateTime.UtcNow.ToString("MMMM yyyy")</p>
+
+        <h5 class="mt-20 mb-14">Using this site</h5>
+        <p>By placing an order with us, you confirm the information you provide (contact details,
+           shipping address, payment information) is accurate and that you're authorized to use the
+           payment method on the order.</p>
+
+        <h5 class="mt-20 mb-14">Pricing and availability</h5>
+        <p>Prices are shown in the currency displayed at checkout and can change without notice.
+           Placing an item in your cart doesn't reserve it — stock is confirmed at checkout, and an
+           item can occasionally sell out between adding it to your cart and completing your order.</p>
+
+        <h5 class="mt-20 mb-14">Orders and payment</h5>
+        <p>An order is confirmed once payment is successfully processed. We reserve the right to
+           cancel an order — with a full refund — if we're unable to fulfill it.</p>
+
+        <h5 class="mt-20 mb-14">Returns</h5>
+        <p>See our <a asp-controller="Home" asp-action="Returns">Returns &amp; Exchanges</a> page for
+           the full return policy.</p>
+
+        <h5 class="mt-20 mb-14">Contact</h5>
+        <p>Questions about these terms can be sent to
+           <a href="mailto:info@ecommerce.local">info@ecommerce.local</a>.</p>
+    </div>
+</section>

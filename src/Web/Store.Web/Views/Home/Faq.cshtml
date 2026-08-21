@@ -1,0 +1,82 @@
+@{
+    ViewData["Title"] = "FAQ";
+}
+
+<section class="flat-spacing-1">
+    <div class="container" style="max-width:840px">
+        <span class="section-eyebrow">Help</span>
+        <h1 class="fs-28 fw-6 mb-5">Frequently Asked Questions</h1>
+
+        <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        Do I need an account to place an order?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        No — you can check out as a guest. Creating an account lets you save addresses
+                        and see your order history for next time; anything already in your cart carries
+                        over automatically if you sign in partway through.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        How long does shipping take?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        It depends on the shipping method you choose at checkout — each one shows its
+                        own estimated delivery window and cost before you pay. See our
+                        <a asp-controller="Home" asp-action="Shipping">shipping page</a> for the full list.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                        Can I apply a discount code to my order?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes — there's a coupon code field on your <a asp-controller="Cart" asp-action="Index">cart page</a>.
+                        The code is checked for real when you place your order, so you'll see a clear
+                        error at checkout if it's expired or invalid.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                        What's your return policy?
+                    </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        See our <a asp-controller="Home" asp-action="Returns">Returns &amp; Exchanges</a>
+                        page for the full policy.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                        How do I track my order?
+                    </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Sign in and open <a asp-controller="Profile" asp-action="Orders">My Orders</a>
+                        from your account page — status updates there as your order moves from
+                        confirmed to shipped to delivered.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

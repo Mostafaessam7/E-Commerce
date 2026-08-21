@@ -188,6 +188,66 @@
 }
 
 /* ==========================================================================
+   Homepage sections added Phase 37 (ADR-048) — Categories/Brands/New
+   Arrivals. No matching theme component exists for a plain text category
+   tile or brand chip (the theme's own .tf-category-link expects a category
+   image, which Catalog.Domain.Category doesn't have), so these are small,
+   self-contained additions rather than a mis-fit reuse of something close.
+   ========================================================================== */
+.section-eyebrow {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ds-accent);
+    margin-bottom: var(--ds-space-2);
+}
+
+.category-tile {
+    display: block;
+    padding: var(--ds-space-6) var(--ds-space-4);
+    text-align: center;
+    background-color: var(--ds-bg-soft);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-md);
+    color: var(--ds-ink);
+    font-family: var(--ds-font-display);
+    font-size: 18px;
+    font-weight: 500;
+    transition: border-color var(--ds-duration) var(--ds-ease), transform var(--ds-duration) var(--ds-ease), box-shadow var(--ds-duration) var(--ds-ease);
+}
+
+.category-tile:hover {
+    color: var(--ds-ink);
+    border-color: var(--ds-accent);
+    box-shadow: var(--ds-shadow-sm);
+    transform: translateY(-2px);
+}
+
+.brand-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-3);
+}
+
+.brand-chip {
+    padding: var(--ds-space-2) var(--ds-space-5);
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-pill);
+    color: var(--ds-ink-soft);
+    font-weight: 500;
+    font-size: 14px;
+    transition: color var(--ds-duration) var(--ds-ease), border-color var(--ds-duration) var(--ds-ease), background-color var(--ds-duration) var(--ds-ease);
+}
+
+.brand-chip:hover {
+    color: var(--ds-ink-inverse);
+    background-color: var(--ds-ink);
+    border-color: var(--ds-ink);
+}
+
+/* ==========================================================================
    Footer — dark, premium. Was the same off-white as the body; a deliberate
    tonal shift on the footer is one of the clearest "considered" signals a
    premium DTC site sends.

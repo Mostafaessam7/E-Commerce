@@ -18,7 +18,7 @@ public sealed class OrdersController : Controller
     public async Task<IActionResult> Index(string? status, int page = 1, CancellationToken cancellationToken = default)
     {
         var result = await _dispatcher.Send(
-            new SearchOrdersQuery(new OrderSearchCriteria(status, page, PageSize: 20)), cancellationToken);
+            new SearchOrdersQuery(new OrderSearchCriteria(Status: status, Page: page, PageSize: 20)), cancellationToken);
 
         ViewData["StatusFilter"] = status;
         return View(result.Value);

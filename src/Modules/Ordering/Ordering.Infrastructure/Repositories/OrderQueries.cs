@@ -20,6 +20,11 @@ internal sealed class OrderQueries : IOrderQueries
             query = query.Where(o => o.Status == status);
         }
 
+        if (criteria.CustomerId is Guid customerId)
+        {
+            query = query.Where(o => o.CustomerId == customerId);
+        }
+
         var totalCount = await query.CountAsync(cancellationToken);
 
         // Order.Total is a computed C# property (Subtotal from Items + ShippingCost + Tax -

@@ -86,7 +86,15 @@ Dependencies line like theirs the moment another module gains one.
   shared `IDispatcher`. DB schema: `ordering`.
 - Application: `Ordering.Application.Carts` (Get/AddItem/RemoveItem/UpdateQuantity/ApplyCoupon/
   RemoveCoupon/Merge/GetCart) and `Ordering.Application.Checkout` (`PlaceOrderCommand`,
-  `GetOrderQuery`, `GetOrderContactInfoQuery`).
+  `GetOrderQuery`, `GetOrderContactInfoQuery`, `SearchOrdersQuery`).
+- Customer order history + ownership check (Phase 37, ADR-048): `OrderSearchCriteria` gained
+  `CustomerId` (narrows the same admin-list query to one customer's own orders —
+  `Store.Web.Controllers.ProfileController.Orders`, `Views/Profile/Orders.cshtml`). `OrderDto`
+  gained `CustomerId` so `CheckoutController.Confirmation` can 404 a request for a customer order
+  that isn't the current signed-in user's — this closed a real pre-existing gap where any order's
+  full details were viewable by anyone holding (or guessing) its Guid, regardless of who placed it.
+  Guest orders (`CustomerId` null) are unaffected — still reachable by the link alone, same as the
+  redirect `PlaceOrder` itself sends a fresh guest to.
 - Cart UI gap closed (Phase 31, ADR-042): `ApplyCouponCommand`/`RemoveCouponCommand` had existed
   since before Promotions was built (Phase 18) but were never registered in DI nor dispatched from
   anywhere — no UI ever let a customer actually set `Cart.CouponCode`, so `PlaceOrderCommand`'s
@@ -386,6 +394,18 @@ alone. Not yet re-themed: Product Details, Shop filters, Cart/Checkout, Auth pag
 30's split-panel already looks reasonably premium but doesn't yet draw from the new tokens), Admin
 area (out of scope — the request was the storefront/"e-commerce website", not the admin panel).
 See docs/current-state.md "Next" for the phase-by-phase remainder.
+
+Homepage sections + content pages (Phase 37, ADR-048): `HomeController.Index` now builds a
+composite `HomeViewModel` (`Store.Web.Models`) — Featured products (existing), New Arrivals
+(`Newest`-sorted), real active Categories, real active Brands — rendered as new "Shop by
+Category"/"Shop by Brand"/"New Arrivals" sections, each `.category-tile`/`.brand-chip` (new
+`design-system.css` components) linking to `Shop`'s existing `categoryId`/`brandId` filters. Nine
+footer/header links that had been `href="#"` since Phase 5 are now real pages: `About`, `Contact`
+(real contact channels only, deliberately no fake contact-form submission), `Faq`, `Returns`,
+`Terms`, a real `Privacy` (was the literal default MVC-scaffold placeholder text), and `Shipping`
+(data-backed — dispatches `ListShippingMethodsQuery`, not hand-typed copy). Also added a real
+"My Orders" customer page and fixed a real order-viewing security gap found while building it — see
+the Ordering section above.
 
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,

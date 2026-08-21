@@ -27,20 +27,27 @@
                     <div class="col-xl-3 col-md-6 col-12 footer-col-block">
                         <div class="footer-heading footer-heading-desktop"><h6>Help</h6></div>
                         <ul class="footer-menu-list tf-collapse-content">
-                            <li><a href="#" class="footer-menu_item">Privacy Policy</a></li>
-                            <li><a href="#" class="footer-menu_item">Returns + Exchanges</a></li>
-                            <li><a href="#" class="footer-menu_item">Shipping</a></li>
-                            <li><a href="#" class="footer-menu_item">Terms &amp; Conditions</a></li>
-                            <li><a href="#" class="footer-menu_item">FAQ's</a></li>
+                            <li><a asp-controller="Home" asp-action="Privacy" class="footer-menu_item">Privacy Policy</a></li>
+                            <li><a asp-controller="Home" asp-action="Returns" class="footer-menu_item">Returns + Exchanges</a></li>
+                            <li><a asp-controller="Home" asp-action="Shipping" class="footer-menu_item">Shipping</a></li>
+                            <li><a asp-controller="Home" asp-action="Terms" class="footer-menu_item">Terms &amp; Conditions</a></li>
+                            <li><a asp-controller="Home" asp-action="Faq" class="footer-menu_item">FAQ's</a></li>
                         </ul>
                     </div>
                     <div class="col-xl-3 col-md-6 col-12 footer-col-block">
                         <div class="footer-heading footer-heading-desktop"><h6>About us</h6></div>
                         <ul class="footer-menu-list tf-collapse-content">
-                            <li><a href="#" class="footer-menu_item">Our Story</a></li>
-                            <li><a href="#" class="footer-menu_item">Visit Our Store</a></li>
-                            <li><a href="#" class="footer-menu_item">Contact Us</a></li>
-                            <li><a href="#" class="footer-menu_item">Account</a></li>
+                            <li><a asp-controller="Home" asp-action="About" class="footer-menu_item">Our Story</a></li>
+                            <li><a asp-controller="Home" asp-action="About" class="footer-menu_item">Visit Our Store</a></li>
+                            <li><a asp-controller="Home" asp-action="Contact" class="footer-menu_item">Contact Us</a></li>
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <li><a asp-controller="Profile" asp-action="Index" class="footer-menu_item">Account</a></li>
+                            }
+                            else
+                            {
+                                <li><a asp-controller="Account" asp-action="Login" class="footer-menu_item">Account</a></li>
+                            }
                         </ul>
                     </div>
                     <div class="col-xl-3 col-md-6 col-12">

@@ -184,7 +184,7 @@ public sealed class CancelOrderCommandHandler : IRequestHandler<CancelOrderComma
 public sealed record OrderSummaryDto(
     Guid Id, string OrderNumber, string Status, string PaymentStatus, decimal Total, string Currency, DateTime PlacedAtUtc);
 
-public sealed record OrderSearchCriteria(string? Status = null, int Page = 1, int PageSize = 20);
+public sealed record OrderSearchCriteria(string? Status = null, Guid? CustomerId = null, int Page = 1, int PageSize = 20);
 
 public sealed record OrderSearchResultDto(IReadOnlyList<OrderSummaryDto> Items, int TotalCount, int Page, int PageSize);
 

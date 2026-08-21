@@ -413,9 +413,33 @@ Completed:
   dark nav text; footer computes a dark background; headings compute the serif font stack; product
   cards compute the new radius/shadow tokens; no horizontal overflow at 375px mobile. All 168 tests
   still passing (purely additive CSS, no application code touched).
+  - Small follow-up same phase: the hero `<h2>` itself was also invisible (near-black
+    `styles.css` heading color winning over inherited `.text-white`) — a second real contrast bug
+    caught by live user feedback right after the first push. Fixed with an explicit color in
+    `design-system.css`; verified the computed color is `rgb(255,255,255)`.
+- Phase 37: real homepage sections + real content pages (ADR-048), explicit user request ("add
+  many pages and sections," scoped against that request's own "don't add unnecessary
+  sections/features" rule by using only real existing data/destinations). `HomeController.Index`
+  now builds a `HomeViewModel` — Featured (existing), New Arrivals, real active Categories, real
+  active Brands — new "Shop by Category"/"Shop by Brand"/"New Arrivals" sections linking to Shop's
+  already-existing (never previously linked to) `categoryId`/`brandId` filters. Nine footer/header
+  `href="#"` links since Phase 5 are now real pages: About, Contact (real channels only, no fake
+  contact-form submission — no backend exists to receive one), FAQ, Returns, Terms, a real Privacy
+  Policy (was the literal untouched MVC-scaffold placeholder), and a data-backed Shipping page
+  (dispatches `ListShippingMethodsQuery`, not hand-typed copy). While wiring the FAQ's order-
+  tracking answer, found two real gaps and fixed both: no customer-facing order history existed at
+  all despite `Order.CustomerId` being set since Phase 28 (added `CustomerId` to
+  `OrderSearchCriteria`, a new `ProfileController.Orders` action + `Views/Profile/Orders.cshtml`);
+  and `Checkout/Confirmation` had no ownership check — any order's full details were viewable by
+  anyone holding its Guid regardless of who placed it (added `CustomerId` to `OrderDto`, the action
+  now 404s a customer order that isn't the current signed-in user's; guest orders unaffected).
+  Verified live end to end: placed a real order, confirmed it appeared correctly on the new My
+  Orders page, confirmed via an anonymous `curl` request that the order's Confirmation URL now
+  404s instead of leaking it; confirmed a category tile correctly filters Shop to the one real
+  product in that category. All 168 tests still passing.
 
 In Progress:
-- Phase 37+: continuing the premium redesign page-by-page onto the Phase 36 token layer — Product
+- Phase 38+: continuing the premium redesign page-by-page onto the Phase 36 token layer — Product
   Details, Shop/filters, Cart/Checkout, Auth-pages token alignment, empty/loading states. Not yet
   started.
 
@@ -464,7 +488,7 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..047.
+- docs/decisions.md — ADR-001..048.
 - docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after
   "Storefront UI polish".
 
@@ -473,11 +497,11 @@ Local dev DB `ECommerce` (LocalDB), 10 migrated contexts (Catalog, Identity, Inv
 Payments, Notifications, Customers, Promotions, Shipping, Reviews). Brand/Category tables, and
 `Products.Images` / the `ProductImages` table Phase 29 now actually writes to, already existed in
 the `catalog` schema since Phase 4 — no new migration needed for those. Phase 31 adds
-`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Phases 32-34 are
-application-code-only (no migration) — Inventory/Payments read Catalog/Ordering data live via
-`IDispatcher`, Phase 34 is Razor-view class-name fixes only. Redis isn't a migrated `DbContext`.
-Phases 23-28, 30 were CI/workflow, Razor-views, new-test-project, and application-code-only work
-respectively — no schema changes in those.
+`AddCartItemImageUrl` (`ordering` schema, `CartItems.ImageUrl` nullable column). Phases 32-34,
+36-37 are application-code/Razor-view-only (no migration) — `Order.CustomerId`/every Category/Brand
+column Phase 37 reads already existed; new query filters and DTO fields, no new columns. Redis
+isn't a migrated `DbContext`. Phases 23-28, 30 were CI/workflow, Razor-views, new-test-project, and
+application-code-only work respectively — no schema changes in those.
 
 Decisions Made:
 See docs/decisions.md. Newest: ADR-036 (Phase 25 populates `EndToEndTests` with a real
@@ -525,4 +549,8 @@ bug this session introduced itself in Phase 32 by borrowing a storefront-only cl
 `design-system.css` token layer, additive over the curated `ecomus` theme, applied so far to
 Header/Footer/hero/headings/product-cards/buttons; fixed a real Phase 30 bug as a side effect —
 the header's black nav text was invisible against the dark Vanta hero background it's floated over
-since Phase 30).
+since Phase 30), ADR-048 (Phase 37 adds real homepage sections — Category/Brand/New Arrivals, all
+using pre-existing data never surfaced before — and turns nine dead footer/header links into real
+content pages; found and fixed two real gaps while doing it, no customer order history existed
+despite `Order.CustomerId` being set since Phase 28, and `Checkout/Confirmation` had no ownership
+check at all — any order's details were viewable by anyone holding its Guid).

@@ -10,6 +10,7 @@ public sealed record OrderItemDto(Guid Id, string ProductName, string Sku, decim
 
 public sealed record OrderDto(
     Guid Id,
+    Guid? CustomerId,
     string OrderNumber,
     string Email,
     string Status,
@@ -41,6 +42,7 @@ public sealed class GetOrderQueryHandler : IRequestHandler<GetOrderQuery, OrderD
 
         return Result.Success(new OrderDto(
             order.Id,
+            order.CustomerId,
             order.OrderNumber,
             order.Email,
             order.Status.ToString(),

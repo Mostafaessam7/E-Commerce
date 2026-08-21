@@ -2,6 +2,7 @@ using Customers.Application.Profile;
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Ordering.Application.Checkout;
 using Security;
 using Store.Web.Models;
 
@@ -29,6 +30,20 @@ public sealed class ProfileController : Controller
     {
         var profile = await GetOrCreateProfileAsync(cancellationToken);
         return View(profile);
+    }
+
+    // Phase 37 (ADR-048): the only prior way to see an order was the one-time Confirmation page
+    // right after placing it — Order.CustomerId has been set since Phase 28, but nothing ever
+    // queried by it. CustomerId is always the signed-in user's own id (never request-supplied),
+    // same invariant as every other action on this controller — a customer can only ever see
+    // their own orders.
+    public async Task<IActionResult> Orders(int page = 1, CancellationToken cancellationToken = default)
+    {
+        var customerId = _currentUser.UserId!.Value;
+        var criteria = new OrderSearchCriteria(CustomerId: customerId, Page: page < 1 ? 1 : page, PageSize: 10);
+        var result = await _dispatcher.Send(new SearchOrdersQuery(criteria), cancellationToken);
+
+        return View(result.IsSuccess ? result.Value : new OrderSearchResultDto([], 0, criteria.Page, criteria.PageSize));
     }
 
     [HttpPost]

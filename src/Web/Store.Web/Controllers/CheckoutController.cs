@@ -63,10 +63,26 @@ public class CheckoutController : Controller
         return RedirectToAction(nameof(Confirmation), new { orderId = placeResult.Value });
     }
 
+    // Phase 37 (ADR-048): a real ownership check, not just "resolves the order" - a customer
+    // order (CustomerId set, since Phase 28) can only be viewed by that same signed-in customer.
+    // A guest order (CustomerId null) stays viewable by anyone holding the link, same as before -
+    // there's no session-token linkage for guest orders to check against, and this is the exact
+    // link Checkout/PlaceOrder itself redirects a fresh guest to immediately after placing one.
     public async Task<IActionResult> Confirmation(Guid orderId, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new GetOrderQuery(orderId), cancellationToken);
-        return result.IsFailure ? NotFound() : View(result.Value);
+        if (result.IsFailure)
+        {
+            return NotFound();
+        }
+
+        var order = result.Value;
+        if (order.CustomerId is Guid ownerId && ownerId != _currentUser.UserId)
+        {
+            return NotFound();
+        }
+
+        return View(order);
     }
 
     private async Task PopulateShippingMethodsAsync(CheckoutFormModel form, CancellationToken cancellationToken)

@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Contact Us";
+}
+
+@* No contact-form submission here on purpose — there's no backend to receive/store/route a
+   message anywhere in this system (no Contact/Support module), and a form that posts to nothing
+   is exactly the kind of dead UI this project avoids elsewhere (see the removed Wishlist link,
+   docs/decisions.md). Real, working contact channels only. *@
+<section class="flat-spacing-1">
+    <div class="container" style="max-width:720px">
+        <span class="section-eyebrow">Get in Touch</span>
+        <h1 class="fs-28 fw-6 mb-4">Contact Us</h1>
+        <p class="text-muted mb-5">We usually reply within one business day.</p>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <h6 class="mb-2">Email</h6>
+                <a href="mailto:info@ecommerce.local">info@ecommerce.local</a>
+            </div>
+            <div class="col-md-4">
+                <h6 class="mb-2">Phone</h6>
+                <a href="tel:+12125551234">(212) 555-1234</a>
+            </div>
+            <div class="col-md-4">
+                <h6 class="mb-2">Address</h6>
+                <p class="mb-0">1234 Fashion Street, Suite 567,<br />New York, NY 10001</p>
+            </div>
+        </div>
+
+        <hr class="my-5" />
+
+        <p>For a question about an existing order, sign in and check your
+           <a asp-controller="Profile" asp-action="Index">account page</a> first — order status and
+           saved addresses are there. For anything else, reach us at the email above.</p>
+    </div>
+</section>

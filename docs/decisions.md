@@ -1004,3 +1004,53 @@ CSS layer, no application code or existing markup touched.
 Status: Accepted (Phase 36) — first phase of an ongoing redesign; see docs/current-state.md "Next"
 for the remaining pages (Product Details, Shop filters, Cart/Checkout, Auth-pages token alignment,
 empty/loading states).
+
+---
+**ADR-048**
+Decision: Phase 37 adds real homepage sections and real content pages, explicit user request
+("زود صفحات وسكشنز كتير" — add many pages and sections) scoped against that same request's own
+earlier rule ("do not randomly add unnecessary sections or features") by splitting it into two
+kinds, both backed by real data/destinations, neither invented:
+(1) New homepage sections using data that already existed but was never surfaced there: "Shop by
+Category" and "Shop by Brand" (real active `Category`/`Brand` rows, linking to `Shop`'s existing
+`categoryId`/`brandId` query-string filters — already accepted by `ShopController` since Phase 4,
+just never linked to from anywhere in the UI) and "New Arrivals" (a second `SearchProductsQuery`
+dispatch, `Newest`-sorted, distinct from the existing Featured rail). `HomeController.Index` now
+builds a composite `HomeViewModel` from four sequential dispatches — sequential, not
+`Task.WhenAll`, because the dispatched handlers share this request's scoped `DbContext`, which EF
+Core doesn't allow concurrent operations against (same reasoning as every other multi-query
+controller action in this codebase).
+(2) The footer/header had nine links that were `href="#"` since Phase 5 (Privacy Policy, Returns,
+Shipping, Terms, FAQ, Our Story, Visit Our Store, Contact Us) plus `Home/Privacy.cshtml` itself
+being the literal untouched default MVC-scaffold placeholder text. All now real pages with genuine
+content (About, Contact, FAQ, Returns, Terms, a real Privacy Policy) — deliberately no fake contact
+*form* (no Contact/Support module exists anywhere in this system to receive a submission; a form
+posting nowhere is exactly the dead-UI-pretending-to-work pattern already rejected once this
+session for the Wishlist link), just real static contact channels (the same email/phone/address
+already in the footer). The Shipping page is the one exception to "static content" — it dispatches
+`ListShippingMethodsQuery` and shows the real, current cost/delivery-window data, not a hand-typed
+description.
+Reason: while wiring the FAQ page's "how do I track my order" answer, discovered a real, previously
+unnoticed functional gap — nothing let a signed-in customer see past orders. `Order.CustomerId` has
+been set on every customer checkout since Phase 28, but the only order-detail page
+(`Checkout/Confirmation`) was reachable only via the one-time post-checkout redirect URL, and
+`OrderSearchCriteria` (the admin Orders list's query) had no `CustomerId` filter to narrow by. Fixed
+properly rather than write FAQ copy describing a feature that doesn't exist: added `CustomerId` to
+`OrderSearchCriteria`/`IOrderQueries.SearchAsync`, a new `ProfileController.Orders` action (a
+customer's own id only — never request-supplied), and `Views/Profile/Orders.cshtml`. Fixing this
+surfaced a second, more serious gap while touching the same code: `Checkout/Confirmation(Guid
+orderId)` had no ownership check at all — any signed-in or anonymous visitor holding (or guessing)
+any order's Guid could view its full contents (email, address, items, total), not just their own.
+Added a real check (`OrderDto` gained `CustomerId`; the action now 404s if the order has a
+`CustomerId` and it doesn't match the current signed-in user) — guest orders (`CustomerId` null)
+stay reachable by the link alone, unchanged, since there's no session-token linkage for a guest
+order to check against, and that's the exact link `PlaceOrder` itself redirects a fresh guest to.
+Verified live end to end: placed a real order as a signed-in user, confirmed it appeared correctly
+on the new My Orders page, then confirmed via a fully anonymous `curl` request that
+`/Checkout/Confirmation?orderId=<that order>` now returns 404 instead of leaking the order.
+Confirmed the new Category/Brand homepage tiles link to and correctly filter real Shop results
+(clicking a category tile navigated to `/Shop?categoryId=...` and returned exactly the one real
+product in that category). All 168 tests still passing; two new call sites (`Admin/OrdersController`
+and one integration test) needed a positional-argument fix after `OrderSearchCriteria` gained a
+new parameter — caught by the build, not runtime.
+Status: Accepted (Phase 37).
