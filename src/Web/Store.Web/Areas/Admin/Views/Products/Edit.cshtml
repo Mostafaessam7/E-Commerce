@@ -146,6 +146,20 @@
                         <button type="submit" class="tf-button style-1 w180">Publish</button>
                     </form>
                 }
+                @if (Model.IsFeatured)
+                {
+                    <form asp-action="Unfeature" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="tf-button style-2 w180">Remove from Featured</button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-action="Feature" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="tf-button style-2 w180">Mark as Featured</button>
+                    </form>
+                }
                 @if (Model.Status != "Archived")
                 {
                     <form asp-action="Archive" method="post">

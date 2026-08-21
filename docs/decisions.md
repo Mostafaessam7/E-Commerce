@@ -1086,3 +1086,39 @@ serif font stack; confirmed the Shop filter sidebar (`.widget-facet`) computes t
 card treatment; no horizontal overflow at a 375px mobile viewport. All 168 tests still passing —
 CSS-only change, no application code or markup touched.
 Status: Accepted (Phase 38).
+
+---
+**ADR-050**
+Decision: Phase 39 populates the storefront with real demo catalog data, explicit user request
+("ضيف Dummy data" — add dummy data), driven entirely through the app's own real admin HTTP
+endpoints (never raw SQL inserts) so every domain invariant (slug uniqueness, `Money` validation,
+"a product needs a variant to publish," etc.) is enforced exactly as it would be for a real admin —
+data seeded this way can never be structurally invalid the way a hand-written INSERT could be. The
+3 leftover phase-verification products ("Payment Test Product d8c4422...", "Admin Panel Test
+Shirt," "Phase 19 Shipping Verify Product") and the "Phase 21 Verify Brand"/"Phase 21 Verify
+Category" were archived/deactivated through the same real `Archive`/`Deactivate` admin actions
+(not deleted — `Order`/`OrderItem` already snapshot their own product name/price independent of the
+live `Product` row per Phase 7/8's design, so deleting would have been safe too, but archiving is
+reversible and these rows may still be referenced by historical Reviews). Added 4 brands, 6
+categories, and 12 products (name, slug, short/long description, brand, category, one variant with
+a real price — 5 with a real sale price — and a real uploaded image, using the 11 demo product
+photos already curated into `wwwroot/ecomus/images/products/` since Phase 5), 5 of them marked
+Featured.
+Reason for the accompanying code change: marking anything Featured required building
+`FeatureProductCommand`/`UnfeatureProductCommand` first — `Product.Feature()`/`Unfeature()` have
+existed in the domain since the original build, but (like `MergeCartCommand` before Phase 28, the
+image commands before Phase 29, and the coupon commands before Phase 31) were never wired to any
+admin command, so the Home page's "Featured Products" section (Phase 4) had no way to ever put a
+product in it before now. Real bug hit while seeding, not a data-entry mistake: a `bash eval` with
+nested quoting inside the first seeding script pass silently mangled every `AddVariant` call
+(returned 302 — the controller action always redirects regardless of success/failure, so the
+failure was invisible from the HTTP status alone), leaving all 12 freshly-created products stuck in
+`Draft` with zero variants. Caught only by checking the actual database state (`variant count per
+product`) rather than trusting the HTTP redirect codes, then fixed with a corrected script (no
+`eval`, explicit conditional branches instead of interpolated optional arguments) re-run against
+the same 12 already-created products.
+Verified live: fetched the Home page and confirmed real Category/Brand/Featured/New-Arrivals
+sections all render actual seeded data with correct sale-price formatting; fetched Shop and
+confirmed all 12 products list with correct prices; fetched a product detail page and confirmed its
+real uploaded image loads (`naturalWidth: 720`, not a broken image). All 168 tests still passing.
+Status: Accepted (Phase 39).

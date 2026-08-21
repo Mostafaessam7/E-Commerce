@@ -128,6 +128,26 @@ public sealed class ProductsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Policy = Permissions.Catalog.Edit)]
+    public async Task<IActionResult> Feature(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.Send(new FeatureProductCommand(id), cancellationToken);
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Product marked as featured." : result.Error.Message;
+        return RedirectToAction(nameof(Edit), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Policy = Permissions.Catalog.Edit)]
+    public async Task<IActionResult> Unfeature(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _dispatcher.Send(new UnfeatureProductCommand(id), cancellationToken);
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Product removed from featured." : result.Error.Message;
+        return RedirectToAction(nameof(Edit), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Policy = Permissions.Catalog.Edit)]
     public async Task<IActionResult> Publish(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new PublishProductCommand(id), cancellationToken);

@@ -42,6 +42,10 @@ Dependencies line like theirs the moment another module gains one.
   `app.UseStaticFiles()` alongside the build-time `MapStaticAssets()` pipeline, since the latter
   never sees anything written at runtime. Admin UI: `ProductsController.UploadImage`/`RemoveImage`
   + the Images panel on `Areas/Admin/Views/Products/Edit.cshtml`.
+- Featured toggle (Phase 39, ADR-050): `FeatureProductCommand`/`UnfeatureProductCommand` call
+  `Product.Feature`/`Unfeature` — existed in the domain since the original build, never wired to
+  any admin command until now (same dead-domain-method shape as `AddImage` before Phase 29).
+  Admin UI: `Feature`/`Unfeature` actions on the Edit page's Status panel.
 
 ## Inventory
 - Responsibility: stock quantity, reservations, prevents overselling.
@@ -417,6 +421,13 @@ treatment). Real bug hit verifying, not a taste call: `ecomus/css/styles.css`'s
 a bare `.form-control` class, so the new radius silently lost despite loading last — fixed with a
 scoped `!important`, the same convention the theme's own spacing utilities already use. This is
 the redesign's last planned phase — every page named in the original request has now been covered.
+
+Demo catalog data (Phase 39, ADR-050): 4 brands, 6 categories, and 12 products (real name/slug/
+descriptions/price/a real uploaded image each, 5 with a real sale price, 5 marked Featured) seeded
+through the app's own real admin HTTP endpoints — never raw SQL — so every domain invariant is
+enforced the same as if an admin had typed it in by hand. The 3 leftover phase-verification
+products and the "Phase 21 Verify" Brand/Category were archived/deactivated (not deleted) through
+the same real admin actions.
 
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,

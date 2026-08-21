@@ -142,6 +142,67 @@ public sealed class RemoveProductImageCommandHandler : IRequestHandler<RemovePro
     }
 }
 
+/// <summary>
+/// Phase 39 (ADR-050): <c>Product.Feature</c>/<c>Unfeature</c> existed in the domain since the
+/// original build but were never wired to any admin command — the Home page's "Featured Products"
+/// section (Phase 4) had no way for an admin to ever put a product in it. Same shape of gap as
+/// <c>MergeCartCommand</c> before Phase 28, the image commands before Phase 29, and the coupon
+/// commands before Phase 31.
+/// </summary>
+public sealed record FeatureProductCommand(Guid ProductId) : ICommand<Unit>;
+
+public sealed class FeatureProductCommandHandler : IRequestHandler<FeatureProductCommand, Unit>
+{
+    private readonly IProductRepository _repository;
+    private readonly ICatalogUnitOfWork _unitOfWork;
+
+    public FeatureProductCommandHandler(IProductRepository repository, ICatalogUnitOfWork unitOfWork)
+    {
+        _repository = repository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result<Unit>> Handle(FeatureProductCommand request, CancellationToken cancellationToken = default)
+    {
+        var product = await _repository.GetByIdAsync(request.ProductId, cancellationToken);
+        if (product is null)
+        {
+            return Result.Failure<Unit>(Error.NotFound("Product.NotFound", "Product was not found."));
+        }
+
+        product.Feature();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(Unit.Value);
+    }
+}
+
+public sealed record UnfeatureProductCommand(Guid ProductId) : ICommand<Unit>;
+
+public sealed class UnfeatureProductCommandHandler : IRequestHandler<UnfeatureProductCommand, Unit>
+{
+    private readonly IProductRepository _repository;
+    private readonly ICatalogUnitOfWork _unitOfWork;
+
+    public UnfeatureProductCommandHandler(IProductRepository repository, ICatalogUnitOfWork unitOfWork)
+    {
+        _repository = repository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<Result<Unit>> Handle(UnfeatureProductCommand request, CancellationToken cancellationToken = default)
+    {
+        var product = await _repository.GetByIdAsync(request.ProductId, cancellationToken);
+        if (product is null)
+        {
+            return Result.Failure<Unit>(Error.NotFound("Product.NotFound", "Product was not found."));
+        }
+
+        product.Unfeature();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(Unit.Value);
+    }
+}
+
 public sealed record PublishProductCommand(Guid ProductId) : ICommand<Unit>;
 
 public sealed class PublishProductCommandHandler : IRequestHandler<PublishProductCommand, Unit>

@@ -448,6 +448,21 @@ Completed:
   confirmed the Shop search input now computes `8px` radius, not the theme's `3px`; confirmed
   Product Details' media container and heading font; no horizontal overflow at 375px mobile). All
   168 tests still passing. Every page named in the original redesign request has now been covered.
+- Phase 39: real demo catalog data seeded (ADR-050), explicit user request. 4 brands, 6 categories,
+  12 products (real descriptions, price, a real uploaded demo image each, 5 with a sale price, 5
+  Featured) — all created through the app's own real admin HTTP endpoints, never raw SQL, so every
+  domain invariant is enforced exactly as it would be for a real admin. The 3 leftover
+  phase-verification products and "Phase 21 Verify" Brand/Category were archived/deactivated (not
+  deleted) the same way. Building the Featured toggle required a real code fix first:
+  `Product.Feature`/`Unfeature` existed in the domain since the original build but were never wired
+  to any admin command — same dead-domain-method shape this session has now found four times
+  (`MergeCartCommand`, the Phase 29 image commands, the Phase 31 coupon commands, this one). Real
+  bug hit mid-seed: a `bash eval` with nested quoting silently mangled every `AddVariant` call in
+  the first pass (the controller always redirects regardless of success/failure, so the HTTP status
+  alone didn't reveal it) — caught only by checking the actual database state, not the redirect
+  codes, then fixed and re-run cleanly. Verified live: Home's Category/Brand/Featured/New-Arrivals
+  sections and Shop's listing all render the real seeded data with correct pricing; a product
+  detail page's uploaded image loads for real (`naturalWidth: 720`). All 168 tests still passing.
 
 In Progress:
 - None. The design-system rollout (Phases 36-38) is complete for every page explicitly named in
@@ -501,7 +516,7 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..049.
+- docs/decisions.md — ADR-001..050.
 - docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after
   "Storefront UI polish".
 
@@ -570,4 +585,8 @@ check at all — any order's details were viewable by anyone holding its Guid), 
 the redesign's last planned phase — Product Details/Shop/Cart/Checkout/Profile/Auth pages re-themed
 at once by targeting their shared Bootstrap primitives in `design-system.css`; hit and fixed a real
 CSS-specificity bug, an element+attribute selector in the theme beat a plain class selector despite
-loading later, so the new input radius was silently losing until given a scoped `!important`).
+loading later, so the new input radius was silently losing until given a scoped `!important`),
+ADR-050 (Phase 39 seeds real demo catalog data — 4 brands, 6 categories, 12 products — through the
+app's own real admin HTTP endpoints; required building `FeatureProductCommand`/`UnfeatureProductCommand`
+first since `Product.Feature`/`Unfeature` had never been wired to any admin command, the fourth time
+this session found that exact dead-domain-method shape).
