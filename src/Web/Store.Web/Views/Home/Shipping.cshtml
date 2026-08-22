@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model IReadOnlyList<ShippingMethodDto>
 @{
     ViewData["Title"] = "Shipping";
@@ -5,23 +6,22 @@
 
 <section class="flat-spacing-1">
     <div class="container" style="max-width:840px">
-        <span class="section-eyebrow">Delivery</span>
-        <h1 class="fs-28 fw-6 mb-4">Shipping</h1>
-        <p class="text-muted mb-5">Every method below is a real option you can pick at checkout —
-            the cost and delivery estimate shown here matches exactly what you'll see there.</p>
+        <span class="section-eyebrow">@Localizer["Delivery"]</span>
+        <h1 class="fs-28 fw-6 mb-4">@Localizer["Shipping"]</h1>
+        <p class="text-muted mb-5">@Localizer["Every method below is a real option you can pick at checkout — the cost and delivery estimate shown here matches exactly what you'll see there."]</p>
 
         @if (Model.Count == 0)
         {
-            <p class="text-muted">No shipping methods are configured right now.</p>
+            <p class="text-muted">@Localizer["No shipping methods are configured right now."]</p>
         }
         else
         {
             <table class="table align-middle">
                 <thead>
                     <tr>
-                        <th>Method</th>
-                        <th>Estimated delivery</th>
-                        <th>Cost</th>
+                        <th>@Localizer["Method"]</th>
+                        <th>@Localizer["Estimated delivery"]</th>
+                        <th>@Localizer["Cost"]</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,7 +38,7 @@
                             <td>
                                 @if (method.EstimatedDaysMin is not null)
                                 {
-                                    <text>@method.EstimatedDaysMin-@method.EstimatedDaysMax business days</text>
+                                    <text>@method.EstimatedDaysMin-@method.EstimatedDaysMax @Localizer["business days"]</text>
                                 }
                                 else
                                 {
@@ -52,8 +52,8 @@
             </table>
         }
 
-        <h5 class="mt-20 mb-14">Order tracking</h5>
-        <p>Once your order ships, its status updates on your
-           <a asp-controller="Profile" asp-action="Orders">My Orders</a> page.</p>
+        <h5 class="mt-20 mb-14">@Localizer["Order tracking"]</h5>
+        <p>@Localizer["Once your order ships, its status updates on your"]
+           <a asp-controller="Profile" asp-action="Orders">@Localizer["My Orders"]</a> @Localizer["page."]</p>
     </div>
 </section>

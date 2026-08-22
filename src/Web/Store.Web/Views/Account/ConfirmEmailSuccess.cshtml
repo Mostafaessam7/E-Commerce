@@ -1,9 +1,10 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Email Confirmed";
 }
 
 <div class="container text-center" style="max-width: 480px; padding: 80px 0;">
-    <h2>Email Confirmed</h2>
-    <p>Your account is active. You can sign in now.</p>
-    <a asp-action="Login" class="btn btn-dark">Sign In</a>
+    <h2>@Localizer["Email Confirmed"]</h2>
+    <p>@Localizer["Your account is active. You can sign in now."]</p>
+    <a asp-action="Login" class="btn btn-dark">@Localizer["Sign In"]</a>
 </div>

@@ -1,29 +1,24 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Returns & Exchanges";
 }
 
 <section class="flat-spacing-1">
     <div class="container" style="max-width:840px">
-        <span class="section-eyebrow">Policy</span>
-        <h1 class="fs-28 fw-6 mb-4">Returns &amp; Exchanges</h1>
+        <span class="section-eyebrow">@Localizer["Policy"]</span>
+        <h1 class="fs-28 fw-6 mb-4">@Localizer["Returns + Exchanges"]</h1>
 
-        <h5 class="mt-20 mb-14">30-day returns</h5>
-        <p>If something isn't right, you can return it within 30 days of delivery for a full refund
-           to your original payment method. Items should be unworn, unwashed, and in their original
-           packaging with tags attached.</p>
+        <h5 class="mt-20 mb-14">@Localizer["30-day returns"]</h5>
+        <p>@Localizer["If something isn't right, you can return it within 30 days of delivery for a full refund to your original payment method. Items should be unworn, unwashed, and in their original packaging with tags attached."]</p>
 
-        <h5 class="mt-20 mb-14">How to start a return</h5>
-        <p>Contact us at <a href="mailto:info@ecommerce.local">info@ecommerce.local</a> with your
-           order number (find it on your <a asp-controller="Profile" asp-action="Orders">My Orders</a>
-           page) and which item you'd like to return. We'll reply with return instructions.</p>
+        <h5 class="mt-20 mb-14">@Localizer["How to start a return"]</h5>
+        <p>@Localizer["Contact us at"] <a href="mailto:info@ecommerce.local">info@ecommerce.local</a> @Localizer["with your order number (find it on your"]
+           <a asp-controller="Profile" asp-action="Orders">@Localizer["My Orders"]</a> @Localizer["page) and which item you'd like to return. We'll reply with return instructions."]</p>
 
-        <h5 class="mt-20 mb-14">Exchanges</h5>
-        <p>Need a different size or color? Return the original item for a refund and place a new
-           order for the item you want — that way you're not waiting on us to receive the return
-           before your replacement ships.</p>
+        <h5 class="mt-20 mb-14">@Localizer["Exchanges"]</h5>
+        <p>@Localizer["Need a different size or color? Return the original item for a refund and place a new order for the item you want — that way you're not waiting on us to receive the return before your replacement ships."]</p>
 
-        <h5 class="mt-20 mb-14">Damaged or incorrect items</h5>
-        <p>If an item arrives damaged or isn't what you ordered, contact us right away and we'll
-           make it right at no cost to you.</p>
+        <h5 class="mt-20 mb-14">@Localizer["Damaged or incorrect items"]</h5>
+        <p>@Localizer["If an item arrives damaged or isn't what you ordered, contact us right away and we'll make it right at no cost to you."]</p>
     </div>
 </section>

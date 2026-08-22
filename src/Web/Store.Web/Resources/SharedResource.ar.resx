@@ -167,4 +167,145 @@
   <data name="Paid" xml:space="preserve"><value>مدفوع</value></data>
   <data name="Failed" xml:space="preserve"><value>فشل</value></data>
   <data name="Refunded" xml:space="preserve"><value>تم الاسترداد</value></data>
+
+  <!-- Auth: Login/Register/Forgot/Reset -->
+  <data name="Welcome back" xml:space="preserve"><value>مرحبًا بعودتك</value></data>
+  <data name="Sign in to continue to your account." xml:space="preserve"><value>سجّل الدخول للمتابعة إلى حسابك.</value></data>
+  <data name="Password" xml:space="preserve"><value>كلمة المرور</value></data>
+  <data name="Remember me" xml:space="preserve"><value>تذكرني</value></data>
+  <data name="Sign In" xml:space="preserve"><value>تسجيل الدخول</value></data>
+  <data name="Create an account" xml:space="preserve"><value>إنشاء حساب</value></data>
+  <data name="Forgot password?" xml:space="preserve"><value>نسيت كلمة المرور؟</value></data>
+  <data name="Sign in for order history, saved addresses, and a faster checkout." xml:space="preserve"><value>سجّل الدخول لسجل الطلبات، العناوين المحفوظة، ودفع أسرع.</value></data>
+  <data name="Create your account" xml:space="preserve"><value>أنشئ حسابك</value></data>
+  <data name="Join us for order history, saved addresses, and a faster checkout." xml:space="preserve"><value>انضم إلينا لسجل الطلبات، العناوين المحفوظة، ودفع أسرع.</value></data>
+  <data name="Confirm Password" xml:space="preserve"><value>تأكيد كلمة المرور</value></data>
+  <data name="Create Account" xml:space="preserve"><value>إنشاء حساب</value></data>
+  <data name="Already have an account? Sign in" xml:space="preserve"><value>لديك حساب بالفعل؟ سجّل الدخول</value></data>
+  <data name="Join the club" xml:space="preserve"><value>انضم إلينا</value></data>
+  <data name="Create an account to track orders and check out faster next time." xml:space="preserve"><value>أنشئ حسابًا لتتبع الطلبات والدفع بشكل أسرع في المرة القادمة.</value></data>
+  <data name="Forgot Password" xml:space="preserve"><value>نسيت كلمة المرور</value></data>
+  <data name="Enter your email and we'll send you a link to reset your password." xml:space="preserve"><value>ادخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.</value></data>
+  <data name="Send Reset Link" xml:space="preserve"><value>إرسال رابط إعادة التعيين</value></data>
+  <data name="Back to sign in" xml:space="preserve"><value>العودة لتسجيل الدخول</value></data>
+  <data name="We've got you" xml:space="preserve"><value>احنا معاك</value></data>
+  <data name="A reset link will land in your inbox in a moment." xml:space="preserve"><value>سيصلك رابط إعادة التعيين في بريدك الوارد بعد لحظات.</value></data>
+  <data name="Reset Password" xml:space="preserve"><value>إعادة تعيين كلمة المرور</value></data>
+  <data name="Choose a new password for your account." xml:space="preserve"><value>اختر كلمة مرور جديدة لحسابك.</value></data>
+  <data name="New Password" xml:space="preserve"><value>كلمة المرور الجديدة</value></data>
+  <data name="Almost there" xml:space="preserve"><value>اقتربنا</value></data>
+  <data name="Pick something you'll remember — and sign back in." xml:space="preserve"><value>اختر كلمة مرور تتذكرها — وسجّل الدخول من جديد.</value></data>
+
+  <!-- Auth: confirmation/status pages -->
+  <data name="Access Denied" xml:space="preserve"><value>الوصول مرفوض</value></data>
+  <data name="You don't have permission to view this page." xml:space="preserve"><value>ليس لديك صلاحية لعرض هذه الصفحة.</value></data>
+  <data name="Back to Home" xml:space="preserve"><value>العودة للرئيسية</value></data>
+  <data name="Confirmation Failed" xml:space="preserve"><value>فشل التأكيد</value></data>
+  <data name="This confirmation link is invalid or has already been used." xml:space="preserve"><value>رابط التأكيد هذا غير صالح أو تم استخدامه بالفعل.</value></data>
+  <data name="Back to Sign In" xml:space="preserve"><value>العودة لتسجيل الدخول</value></data>
+  <data name="Email Confirmed" xml:space="preserve"><value>تم تأكيد البريد الإلكتروني</value></data>
+  <data name="Your account is active. You can sign in now." xml:space="preserve"><value>حسابك مفعّل الآن. يمكنك تسجيل الدخول.</value></data>
+  <data name="Check Your Email" xml:space="preserve"><value>تحقق من بريدك الإلكتروني</value></data>
+  <data name="We've sent a confirmation link to your email address. Click it to activate your account before signing in." xml:space="preserve"><value>أرسلنا رابط تأكيد إلى بريدك الإلكتروني. اضغط عليه لتفعيل حسابك قبل تسجيل الدخول.</value></data>
+  <data name="If an account exists for that email, we've sent a password reset link to it." xml:space="preserve"><value>إذا كان هناك حساب مرتبط بهذا البريد، فقد أرسلنا رابط إعادة تعيين كلمة المرور إليه.</value></data>
+  <data name="Password Reset" xml:space="preserve"><value>تمت إعادة تعيين كلمة المرور</value></data>
+  <data name="Your password has been reset. You can sign in with your new password now." xml:space="preserve"><value>تمت إعادة تعيين كلمة المرور. يمكنك تسجيل الدخول بكلمة المرور الجديدة الآن.</value></data>
+
+  <!-- Profile -->
+  <data name="My Account" xml:space="preserve"><value>حسابي</value></data>
+  <data name="My Orders" xml:space="preserve"><value>طلباتي</value></data>
+  <data name="Profile" xml:space="preserve"><value>الملف الشخصي</value></data>
+  <data name="Save Profile" xml:space="preserve"><value>حفظ الملف الشخصي</value></data>
+  <data name="Saved Addresses" xml:space="preserve"><value>العناوين المحفوظة</value></data>
+  <data name="Label" xml:space="preserve"><value>التسمية</value></data>
+  <data name="Default" xml:space="preserve"><value>افتراضي</value></data>
+  <data name="Yes" xml:space="preserve"><value>نعم</value></data>
+  <data name="Make Default" xml:space="preserve"><value>اجعله افتراضيًا</value></data>
+  <data name="Remove this address?" xml:space="preserve"><value>إزالة هذا العنوان؟</value></data>
+  <data name="No saved addresses yet." xml:space="preserve"><value>لا توجد عناوين محفوظة بعد.</value></data>
+  <data name="Add Address" xml:space="preserve"><value>إضافة عنوان</value></data>
+  <data name="Label (e.g. Home)" xml:space="preserve"><value>التسمية (مثال: المنزل)</value></data>
+  <data name="Make this my default address" xml:space="preserve"><value>اجعل هذا عنواني الافتراضي</value></data>
+  <data name="Profile updated." xml:space="preserve"><value>تم تحديث الملف الشخصي.</value></data>
+  <data name="Please fill in all required address fields." xml:space="preserve"><value>يرجى ملء كل حقول العنوان المطلوبة.</value></data>
+  <data name="Address added." xml:space="preserve"><value>تمت إضافة العنوان.</value></data>
+  <data name="Address removed." xml:space="preserve"><value>تمت إزالة العنوان.</value></data>
+  <data name="Default address updated." xml:space="preserve"><value>تم تحديث العنوان الافتراضي.</value></data>
+
+  <!-- My Orders -->
+  <data name="Back to Account" xml:space="preserve"><value>العودة للحساب</value></data>
+  <data name="You haven't placed any orders yet." xml:space="preserve"><value>لم تقم بتقديم أي طلبات بعد.</value></data>
+  <data name="Start shopping" xml:space="preserve"><value>ابدأ التسوق</value></data>
+  <data name="Order #" xml:space="preserve"><value>رقم الطلب</value></data>
+  <data name="Placed" xml:space="preserve"><value>تاريخ الطلب</value></data>
+  <data name="View" xml:space="preserve"><value>عرض</value></data>
+
+  <!-- FAQ -->
+  <data name="Frequently Asked Questions" xml:space="preserve"><value>الأسئلة الشائعة</value></data>
+  <data name="Do I need an account to place an order?" xml:space="preserve"><value>هل أحتاج إلى حساب لإتمام الطلب؟</value></data>
+  <data name="No — you can check out as a guest. Creating an account lets you save addresses and see your order history for next time; anything already in your cart carries over automatically if you sign in partway through." xml:space="preserve"><value>لا — يمكنك إتمام الطلب كزائر. إنشاء حساب يتيح لك حفظ العناوين ومشاهدة سجل الطلبات لاحقًا؛ وأي شيء موجود بالفعل في سلتك ينتقل تلقائيًا إذا سجّلت الدخول أثناء التسوق.</value></data>
+  <data name="How long does shipping take?" xml:space="preserve"><value>كم تستغرق مدة الشحن؟</value></data>
+  <data name="It depends on the shipping method you choose at checkout — each one shows its own estimated delivery window and cost before you pay. See our" xml:space="preserve"><value>يعتمد ذلك على طريقة الشحن التي تختارها عند الدفع — كل طريقة تعرض مدة التوصيل المتوقعة والتكلفة قبل الدفع. راجع</value></data>
+  <data name="shipping page" xml:space="preserve"><value>صفحة الشحن</value></data>
+  <data name="for the full list." xml:space="preserve"><value>للقائمة الكاملة.</value></data>
+  <data name="Can I apply a discount code to my order?" xml:space="preserve"><value>هل يمكنني استخدام كود خصم على طلبي؟</value></data>
+  <data name="Yes — there's a coupon code field on your" xml:space="preserve"><value>نعم — يوجد حقل لإدخال كود الخصم في</value></data>
+  <data name="cart page" xml:space="preserve"><value>صفحة السلة</value></data>
+  <data name="The code is checked for real when you place your order, so you'll see a clear error at checkout if it's expired or invalid." xml:space="preserve"><value>يتم التحقق من الكود فعليًا عند تقديم الطلب، لذا سترى رسالة خطأ واضحة عند الدفع إذا كان منتهي الصلاحية أو غير صالح.</value></data>
+  <data name="What's your return policy?" xml:space="preserve"><value>ما هي سياسة الإرجاع لديكم؟</value></data>
+  <data name="See our" xml:space="preserve"><value>راجع</value></data>
+  <data name="page for the full policy." xml:space="preserve"><value>للاطلاع على السياسة كاملة.</value></data>
+  <data name="How do I track my order?" xml:space="preserve"><value>كيف أتتبع طلبي؟</value></data>
+  <data name="Sign in and open" xml:space="preserve"><value>سجّل الدخول وافتح</value></data>
+  <data name="from your account page — status updates there as your order moves from confirmed to shipped to delivered." xml:space="preserve"><value>من صفحة حسابك — تتحدث الحالة هناك مع انتقال طلبك من التأكيد إلى الشحن إلى التسليم.</value></data>
+
+  <!-- Returns -->
+  <data name="Policy" xml:space="preserve"><value>السياسة</value></data>
+  <data name="30-day returns" xml:space="preserve"><value>الإرجاع خلال 30 يومًا</value></data>
+  <data name="If something isn't right, you can return it within 30 days of delivery for a full refund to your original payment method. Items should be unworn, unwashed, and in their original packaging with tags attached." xml:space="preserve"><value>إذا لم يكن المنتج مناسبًا، يمكنك إرجاعه خلال 30 يومًا من التسليم واسترداد كامل المبلغ إلى وسيلة الدفع الأصلية. يجب أن تكون القطع غير مرتداة وغير مغسولة وفي عبوتها الأصلية مع بقاء البطاقات.</value></data>
+  <data name="How to start a return" xml:space="preserve"><value>كيفية بدء عملية إرجاع</value></data>
+  <data name="Contact us at" xml:space="preserve"><value>تواصل معنا على</value></data>
+  <data name="with your order number (find it on your" xml:space="preserve"><value>مع رقم طلبك (تجده في صفحة</value></data>
+  <data name="page) and which item you'd like to return. We'll reply with return instructions." xml:space="preserve"><value>) والمنتج الذي ترغب في إرجاعه. سنرد عليك بتعليمات الإرجاع.</value></data>
+  <data name="Exchanges" xml:space="preserve"><value>الاستبدال</value></data>
+  <data name="Need a different size or color? Return the original item for a refund and place a new order for the item you want — that way you're not waiting on us to receive the return before your replacement ships." xml:space="preserve"><value>تحتاج مقاسًا أو لونًا مختلفًا؟ أرجع القطعة الأصلية لاسترداد المبلغ وقدّم طلبًا جديدًا للقطعة التي تريدها — بهذه الطريقة لن تنتظر استلامنا للمرتجع قبل شحن البديل.</value></data>
+  <data name="Damaged or incorrect items" xml:space="preserve"><value>المنتجات التالفة أو الخاطئة</value></data>
+  <data name="If an item arrives damaged or isn't what you ordered, contact us right away and we'll make it right at no cost to you." xml:space="preserve"><value>إذا وصل منتج تالفًا أو غير مطابق لطلبك، تواصل معنا فورًا وسنقوم بتصحيح الأمر دون أي تكلفة عليك.</value></data>
+
+  <!-- Terms & Conditions -->
+  <data name="Last updated:" xml:space="preserve"><value>آخر تحديث:</value></data>
+  <data name="Using this site" xml:space="preserve"><value>استخدام هذا الموقع</value></data>
+  <data name="By placing an order with us, you confirm the information you provide (contact details, shipping address, payment information) is accurate and that you're authorized to use the payment method on the order." xml:space="preserve"><value>عند تقديم طلب معنا، فإنك تؤكد أن المعلومات التي تقدمها (بيانات التواصل، عنوان الشحن، معلومات الدفع) دقيقة وأنك مخوّل باستخدام وسيلة الدفع في الطلب.</value></data>
+  <data name="Pricing and availability" xml:space="preserve"><value>الأسعار والتوفر</value></data>
+  <data name="Prices are shown in the currency displayed at checkout and can change without notice. Placing an item in your cart doesn't reserve it — stock is confirmed at checkout, and an item can occasionally sell out between adding it to your cart and completing your order." xml:space="preserve"><value>تُعرض الأسعار بالعملة الظاهرة عند الدفع ويمكن أن تتغير دون إشعار مسبق. إضافة منتج إلى سلتك لا يحجزه — يتم تأكيد التوفر عند الدفع، وقد ينفد المنتج أحيانًا بين إضافته إلى السلة وإتمام الطلب.</value></data>
+  <data name="Orders and payment" xml:space="preserve"><value>الطلبات والدفع</value></data>
+  <data name="An order is confirmed once payment is successfully processed. We reserve the right to cancel an order — with a full refund — if we're unable to fulfill it." xml:space="preserve"><value>يتم تأكيد الطلب بمجرد معالجة الدفع بنجاح. نحتفظ بالحق في إلغاء أي طلب — مع استرداد كامل المبلغ — إذا تعذّر علينا تنفيذه.</value></data>
+  <data name="Returns" xml:space="preserve"><value>الإرجاع</value></data>
+  <data name="page for the full return policy." xml:space="preserve"><value>للاطلاع على سياسة الإرجاع كاملة.</value></data>
+  <data name="Questions about these terms can be sent to" xml:space="preserve"><value>يمكن إرسال الأسئلة حول هذه الشروط إلى</value></data>
+
+  <!-- Shipping page -->
+  <data name="Delivery" xml:space="preserve"><value>التوصيل</value></data>
+  <data name="Every method below is a real option you can pick at checkout — the cost and delivery estimate shown here matches exactly what you'll see there." xml:space="preserve"><value>كل طريقة أدناه هي خيار حقيقي يمكنك اختياره عند الدفع — التكلفة وتقدير التوصيل الموضحان هنا مطابقان لما ستراه هناك.</value></data>
+  <data name="No shipping methods are configured right now." xml:space="preserve"><value>لا توجد طرق شحن مُعدّة حاليًا.</value></data>
+  <data name="Method" xml:space="preserve"><value>الطريقة</value></data>
+  <data name="Estimated delivery" xml:space="preserve"><value>التوصيل المتوقع</value></data>
+  <data name="Cost" xml:space="preserve"><value>التكلفة</value></data>
+  <data name="business days" xml:space="preserve"><value>أيام عمل</value></data>
+  <data name="Order tracking" xml:space="preserve"><value>تتبع الطلب</value></data>
+  <data name="Once your order ships, its status updates on your" xml:space="preserve"><value>بمجرد شحن طلبك، تتحدث حالته في صفحة</value></data>
+  <data name="page." xml:space="preserve"><value>.</value></data>
+
+  <!-- Privacy Policy -->
+  <data name="Information we collect" xml:space="preserve"><value>المعلومات التي نجمعها</value></data>
+  <data name="When you create an account, place an order, or contact us, we collect the information you provide directly — your name, email address, shipping and billing addresses, and phone number. When you browse the store, we also use a cookie to remember your cart between visits, whether or not you're signed in." xml:space="preserve"><value>عند إنشاء حساب أو تقديم طلب أو التواصل معنا، نجمع المعلومات التي تقدمها مباشرة — اسمك وبريدك الإلكتروني وعناوين الشحن والفوترة ورقم هاتفك. عند تصفح المتجر، نستخدم أيضًا ملف تعريف ارتباط لتذكر سلتك بين الزيارات، سواء كنت مسجل الدخول أم لا.</value></data>
+  <data name="How we use it" xml:space="preserve"><value>كيف نستخدمها</value></data>
+  <data name="We use your information to process orders, send order and account-related emails (confirmations, shipping updates, password resets), and to keep your cart and saved addresses available across sessions. We do not sell your information to third parties." xml:space="preserve"><value>نستخدم معلوماتك لمعالجة الطلبات، وإرسال رسائل تتعلق بالطلبات والحساب (تأكيدات، تحديثات الشحن، إعادة تعيين كلمة المرور)، والحفاظ على سلتك وعناوينك المحفوظة عبر الجلسات. نحن لا نبيع معلوماتك لأطراف ثالثة.</value></data>
+  <data name="Payment information" xml:space="preserve"><value>معلومات الدفع</value></data>
+  <data name="Payment processing is handled through our payment provider. We do not store your full card details on our servers." xml:space="preserve"><value>تتم معالجة الدفع من خلال مزوّد الدفع الخاص بنا. نحن لا نخزّن بيانات بطاقتك الكاملة على خوادمنا.</value></data>
+  <data name="Your choices" xml:space="preserve"><value>خياراتك</value></data>
+  <data name="You can review and update your saved information at any time from your" xml:space="preserve"><value>يمكنك مراجعة وتحديث معلوماتك المحفوظة في أي وقت من</value></data>
+  <data name="account page" xml:space="preserve"><value>صفحة حسابك</value></data>
+  <data name="or remove a saved address there. To request deletion of your account data, contact us using the details below." xml:space="preserve"><value>أو إزالة عنوان محفوظ هناك. لطلب حذف بيانات حسابك، تواصل معنا باستخدام التفاصيل أدناه.</value></data>
+  <data name="Questions about this policy can be sent to" xml:space="preserve"><value>يمكن إرسال الأسئلة حول هذه السياسة إلى</value></data>
 </root>

@@ -1,34 +1,28 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Privacy Policy";
 }
 
 <section class="flat-spacing-1">
     <div class="container" style="max-width:840px">
-        <h1 class="fs-28 fw-6 mb-4">Privacy Policy</h1>
-        <p class="text-muted mb-5">Last updated: @DateTime.UtcNow.ToString("MMMM yyyy")</p>
+        <h1 class="fs-28 fw-6 mb-4">@Localizer["Privacy Policy"]</h1>
+        <p class="text-muted mb-5">@Localizer["Last updated:"] @DateTime.UtcNow.ToString("MMMM yyyy")</p>
 
-        <h5 class="mt-20 mb-14">Information we collect</h5>
-        <p>When you create an account, place an order, or contact us, we collect the information you
-           provide directly — your name, email address, shipping and billing addresses, and phone
-           number. When you browse the store, we also use a cookie to remember your cart between
-           visits, whether or not you're signed in.</p>
+        <h5 class="mt-20 mb-14">@Localizer["Information we collect"]</h5>
+        <p>@Localizer["When you create an account, place an order, or contact us, we collect the information you provide directly — your name, email address, shipping and billing addresses, and phone number. When you browse the store, we also use a cookie to remember your cart between visits, whether or not you're signed in."]</p>
 
-        <h5 class="mt-20 mb-14">How we use it</h5>
-        <p>We use your information to process orders, send order and account-related emails
-           (confirmations, shipping updates, password resets), and to keep your cart and saved
-           addresses available across sessions. We do not sell your information to third parties.</p>
+        <h5 class="mt-20 mb-14">@Localizer["How we use it"]</h5>
+        <p>@Localizer["We use your information to process orders, send order and account-related emails (confirmations, shipping updates, password resets), and to keep your cart and saved addresses available across sessions. We do not sell your information to third parties."]</p>
 
-        <h5 class="mt-20 mb-14">Payment information</h5>
-        <p>Payment processing is handled through our payment provider. We do not store your full card
-           details on our servers.</p>
+        <h5 class="mt-20 mb-14">@Localizer["Payment information"]</h5>
+        <p>@Localizer["Payment processing is handled through our payment provider. We do not store your full card details on our servers."]</p>
 
-        <h5 class="mt-20 mb-14">Your choices</h5>
-        <p>You can review and update your saved information at any time from your
-           <a asp-controller="Profile" asp-action="Index">account page</a>, or remove a saved address
-           there. To request deletion of your account data, contact us using the details below.</p>
+        <h5 class="mt-20 mb-14">@Localizer["Your choices"]</h5>
+        <p>@Localizer["You can review and update your saved information at any time from your"]
+           <a asp-controller="Profile" asp-action="Index">@Localizer["account page"]</a>, @Localizer["or remove a saved address there. To request deletion of your account data, contact us using the details below."]</p>
 
-        <h5 class="mt-20 mb-14">Contact</h5>
-        <p>Questions about this policy can be sent to
+        <h5 class="mt-20 mb-14">@Localizer["Contact"]</h5>
+        <p>@Localizer["Questions about this policy can be sent to"]
            <a href="mailto:info@ecommerce.local">info@ecommerce.local</a>.</p>
     </div>
 </section>

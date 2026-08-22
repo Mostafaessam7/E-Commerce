@@ -1209,3 +1209,41 @@ both present once translated. All 168 tests still passing — the `EndToEndTests
 sets a culture cookie, so it exercises the (correctly unaffected) English default throughout.
 Status: Accepted (Phase 41) — first phase of an ongoing localization rollout; see
 docs/current-state.md for the remaining pages.
+
+---
+**ADR-053**
+Decision: Phase 42 continues the localization rollout (ADR-052) — Auth pages (Login, Register,
+ForgotPassword, ResetPassword, and all six confirmation/status pages: AccessDenied,
+ConfirmEmailFailure/Success, RegisterConfirmation, ForgotPasswordConfirmation,
+ResetPasswordConfirmation), Profile + My Orders, and the seven content pages (About, Contact, Faq,
+Returns, Terms, Shipping, Privacy). Same infrastructure as Phase 41, no new mechanism. Folded in
+opportunistically: several Auth/Checkout ViewModels (`LoginViewModel`, `RegisterViewModel`,
+`ForgotPasswordViewModel`, `ResetPasswordViewModel`) have no `[Display(Name=)]` attributes, so a
+bare `<label asp-for="X"></label>` was rendering the raw C# property name (e.g. literally
+"RememberMe") — every such label now carries explicit localized child content, which both fixes the
+leak and satisfies the localization requirement in one edit, since Razor's `LabelTagHelper` only
+auto-generates content when the tag is empty. Checked `AccountController`/`HomeController` for
+controller-owned hardcoded strings needing localization — none found (both are either bare `View()`
+actions or route `ModelState` errors through `result.Error.Message`, already out of scope per
+ADR-052). `ProfileController`'s four TempData success messages ("Profile updated.", "Please fill in
+all required address fields.", "Address added.", "Address removed.", "Default address updated.")
+now go through `IStringLocalizer<SharedResource>`; `result.Error.Message` (domain errors) stays in
+English, same scoping as ADR-052. Reused existing resx keys wherever a new string was semantically
+identical to one Phase 41 already added — "My Orders", "Shipping", "Contact", "Privacy Policy",
+"Returns + Exchanges" (matching the footer's existing key text, not a fresh "Returns & Exchanges"
+duplicate) — rather than creating near-duplicate keys; checked for duplicate `<data name>` entries
+via `grep -oP '(?<=<data name=")[^"]*' ... | sort | uniq -d` before finalizing, same checkpoint
+established in ADR-052.
+Reason: continuing the same phased rollout named in ADR-052 ("الموقع كله بما فيه لوحة الأدمن" — the
+whole site including the admin panel), moving next to the pages every shopper touches on their way
+to and from an account (sign in/up, password recovery, profile, order history) plus the seven
+content pages that replaced dead links in Phase 37. The missing-`[Display]`-attribute fix was folded
+in rather than deferred because it was directly encountered while localizing those exact labels —
+same "fix it now, it's already in front of you" discipline as prior phases' opportunistic fixes.
+Verified live end to end via `get_page_text` (every string, not spot-checks) on Login, Register, and
+all five content pages reachable without authentication, plus Profile and My Orders while signed in
+as the seed admin account — confirmed full-page Arabic rendering including localized month names
+(`DateTime.ToString("MMMM yyyy")` on Terms/Privacy's "Last updated" line) and localized Arabic-Indic
+decimal separators on the Shipping cost column. All 168 tests still passing.
+Status: Accepted (Phase 42) — second phase of the localization rollout; only the Admin area
+(~18 files) remains, tracked in docs/current-state.md.

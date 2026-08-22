@@ -2,6 +2,7 @@ using Customers.Application.Profile;
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Ordering.Application.Checkout;
 using Security;
 using Store.Web.Models;
@@ -19,11 +20,13 @@ public sealed class ProfileController : Controller
 {
     private readonly IDispatcher _dispatcher;
     private readonly ICurrentUser _currentUser;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public ProfileController(IDispatcher dispatcher, ICurrentUser currentUser)
+    public ProfileController(IDispatcher dispatcher, ICurrentUser currentUser, IStringLocalizer<SharedResource> localizer)
     {
         _dispatcher = dispatcher;
         _currentUser = currentUser;
+        _localizer = localizer;
     }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -53,7 +56,7 @@ public sealed class ProfileController : Controller
         var customerId = _currentUser.UserId!.Value;
         var result = await _dispatcher.Send(new UpdateProfileCommand(customerId, form.FullName, form.Phone), cancellationToken);
 
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Profile updated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Profile updated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -64,7 +67,7 @@ public sealed class ProfileController : Controller
         var customerId = _currentUser.UserId!.Value;
         if (!ModelState.IsValid)
         {
-            TempData["Error"] = "Please fill in all required address fields.";
+            TempData["Error"] = _localizer["Please fill in all required address fields."].Value;
             return RedirectToAction(nameof(Index));
         }
 
@@ -74,7 +77,7 @@ public sealed class ProfileController : Controller
                 form.City, form.State, form.PostalCode, form.Country, form.IsDefault),
             cancellationToken);
 
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Address added." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Address added."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -85,7 +88,7 @@ public sealed class ProfileController : Controller
         var customerId = _currentUser.UserId!.Value;
         var result = await _dispatcher.Send(new RemoveAddressCommand(customerId, addressId), cancellationToken);
 
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Address removed." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Address removed."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -96,7 +99,7 @@ public sealed class ProfileController : Controller
         var customerId = _currentUser.UserId!.Value;
         var result = await _dispatcher.Send(new SetDefaultAddressCommand(customerId, addressId), cancellationToken);
 
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Default address updated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Default address updated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 

@@ -440,7 +440,7 @@ up dark mode automatically; a handful of base rules (`body`, headings, `.text-mu
 needed an explicit dark override since they read the theme's variables directly. Admin's dark mode
 already existed (`admin-ecomus`'s own `.dark-theme` toggle, noted since Phase 24) — not rebuilt.
 
-## Localization (Phase 41, ADR-052 — in progress, not a module)
+## Localization (Phases 41-42, ADR-052/053 — in progress, not a module)
 Explicit user-requested Arabic/English support across the whole site, started as its own
 multi-phase rollout (infrastructure + highest-traffic pages first). Standard ASP.NET Core
 localization: `RequestLocalizationOptions` (`en` default, `en`/`ar` supported), one shared
@@ -453,11 +453,15 @@ exhaustive mirror of the curated theme's ~12,000 lines of CSS. RTL detection use
 `TwoLetterISOLanguageName == "ar"`, not `TextInfo.IsRightToLeft` — that property returns `false` for
 the neutral `"ar"` culture in this environment, a real .NET/ICU gap for neutral vs. specific
 cultures. Translated so far: Header/Footer/MobileMenu, Home, Shop, Product Details, Cart, Checkout
-+ Confirmation — the entire core shopping flow. Deliberately never localized: catalog content
-(product/category/brand names — admin-entered data, not UI chrome; would need multi-language
-domain fields, a separate effort) and domain-layer error messages (out of this phase's scope). Not
-yet translated: Auth/Profile/content pages, the Admin area. See docs/current-state.md for the
-remaining phases.
++ Confirmation (Phase 41 — the entire core shopping flow), Auth (Login/Register/ForgotPassword/
+ResetPassword + six confirmation/status pages), Profile + My Orders, and all seven content pages —
+About/Contact/Faq/Returns/Terms/Shipping/Privacy (Phase 42). Phase 42 also fixed a related gap found
+while localizing: several Auth/Checkout ViewModels had no `[Display(Name=)]` attributes, so empty
+`<label asp-for="X">` tags rendered raw property names — every such label now has explicit localized
+child content. Deliberately never localized: catalog content (product/category/brand names —
+admin-entered data, not UI chrome; would need multi-language domain fields, a separate effort) and
+domain-layer error messages (out of scope). Not yet translated: the Admin area. See
+docs/current-state.md for the remaining phase.
 
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,

@@ -1,4 +1,5 @@
 @model OrderSearchResultDto
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "My Orders";
     var totalPages = (int)Math.Ceiling(Model.TotalCount / (double)Model.PageSize);
@@ -6,15 +7,15 @@
 
 <div class="container" style="max-width: 840px; padding: 60px 0;">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <h2>My Orders</h2>
-        <a asp-controller="Profile" asp-action="Index" class="tf-btn radius-3">Back to Account</a>
+        <h2>@Localizer["My Orders"]</h2>
+        <a asp-controller="Profile" asp-action="Index" class="tf-btn radius-3">@Localizer["Back to Account"]</a>
     </div>
 
     @if (Model.Items.Count == 0)
     {
         <div class="text-center py-5">
-            <p class="text-muted">You haven't placed any orders yet.</p>
-            <a asp-controller="Shop" asp-action="Index" class="tf-btn btn-fill radius-3 mt-3">Start shopping</a>
+            <p class="text-muted">@Localizer["You haven't placed any orders yet."]</p>
+            <a asp-controller="Shop" asp-action="Index" class="tf-btn btn-fill radius-3 mt-3">@Localizer["Start shopping"]</a>
         </div>
     }
     else
@@ -22,11 +23,11 @@
         <table class="table align-middle">
             <thead>
                 <tr>
-                    <th>Order #</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th>Total</th>
-                    <th>Placed</th>
+                    <th>@Localizer["Order #"]</th>
+                    <th>@Localizer["Status"]</th>
+                    <th>@Localizer["Payment"]</th>
+                    <th>@Localizer["Total"]</th>
+                    <th>@Localizer["Placed"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -35,11 +36,11 @@
                 {
                     <tr>
                         <td>@order.OrderNumber</td>
-                        <td><span class="badge @OrderStatusBadge.CssClass(order.Status)">@order.Status</span></td>
-                        <td><span class="badge @OrderStatusBadge.CssClass(order.PaymentStatus)">@order.PaymentStatus</span></td>
+                        <td><span class="badge @OrderStatusBadge.CssClass(order.Status)">@Localizer[order.Status]</span></td>
+                        <td><span class="badge @OrderStatusBadge.CssClass(order.PaymentStatus)">@Localizer[order.PaymentStatus]</span></td>
                         <td>@order.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
                         <td>@order.PlacedAtUtc.ToString("yyyy-MM-dd")</td>
-                        <td><a asp-controller="Checkout" asp-action="Confirmation" asp-route-orderId="@order.Id">View</a></td>
+                        <td><a asp-controller="Checkout" asp-action="Confirmation" asp-route-orderId="@order.Id">@Localizer["View"]</a></td>
                     </tr>
                 }
             </tbody>

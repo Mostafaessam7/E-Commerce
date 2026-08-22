@@ -494,11 +494,24 @@ Completed:
   formatting; the language choice persists across navigation via the cookie. All 168 tests still
   passing (the E2E test client never sets a culture cookie, so it correctly exercises the English
   default throughout).
+- Phase 42: Arabic/English localization continued (ADR-053) — Auth pages (Login/Register/
+  ForgotPassword/ResetPassword + all six confirmation/status pages), Profile + My Orders, and all
+  seven content pages (About/Contact/Faq/Returns/Terms/Shipping/Privacy). Opportunistic fix folded
+  in: several Auth/Checkout ViewModels had no `[Display(Name=)]` attributes, so empty
+  `<label asp-for="X">` tags were rendering raw property names (e.g. "RememberMe") — every such
+  label now has explicit localized child content instead. `AccountController`/`HomeController` had
+  no controller-owned hardcoded strings to localize; `ProfileController`'s four TempData messages
+  now go through `IStringLocalizer` (domain `Error.Message` still left in English, per the Phase 41
+  scoping decision). Reused existing resx keys wherever semantically identical (e.g. "My Orders",
+  "Shipping", "Contact", "Returns + Exchanges") instead of duplicating; checked for duplicate
+  `<data name>` keys before every commit. Verified live via `get_page_text` on every new page.
+  All 168 tests still passing.
 
 In Progress:
-- Phase 42+: Auth pages (Login/Register/Forgot/Reset), Profile/My Orders, the seven content pages
-  (About/Contact/Faq/Returns/Terms/Shipping/Privacy), then the Admin area (~18 files) — continuing
-  the same infrastructure, not yet started.
+- Phase 43+: the Admin area (~18 files: `_AdminLayout.cshtml`, Dashboard, Products Index/Create/
+  Edit, Brands, Categories, Coupons, Orders Index/Details, Payments, Stock, ShippingMethods,
+  Reviews) — the last remaining piece of "الموقع كله بما فيه لوحة الأدمن" (the whole site including
+  the admin panel), not yet started.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
@@ -552,9 +565,9 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..052.
-- docs/modules.md — "Localization" section (Phase 41) covers the resource-based setup, right after
-  "Dark mode".
+- docs/decisions.md — ADR-001..053.
+- docs/modules.md — "Localization" section (Phases 41-42) covers the resource-based setup, right
+  after "Dark mode".
 - docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after
   "Storefront UI polish".
 
@@ -634,4 +647,7 @@ tokens rather than the theme's dual-purpose `--main`/`--white` variables, which 
 shared `IStringLocalizer<SharedResource>` resource set, a header language switcher, RTL layout via
 a scoped `rtl.css`; hit and fixed a real .NET/ICU gap where `TextInfo.IsRightToLeft` returns false
 for the neutral "ar" culture, worked around with a direct language-code check — covering the
-entire core shopping flow so far, Auth/Profile/content pages and Admin still to come).
+entire core shopping flow so far, Auth/Profile/content pages and Admin still to come), ADR-053
+(Phase 42 continues the localization rollout — Auth pages, Profile/My Orders, and all seven content
+pages; opportunistically fixed several ViewModels' missing `[Display(Name=)]` attributes while
+localizing their labels — only the Admin area remains).

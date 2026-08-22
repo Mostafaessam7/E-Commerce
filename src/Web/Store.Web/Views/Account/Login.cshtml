@@ -1,4 +1,5 @@
 @model Store.Web.Models.LoginViewModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Sign In";
 }
@@ -6,44 +7,44 @@
 <div class="auth-split">
     <div class="auth-form-panel">
         <div class="auth-form-inner">
-            <h2 class="mb-2">Welcome back</h2>
-            <p class="text-muted mb-4">Sign in to continue to your account.</p>
+            <h2 class="mb-2">@Localizer["Welcome back"]</h2>
+            <p class="text-muted mb-4">@Localizer["Sign in to continue to your account."]</p>
 
             <form asp-action="Login" method="post">
                 <input type="hidden" asp-for="ReturnUrl" />
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <div class="mb-3">
-                    <label asp-for="Email" class="form-label"></label>
+                    <label asp-for="Email" class="form-label">@Localizer["Email"]</label>
                     <input asp-for="Email" class="form-control" autocomplete="username" />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Password" class="form-label"></label>
+                    <label asp-for="Password" class="form-label">@Localizer["Password"]</label>
                     <input asp-for="Password" class="form-control" autocomplete="current-password" />
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
                 <div class="form-check mb-3">
                     <input asp-for="RememberMe" class="form-check-input" />
-                    <label asp-for="RememberMe" class="form-check-label"></label>
+                    <label asp-for="RememberMe" class="form-check-label">@Localizer["Remember me"]</label>
                 </div>
 
-                <button type="submit" class="tf-btn btn-fill radius-3 w-100 justify-content-center">Sign In<i class="icon icon-arrow1-top-left"></i></button>
+                <button type="submit" class="tf-btn btn-fill radius-3 w-100 justify-content-center">@Localizer["Sign In"]<i class="icon icon-arrow1-top-left"></i></button>
             </form>
 
             <div class="d-flex justify-content-between mt-3">
-                <a asp-action="Register">Create an account</a>
-                <a asp-action="ForgotPassword">Forgot password?</a>
+                <a asp-action="Register">@Localizer["Create an account"]</a>
+                <a asp-action="ForgotPassword">@Localizer["Forgot password?"]</a>
             </div>
         </div>
     </div>
 
     <div id="vanta-auth" class="auth-visual">
         <div class="auth-visual-copy">
-            <div class="fs-28 fw-6">New Season Arrivals</div>
-            <p class="mt-2 mb-0">Sign in for order history, saved addresses, and a faster checkout.</p>
+            <div class="fs-28 fw-6">@Localizer["New Season Arrivals"]</div>
+            <p class="mt-2 mb-0">@Localizer["Sign in for order history, saved addresses, and a faster checkout."]</p>
         </div>
     </div>
 </div>

@@ -1,12 +1,13 @@
 @model Customers.Application.Profile.CustomerProfileDto
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "My Account";
 }
 
 <div class="container" style="max-width: 720px; padding: 60px 0;">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <h2 class="mb-0">My Account</h2>
-        <a asp-controller="Profile" asp-action="Orders" class="tf-btn radius-3">My Orders<i class="icon icon-arrow1-top-left"></i></a>
+        <h2 class="mb-0">@Localizer["My Account"]</h2>
+        <a asp-controller="Profile" asp-action="Orders" class="tf-btn radius-3">@Localizer["My Orders"]<i class="icon icon-arrow1-top-left"></i></a>
     </div>
 
     @if (TempData["Success"] is string success)
@@ -18,47 +19,47 @@
         <div class="alert alert-danger">@error</div>
     }
 
-    <h5>Profile</h5>
+    <h5>@Localizer["Profile"]</h5>
     <form asp-controller="Profile" asp-action="UpdateProfile" method="post" class="row g-3 mb-5">
         <div class="col-md-6">
-            <label class="form-label">Email</label>
+            <label class="form-label">@Localizer["Email"]</label>
             <input class="form-control" value="@Model.Email" disabled />
         </div>
         <div class="col-md-6"></div>
         <div class="col-md-6">
-            <label class="form-label">Full Name</label>
+            <label class="form-label">@Localizer["Full Name"]</label>
             <input name="FullName" class="form-control" value="@Model.FullName" />
         </div>
         <div class="col-md-6">
-            <label class="form-label">Phone</label>
+            <label class="form-label">@Localizer["Phone"]</label>
             <input name="Phone" class="form-control" value="@Model.Phone" />
         </div>
         <div class="col-12">
-            <button type="submit" class="btn btn-dark">Save Profile</button>
+            <button type="submit" class="btn btn-dark">@Localizer["Save Profile"]</button>
         </div>
     </form>
 
-    <h5>Saved Addresses</h5>
+    <h5>@Localizer["Saved Addresses"]</h5>
     <table class="table mb-4">
-        <thead><tr><th>Label</th><th>Address</th><th>Default</th><th></th></tr></thead>
+        <thead><tr><th>@Localizer["Label"]</th><th>@Localizer["Address"]</th><th>@Localizer["Default"]</th><th></th></tr></thead>
         <tbody>
         @foreach (var address in Model.Addresses)
         {
             <tr>
                 <td>@address.Label</td>
                 <td>@address.FullName, @address.Line1, @address.City, @address.Country</td>
-                <td>@(address.IsDefault ? "Yes" : "")</td>
+                <td>@(address.IsDefault ? Localizer["Yes"] : "")</td>
                 <td class="d-flex gap-1">
                     @if (!address.IsDefault)
                     {
                         <form asp-action="SetDefaultAddress" method="post">
                             <input type="hidden" name="addressId" value="@address.Id" />
-                            <button type="submit" class="btn btn-outline-dark btn-sm">Make Default</button>
+                            <button type="submit" class="btn btn-outline-dark btn-sm">@Localizer["Make Default"]</button>
                         </form>
                     }
-                    <form asp-action="RemoveAddress" method="post" onsubmit="return confirm('Remove this address?');">
+                    <form asp-action="RemoveAddress" method="post" onsubmit="return confirm('@Localizer["Remove this address?"]');">
                         <input type="hidden" name="addressId" value="@address.Id" />
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                        <button type="submit" class="btn btn-outline-danger btn-sm">@Localizer["Remove"]</button>
                     </form>
                 </td>
             </tr>
@@ -67,26 +68,26 @@
     </table>
     @if (Model.Addresses.Count == 0)
     {
-        <p>No saved addresses yet.</p>
+        <p>@Localizer["No saved addresses yet."]</p>
     }
 
-    <h5>Add Address</h5>
+    <h5>@Localizer["Add Address"]</h5>
     <form asp-action="AddAddress" method="post" class="row g-3">
-        <div class="col-md-6"><input name="Label" class="form-control" placeholder="Label (e.g. Home)" required /></div>
-        <div class="col-md-6"><input name="FullName" class="form-control" placeholder="Full Name" required /></div>
-        <div class="col-md-6"><input name="Phone" class="form-control" placeholder="Phone" required /></div>
-        <div class="col-md-6"><input name="Line1" class="form-control" placeholder="Address Line 1" required /></div>
-        <div class="col-md-6"><input name="Line2" class="form-control" placeholder="Address Line 2 (optional)" /></div>
-        <div class="col-md-6"><input name="City" class="form-control" placeholder="City" required /></div>
-        <div class="col-md-6"><input name="State" class="form-control" placeholder="State/Governorate" /></div>
-        <div class="col-md-6"><input name="PostalCode" class="form-control" placeholder="Postal Code" required /></div>
+        <div class="col-md-6"><input name="Label" class="form-control" placeholder="@Localizer["Label (e.g. Home)"]" required /></div>
+        <div class="col-md-6"><input name="FullName" class="form-control" placeholder="@Localizer["Full Name"]" required /></div>
+        <div class="col-md-6"><input name="Phone" class="form-control" placeholder="@Localizer["Phone"]" required /></div>
+        <div class="col-md-6"><input name="Line1" class="form-control" placeholder="@Localizer["Address Line 1"]" required /></div>
+        <div class="col-md-6"><input name="Line2" class="form-control" placeholder="@Localizer["Address Line 2 (optional)"]" /></div>
+        <div class="col-md-6"><input name="City" class="form-control" placeholder="@Localizer["City"]" required /></div>
+        <div class="col-md-6"><input name="State" class="form-control" placeholder="@Localizer["State/Governorate"]" /></div>
+        <div class="col-md-6"><input name="PostalCode" class="form-control" placeholder="@Localizer["Postal Code"]" required /></div>
         <div class="col-md-6"><input name="Country" class="form-control" value="EG" maxlength="2" required /></div>
         <div class="col-12 form-check">
             <input type="checkbox" name="IsDefault" value="true" class="form-check-input" id="isDefault" />
-            <label class="form-check-label" for="isDefault">Make this my default address</label>
+            <label class="form-check-label" for="isDefault">@Localizer["Make this my default address"]</label>
         </div>
         <div class="col-12">
-            <button type="submit" class="btn btn-dark">Add Address</button>
+            <button type="submit" class="btn btn-dark">@Localizer["Add Address"]</button>
         </div>
     </form>
 </div>
