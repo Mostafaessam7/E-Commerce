@@ -1,0 +1,75 @@
+/* ==========================================================================
+   RTL support (Phase 41, ADR-052) — loaded only when dir="rtl" (_Layout.cshtml).
+   Bootstrap 5's own utilities (`.ps-*`/`.pe-*`, `.start-0`/`.end-0`, `.text-start`) are already
+   logical-property-based and auto-flip correctly with `dir="rtl"` — no override needed there.
+   This file targets specifically the places the curated `ecomus` theme and this project's own
+   design-system.css use *physical* left/right (hardcoded `float`, `margin-left`, absolute
+   `left:`/`right:`) that dir="rtl" alone does not flip, scoped to the components this project
+   already controls end to end (header, footer, hero, product cards, forms). The base theme's own
+   ~12,000 lines of CSS are not exhaustively audited here — genuinely out of reach for this pass;
+   see docs/current-state.md for what's tracked as a known RTL gap.
+   ========================================================================== */
+
+/* Hero */
+.vanta-hero .box-content {
+    text-align: right;
+}
+
+/* Header nav / icons — flex row order should visually mirror, not just text-align */
+.box-nav-ul {
+    flex-direction: row-reverse;
+}
+
+.nav-icon {
+    flex-direction: row-reverse;
+}
+
+/* Product card price line (new/old price side by side) */
+.card-product .price .old-price {
+    margin-right: 8px;
+    margin-left: 0;
+}
+
+/* Footer collection/columns already use Bootstrap's logical grid — just fix text alignment */
+.footer-infor, .footer-menu-list, .footer-newsletter {
+    text-align: right;
+}
+
+/* Cart/checkout tables — numbers stay LTR (prices), labels flip */
+.table th, .table td {
+    text-align: right;
+}
+
+.table th:last-child, .table td:last-child {
+    text-align: left;
+}
+
+/* Auth split panel */
+.auth-visual-copy {
+    text-align: right;
+}
+
+/* Category tiles / brand chips */
+.category-tile, .brand-chip {
+    direction: rtl;
+}
+
+/* Buttons with a directional arrow icon (icon-arrow1-top-left) visually point the wrong way in
+   RTL — mirror them rather than leave a left-pointing arrow on a right-to-left "next" action. */
+.tf-btn .icon-arrow1-top-left,
+.tf-button .icon-arrow1-top-left {
+    display: inline-block;
+    transform: scaleX(-1);
+}
+
+/* Breadcrumbs / section eyebrows */
+.section-eyebrow {
+    text-align: right;
+}
+
+/* Form layout — labels and inputs already inherit text-align from dir, but explicit number
+   inputs (quantity, price) should stay LTR so digits don't visually reverse. */
+input[type="number"] {
+    direction: ltr;
+    text-align: right;
+}

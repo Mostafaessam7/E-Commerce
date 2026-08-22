@@ -1,4 +1,5 @@
 @model OrderDto
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Order Confirmed";
 }
@@ -6,13 +7,13 @@
 <section class="flat-spacing-1">
     <div class="container" style="max-width:720px">
         <div class="text-center mb-5">
-            <h1 class="fs-28 fw-6">Thank you — order placed!</h1>
-            <p class="text-muted">Order number: <strong>@Model.OrderNumber</strong></p>
+            <h1 class="fs-28 fw-6">@Localizer["Thank you — order placed!"]</h1>
+            <p class="text-muted">@Localizer["Order number"]: <strong>@Model.OrderNumber</strong></p>
         </div>
 
         <table class="table">
             <thead>
-                <tr><th>Product</th><th>Qty</th><th>Total</th></tr>
+                <tr><th>@Localizer["Product"]</th><th>@Localizer["Qty"]</th><th>@Localizer["Total"]</th></tr>
             </thead>
             <tbody>
                 @foreach (var item in Model.Items)
@@ -27,15 +28,15 @@
         </table>
 
         <div class="text-end">
-            <div>Subtotal: @Model.Subtotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
-            <div>Shipping: @Model.ShippingCost.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
-            <div>Tax: @Model.Tax.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
-            <div class="fs-20 fw-6 mt-2">Total: @Model.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+            <div>@Localizer["Subtotal"]: @Model.Subtotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+            <div>@Localizer["Shipping"]: @Model.ShippingCost.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+            <div>@Localizer["Tax"]: @Model.Tax.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+            <div class="fs-20 fw-6 mt-2">@Localizer["Total"]: @Model.Total.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
         </div>
 
         <div class="mt-4">
-            <span class="badge @OrderStatusBadge.CssClass(Model.Status)">Status: @Model.Status</span>
-            <span class="badge @OrderStatusBadge.CssClass(Model.PaymentStatus)">Payment: @Model.PaymentStatus</span>
+            <span class="badge @OrderStatusBadge.CssClass(Model.Status)">@Localizer["Status"]: @Localizer[Model.Status]</span>
+            <span class="badge @OrderStatusBadge.CssClass(Model.PaymentStatus)">@Localizer["Payment"]: @Localizer[Model.PaymentStatus]</span>
         </div>
 
         @if (TempData["PaymentError"] is string paymentError)
@@ -50,7 +51,7 @@
                 @* No real payment provider is wired up — this drives the real webhook endpoint
                    with a self-signed simulated payload rather than skipping it (see
                    PaymentsController's doc comment / docs/decisions.md ADR on Payments). *@
-                <button type="submit" class="tf-btn btn-fill radius-3">Pay now (simulated)<i class="icon icon-arrow1-top-left"></i></button>
+                <button type="submit" class="tf-btn btn-fill radius-3">@Localizer["Pay now (simulated)"]<i class="icon icon-arrow1-top-left"></i></button>
             </form>
         }
     </div>

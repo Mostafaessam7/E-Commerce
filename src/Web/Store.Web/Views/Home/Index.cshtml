@@ -1,14 +1,19 @@
 @model HomeViewModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Home";
 }
 
+@* Category/Brand/Product names come straight from the database (admin-entered catalog content)
+   — deliberately never run through Localizer, which is for static UI chrome only. Translating
+   catalog content itself would need multi-language fields on the domain model, a separate,
+   much larger effort out of scope here. *@
 <section class="position-relative">
     <div id="vanta-hero" class="vanta-hero">
         <div class="box-content position-absolute top-50 start-0 translate-middle-y ps-5 text-white" style="max-width:520px;z-index:2">
-            <h2 class="display-5 fw-bold">New Season Arrivals</h2>
-            <p class="mt-3 fs-18">Discover the latest collection, curated for you.</p>
-            <a asp-controller="Shop" asp-action="Index" class="tf-btn btn-fill radius-3 mt-4">Shop now<i class="icon icon-arrow1-top-left"></i></a>
+            <h2 class="display-5 fw-bold">@Localizer["New Season Arrivals"]</h2>
+            <p class="mt-3 fs-18">@Localizer["Discover the latest collection, curated for you."]</p>
+            <a asp-controller="Shop" asp-action="Index" class="tf-btn btn-fill radius-3 mt-4">@Localizer["Shop now"]<i class="icon icon-arrow1-top-left"></i></a>
         </div>
     </div>
 </section>
@@ -18,8 +23,8 @@
     <section class="flat-spacing-1">
         <div class="container">
             <div class="flat-title">
-                <span class="section-eyebrow">Browse</span>
-                <span class="title fs-28 fw-6">Shop by Category</span>
+                <span class="section-eyebrow">@Localizer["Browse"]</span>
+                <span class="title fs-28 fw-6">@Localizer["Shop by Category"]</span>
             </div>
             <div class="row g-3">
                 @foreach (var category in Model.Categories.Where(c => c.IsActive).Take(6))
@@ -36,14 +41,14 @@
 <section class="flat-spacing-1" id="featured">
     <div class="container">
         <div class="flat-title">
-            <span class="section-eyebrow">Handpicked</span>
-            <span class="title fs-28 fw-6">Featured Products</span>
+            <span class="section-eyebrow">@Localizer["Handpicked"]</span>
+            <span class="title fs-28 fw-6">@Localizer["Featured Products"]</span>
         </div>
 
         @if (Model.FeaturedProducts.Count == 0)
         {
             <div class="text-center py-5">
-                <p class="text-muted">No featured products yet — add and publish some from the admin panel once it ships (Phase 11).</p>
+                <p class="text-muted">@Localizer["No featured products yet."]</p>
             </div>
         }
         else
@@ -63,8 +68,8 @@
     <section class="flat-spacing-1">
         <div class="container">
             <div class="flat-title">
-                <span class="section-eyebrow">Just In</span>
-                <span class="title fs-28 fw-6">New Arrivals</span>
+                <span class="section-eyebrow">@Localizer["Just In"]</span>
+                <span class="title fs-28 fw-6">@Localizer["New Arrivals"]</span>
             </div>
             <div class="tf-grid-layout tf-col-2 md-col-4">
                 @foreach (var product in Model.NewArrivals)
@@ -83,7 +88,7 @@
                 <a asp-controller="Shop" asp-action="Index" class="collection-position position-relative d-block">
                     <img class="lazyload w-100" src="~/ecomus/images/collections/collection-1.jpg" alt="collection" />
                     <div class="content-collection position-absolute bottom-0 start-0 p-4 text-white">
-                        <div class="fs-22 fw-6">New Arrivals</div>
+                        <div class="fs-22 fw-6">@Localizer["New Arrivals"]</div>
                     </div>
                 </a>
             </div>
@@ -91,7 +96,7 @@
                 <a asp-controller="Shop" asp-action="Index" class="collection-position position-relative d-block">
                     <img class="lazyload w-100" src="~/ecomus/images/collections/collection-2.jpg" alt="collection" />
                     <div class="content-collection position-absolute bottom-0 start-0 p-4 text-white">
-                        <div class="fs-22 fw-6">Best Sellers</div>
+                        <div class="fs-22 fw-6">@Localizer["Best Sellers"]</div>
                     </div>
                 </a>
             </div>
@@ -104,8 +109,8 @@
     <section class="flat-spacing-1">
         <div class="container">
             <div class="flat-title">
-                <span class="section-eyebrow">Trusted</span>
-                <span class="title fs-28 fw-6">Shop by Brand</span>
+                <span class="section-eyebrow">@Localizer["Trusted"]</span>
+                <span class="title fs-28 fw-6">@Localizer["Shop by Brand"]</span>
             </div>
             <div class="brand-strip">
                 @foreach (var brand in Model.Brands.Where(b => b.IsActive))

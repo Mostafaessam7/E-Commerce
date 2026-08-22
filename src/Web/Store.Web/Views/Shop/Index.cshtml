@@ -1,7 +1,17 @@
 @model ProductSearchResultDto
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Shop";
     var totalPages = Model.PageSize == 0 ? 0 : (int)Math.Ceiling(Model.TotalCount / (double)Model.PageSize);
+
+    string SortLabel(ProductSortOrder order) => order switch
+    {
+        ProductSortOrder.Newest => Localizer["Newest"],
+        ProductSortOrder.PriceLowToHigh => Localizer["Price: Low to High"],
+        ProductSortOrder.PriceHighToLow => Localizer["Price: High to Low"],
+        ProductSortOrder.NameAToZ => Localizer["Name: A to Z"],
+        _ => order.ToString(),
+    };
 }
 
 <section class="flat-spacing-1">
@@ -10,39 +20,39 @@
             <div class="col-lg-3">
                 <form method="get" asp-controller="Shop" asp-action="Index" class="widget-facet mb-4">
                     <div class="mb-3">
-                        <label class="form-label fw-6">Search</label>
-                        <input type="text" name="q" value="@Context.Request.Query["q"]" class="form-control" placeholder="Search products..." />
+                        <label class="form-label fw-6">@Localizer["Search"]</label>
+                        <input type="text" name="q" value="@Context.Request.Query["q"]" class="form-control" placeholder="@Localizer["Search products..."]" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-6">Min price</label>
+                        <label class="form-label fw-6">@Localizer["Min price"]</label>
                         <input type="number" name="minPrice" value="@Context.Request.Query["minPrice"]" class="form-control" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-6">Max price</label>
+                        <label class="form-label fw-6">@Localizer["Max price"]</label>
                         <input type="number" name="maxPrice" value="@Context.Request.Query["maxPrice"]" class="form-control" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-6">Sort by</label>
+                        <label class="form-label fw-6">@Localizer["Sort by"]</label>
                         <select name="sort" class="form-select">
                             @foreach (var option in Enum.GetValues<ProductSortOrder>())
                             {
-                                <option value="@option" selected="@(Context.Request.Query["sort"] == option.ToString())">@option</option>
+                                <option value="@option" selected="@(Context.Request.Query["sort"] == option.ToString())">@SortLabel(option)</option>
                             }
                         </select>
                     </div>
-                    <button type="submit" class="tf-btn btn-fill radius-3 w-100">Apply filters</button>
+                    <button type="submit" class="tf-btn btn-fill radius-3 w-100">@Localizer["Apply filters"]</button>
                 </form>
             </div>
 
             <div class="col-lg-9">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted">@Model.TotalCount product(s) found</span>
+                    <span class="text-muted">@Model.TotalCount @Localizer["product(s) found"]</span>
                 </div>
 
                 @if (Model.Items.Count == 0)
                 {
                     <div class="text-center py-5">
-                        <p class="text-muted">No products match these filters yet.</p>
+                        <p class="text-muted">@Localizer["No products match these filters yet."]</p>
                     </div>
                 }
                 else

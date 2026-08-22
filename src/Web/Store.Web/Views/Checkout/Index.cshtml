@@ -1,62 +1,63 @@
 @model CheckoutFormModel
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Checkout";
 }
 
 <section class="flat-spacing-1">
     <div class="container" style="max-width:720px">
-        <h1 class="fs-28 fw-6 mb-4">Checkout</h1>
+        <h1 class="fs-28 fw-6 mb-4">@Localizer["Checkout"]</h1>
 
         <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
         <form method="post" asp-controller="Checkout" asp-action="PlaceOrder">
-            <h5 class="mb-3">Contact</h5>
+            <h5 class="mb-3">@Localizer["Contact Information"]</h5>
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label asp-for="Email" class="form-label"></label>
+                    <label asp-for="Email" class="form-label">@Localizer["Email"]</label>
                     <input asp-for="Email" class="form-control" placeholder="you@example.com" />
                     <span asp-validation-for="Email" class="text-danger"></span>
-                    <div class="form-text">Your order confirmation goes here.</div>
+                    <div class="form-text">@Localizer["Your order confirmation goes here."]</div>
                 </div>
             </div>
 
-            <h5 class="mb-3">Shipping address</h5>
+            <h5 class="mb-3">@Localizer["Shipping address"]</h5>
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label asp-for="FullName" class="form-label"></label>
+                    <label asp-for="FullName" class="form-label">@Localizer["Full Name"]</label>
                     <input asp-for="FullName" class="form-control" />
                     <span asp-validation-for="FullName" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="Phone" class="form-label"></label>
+                    <label asp-for="Phone" class="form-label">@Localizer["Phone"]</label>
                     <input asp-for="Phone" class="form-control" />
                     <span asp-validation-for="Phone" class="text-danger"></span>
                 </div>
                 <div class="col-12">
-                    <label asp-for="Line1" class="form-label"></label>
+                    <label asp-for="Line1" class="form-label">@Localizer["Address Line 1"]</label>
                     <input asp-for="Line1" class="form-control" />
                     <span asp-validation-for="Line1" class="text-danger"></span>
                 </div>
                 <div class="col-12">
-                    <label asp-for="Line2" class="form-label"></label>
+                    <label asp-for="Line2" class="form-label">@Localizer["Address Line 2 (optional)"]</label>
                     <input asp-for="Line2" class="form-control" />
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="City" class="form-label"></label>
+                    <label asp-for="City" class="form-label">@Localizer["City"]</label>
                     <input asp-for="City" class="form-control" />
                     <span asp-validation-for="City" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="State" class="form-label"></label>
+                    <label asp-for="State" class="form-label">@Localizer["State/Governorate"]</label>
                     <input asp-for="State" class="form-control" />
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="PostalCode" class="form-label"></label>
+                    <label asp-for="PostalCode" class="form-label">@Localizer["Postal Code"]</label>
                     <input asp-for="PostalCode" class="form-control" />
                     <span asp-validation-for="PostalCode" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
-                    <label asp-for="Country" class="form-label"></label>
+                    <label asp-for="Country" class="form-label">@Localizer["Country"]</label>
                     <input asp-for="Country" class="form-control" maxlength="2" placeholder="EG" />
                     <span asp-validation-for="Country" class="text-danger"></span>
                 </div>
@@ -64,10 +65,10 @@
 
             <div class="form-check mb-4">
                 <input asp-for="BillingSameAsShipping" class="form-check-input" />
-                <label asp-for="BillingSameAsShipping" class="form-check-label">Billing address same as shipping</label>
+                <label asp-for="BillingSameAsShipping" class="form-check-label">@Localizer["Billing address same as shipping"]</label>
             </div>
 
-            <h5 class="mb-3">Shipping method</h5>
+            <h5 class="mb-3">@Localizer["Shipping method"]</h5>
             <div class="mb-4">
                 @foreach (var method in Model.ShippingMethods)
                 {
@@ -77,7 +78,7 @@
                             @method.Name — @method.Cost.ToString("0.00") @method.Currency
                             @if (method.EstimatedDaysMin is not null)
                             {
-                                <text> (@method.EstimatedDaysMin-@method.EstimatedDaysMax days)</text>
+                                <text> (@method.EstimatedDaysMin-@method.EstimatedDaysMax @Localizer["days"])</text>
                             }
                         </label>
                     </div>
@@ -85,16 +86,16 @@
                 <span asp-validation-for="ShippingMethodId" class="text-danger"></span>
                 @if (Model.ShippingMethods.Count == 0)
                 {
-                    <p class="text-danger">No shipping methods are available right now.</p>
+                    <p class="text-danger">@Localizer["No shipping methods are available right now."]</p>
                 }
             </div>
 
             <div class="mb-4">
-                <label asp-for="Notes" class="form-label"></label>
+                <label asp-for="Notes" class="form-label">@Localizer["Notes"]</label>
                 <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
             </div>
 
-            <button type="submit" class="tf-btn btn-fill radius-3">Place order<i class="icon icon-arrow1-top-left"></i></button>
+            <button type="submit" class="tf-btn btn-fill radius-3">@Localizer["Place order"]<i class="icon icon-arrow1-top-left"></i></button>
         </form>
     </div>
 </section>

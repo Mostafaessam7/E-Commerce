@@ -1,5 +1,16 @@
+@{
+    // Phase 41 (ADR-052): CurrentUICulture is set by UseRequestLocalization (Program.cs) from the
+    // standard culture cookie/query-string/Accept-Language before this view ever runs.
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture;
+    // Not currentCulture.TextInfo.IsRightToLeft: the neutral "ar" CultureInfo (as opposed to a
+    // specific one like "ar-EG") doesn't reliably report IsRightToLeft=true across .NET/ICU
+    // versions — confirmed live (lang="ar" rendered correctly, dir stayed "ltr"). Since this app
+    // only ever supports exactly "en"/"ar" (Program.cs), a direct language-code check is both
+    // simpler and actually correct.
+    var isRtl = currentCulture.TwoLetterISOLanguageName == "ar";
+}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@currentCulture.TwoLetterISOLanguageName" dir="@(isRtl ? "rtl" : "ltr")">
 <head>
     <meta charset="utf-8" />
     @* Phase 40 (ADR-051): set the theme attribute before first paint so there's no light-mode
@@ -24,6 +35,10 @@
     <link rel="stylesheet" href="~/ecomus/css/styles.css" />
     <link rel="stylesheet" href="~/css/site-custom.css" />
     <link rel="stylesheet" href="~/css/design-system.css" />
+    @if (isRtl)
+    {
+        <link rel="stylesheet" href="~/css/rtl.css" />
+    }
 
     <link rel="shortcut icon" href="~/ecomus/images/logo/favicon.png" />
     @await RenderSectionAsync("Styles", required: false)

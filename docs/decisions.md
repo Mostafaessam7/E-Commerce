@@ -1157,3 +1157,55 @@ choice survives a navigation to a different page; no horizontal overflow at a 37
 viewport. All 168 tests still passing — CSS/small-inline-script-only change, no application code
 touched.
 Status: Accepted (Phase 40).
+
+---
+**ADR-052**
+Decision: Phase 41 begins real Arabic/English localization, explicit user request ("الموقع كله بما
+فيه لوحة الأدمن" — the whole site including the admin panel), scoped and executed the same way the
+Phase 36-38 redesign was: infrastructure first, then page by page, not a single sweep — this
+phase covers the infrastructure plus the entire core shopping flow (Header/Footer/MobileMenu, Home,
+Shop, Product Details, Cart, Checkout + Confirmation). Standard ASP.NET Core localization:
+`AddLocalization`/`RequestLocalizationOptions` (`en` default, `en`/`ar` supported), a single shared
+`IStringLocalizer<SharedResource>` resource set (`Resources/SharedResource.ar.resx`) rather than
+one `.resx` per view — with ~58 views sharing a lot of the same strings ("Add to cart", validation
+labels), a single lookup table is far more maintainable than duplicating them per file; the empty
+`SharedResource` marker type sits at the project root, deliberately *not* inside `Resources/`
+itself (a marker type inside its own `ResourcesPath` folder causes ASP.NET Core to look for a
+doubled "Resources.Resources.SharedResource.ar.resx" resource name — a documented gotcha). A new
+`LanguageController.SetLanguage` action writes the framework's own default culture cookie
+(`CookieRequestCultureProvider.DefaultCookieName`) rather than inventing a custom one, so no extra
+provider wiring was needed beyond the default provider chain. A header button switches languages;
+`_Layout.cshtml` sets `<html lang dir>` from `CultureInfo.CurrentUICulture` and conditionally loads
+a new `wwwroot/css/rtl.css`.
+`dir="rtl"` detection deliberately does **not** use `CultureInfo.CurrentUICulture.TextInfo
+.IsRightToLeft` — that property was confirmed live to return `false` for the neutral `"ar"` culture
+in this environment (a real, reproducible .NET/ICU behavior gap for neutral vs. specific cultures,
+not a code bug), so `dir` stayed `"ltr"` even once every string had correctly translated. Since
+this app only ever supports exactly `"en"`/`"ar"` (`Program.cs`), a direct
+`TwoLetterISOLanguageName == "ar"` check is both simpler and actually correct — verified by
+inspecting the raw HTTP response body (`dir="rtl"` present) after the property-based check failed.
+`rtl.css` is deliberately scoped, not a full mirror of the curated `ecomus` theme's ~12,000 lines
+of CSS: it targets the components this project already owns end to end (header nav, footer, hero,
+product-card price line, tables, auth panel, category/brand chips, directional icons) rather than
+auditing every hardcoded `left:`/`right:`/`float` in the base theme — genuinely out of reach for
+this pass, tracked as a known gap in docs/current-state.md. Bootstrap 5's own utilities
+(`.ps-*`/`.pe-*`, `.start-0`/`.end-0`) are already logical-property-based and need no override.
+Category/Brand/Product **names** are deliberately never run through `IStringLocalizer` — that's
+admin-entered catalog content, not static UI chrome; translating it would need multi-language
+fields on the domain model, a separate and much larger effort than this phase's scope. Domain-layer
+`Error.Message` text (e.g. Reviews' validation errors) is likewise left in English for the same
+reason — only this session's own controller/view strings are in scope here, not every error message
+across every module.
+Reason: the user's brief explicitly named the whole site including the admin panel — this phase is
+the first of several, covering the highest-traffic pages (everything a shopper touches to browse
+and check out) so the most-used parts of the site are bilingual first; Auth/Profile/content pages
+and the Admin area follow in subsequent phases. Verified live end to end: switched language via the
+header button, confirmed every string on Home/Shop/Product Details/Cart/Checkout renders in Arabic
+(via `get_page_text`, not just spot-checking a few strings); confirmed the culture persists across
+navigation via the cookie without needing to reselect it each time; confirmed a real add-to-cart →
+checkout round-trip renders the whole form in Arabic including localized numeral formatting on the
+shipping-cost line; confirmed via the raw HTTP response body that `dir="rtl"` and `rtl.css` are
+both present once translated. All 168 tests still passing — the `EndToEndTests` HTTP client never
+sets a culture cookie, so it exercises the (correctly unaffected) English default throughout.
+Status: Accepted (Phase 41) — first phase of an ongoing localization rollout; see
+docs/current-state.md for the remaining pages.

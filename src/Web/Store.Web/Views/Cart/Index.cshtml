@@ -1,17 +1,18 @@
 @model CartDto
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = "Your Cart";
 }
 
 <section class="flat-spacing-1">
     <div class="container">
-        <h1 class="fs-28 fw-6 mb-4">Your Cart</h1>
+        <h1 class="fs-28 fw-6 mb-4">@Localizer["Your Cart"]</h1>
 
         @if (Model.Items.Count == 0)
         {
             <div class="text-center py-5">
-                <p class="text-muted">Your cart is empty.</p>
-                <a asp-controller="Shop" asp-action="Index" class="tf-btn btn-fill radius-3 mt-3">Continue shopping</a>
+                <p class="text-muted">@Localizer["Your cart is empty."]</p>
+                <a asp-controller="Shop" asp-action="Index" class="tf-btn btn-fill radius-3 mt-3">@Localizer["Continue shopping"]</a>
             </div>
         }
         else
@@ -19,10 +20,10 @@
             <table class="table align-middle">
                 <thead>
                     <tr>
-                        <th>Product</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Total</th>
+                        <th>@Localizer["Product"]</th>
+                        <th>@Localizer["Price"]</th>
+                        <th>@Localizer["Quantity"]</th>
+                        <th>@Localizer["Total"]</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -45,14 +46,14 @@
                                 <form method="post" asp-controller="Cart" asp-action="UpdateQuantity" class="d-flex gap-2">
                                     <input type="hidden" name="cartItemId" value="@item.Id" />
                                     <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control form-control-sm" style="width:70px" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">@Localizer["Update"]</button>
                                 </form>
                             </td>
                             <td>@item.LineTotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</td>
                             <td>
                                 <form method="post" asp-controller="Cart" asp-action="Remove">
                                     <input type="hidden" name="cartItemId" value="@item.Id" />
-                                    <button type="submit" class="btn btn-sm btn-link text-danger">Remove</button>
+                                    <button type="submit" class="btn btn-sm btn-link text-danger">@Localizer["Remove"]</button>
                                 </form>
                             </td>
                         </tr>
@@ -62,29 +63,29 @@
 
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-4">
                 <div style="max-width:320px;width:100%">
-                    <label class="form-label fw-6">Coupon code</label>
+                    <label class="form-label fw-6">@Localizer["Coupon code"]</label>
                     @if (!string.IsNullOrWhiteSpace(Model.CouponCode))
                     {
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-light text-dark border fs-14 py-2 px-3">@Model.CouponCode</span>
                             <form method="post" asp-controller="Cart" asp-action="RemoveCoupon">
-                                <button type="submit" class="btn btn-sm btn-link text-danger">Remove</button>
+                                <button type="submit" class="btn btn-sm btn-link text-danger">@Localizer["Remove"]</button>
                             </form>
                         </div>
-                        <div class="form-text">Applied — validated for real at checkout.</div>
+                        <div class="form-text">@Localizer["Applied — validated for real at checkout."]</div>
                     }
                     else
                     {
                         <form method="post" asp-controller="Cart" asp-action="ApplyCoupon" class="d-flex gap-2">
-                            <input type="text" name="code" class="form-control" placeholder="Enter code" />
-                            <button type="submit" class="btn btn-outline-dark text-nowrap">Apply</button>
+                            <input type="text" name="code" class="form-control" placeholder="@Localizer["Enter code"]" />
+                            <button type="submit" class="btn btn-outline-dark text-nowrap">@Localizer["Apply"]</button>
                         </form>
                     }
                 </div>
 
                 <div class="text-end">
-                    <div class="fs-20 fw-6">Subtotal: @Model.Subtotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
-                    <a asp-controller="Checkout" asp-action="Index" class="tf-btn btn-fill radius-3 mt-3">Proceed to checkout<i class="icon icon-arrow1-top-left"></i></a>
+                    <div class="fs-20 fw-6">@Localizer["Subtotal"]: @Model.Subtotal.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</div>
+                    <a asp-controller="Checkout" asp-action="Index" class="tf-btn btn-fill radius-3 mt-3">@Localizer["Proceed to checkout"]<i class="icon icon-arrow1-top-left"></i></a>
                 </div>
             </div>
         }

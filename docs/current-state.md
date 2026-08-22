@@ -475,17 +475,30 @@ Completed:
   quirk gave a stale false negative in the original tab — see Phase 35/38): header/body/nav-text/
   product-card-shadow all compute correct dark values; toggle flips instantly and survives
   navigation; no horizontal overflow at 375px mobile. All 168 tests still passing.
-- Arabic/English bilingual support (explicit user request, "الموقع كله بما فيه لوحة الأدمن" — the
-  whole site including the admin panel) is a separate, much larger effort — real resource-based
-  localization across ~58 view files plus proper RTL layout mirroring, not a handful of translated
-  strings. Not started yet; scoped as its own multi-phase rollout the same way the Phase 36-38
-  redesign was, starting with the localization infrastructure (resource files, culture-switching
-  middleware, RTL CSS) and the highest-traffic pages first.
+- Phase 41: Arabic/English localization infrastructure + the entire core shopping flow (ADR-052),
+  explicit user request. Standard ASP.NET Core `RequestLocalizationOptions` (`en`/`ar`), one shared
+  `IStringLocalizer<SharedResource>` resource set (`Resources/SharedResource.ar.resx`) rather than
+  per-view files, `LanguageController` writing the framework's own default culture cookie, a header
+  language switcher, `<html lang dir>` set from the current culture, and a new scoped `rtl.css`
+  (targets the components this project already owns — header, footer, hero, cards, tables, forms —
+  not an exhaustive mirror of the curated theme's ~12,000 lines of CSS). Translated:
+  Header/Footer/MobileMenu, Home, Shop, Product Details, Cart, Checkout + Confirmation. Real bug
+  hit and fixed: `CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft` returns `false` for the
+  neutral `"ar"` culture in this environment (confirmed live — `dir` stayed `"ltr"` even with every
+  string correctly translated) — fixed with a direct `TwoLetterISOLanguageName == "ar"` check
+  instead, verified by inspecting the raw HTTP response body once the property-based check's
+  browser-side reading turned out unreliable. Deliberately not localized: catalog content
+  (product/category/brand names are admin-entered data, not UI chrome) and domain-layer error
+  messages. Verified live end to end via `get_page_text` (every string, not spot-checks): a real
+  add-to-cart → checkout round-trip renders entirely in Arabic including localized number
+  formatting; the language choice persists across navigation via the cookie. All 168 tests still
+  passing (the E2E test client never sets a culture cookie, so it correctly exercises the English
+  default throughout).
 
 In Progress:
-- Arabic/English localization infrastructure + highest-traffic pages (Header/Footer/Home/Shop/
-  Product Details first), then working outward to Cart/Checkout/Account and finally the Admin area.
-  Not yet started.
+- Phase 42+: Auth pages (Login/Register/Forgot/Reset), Profile/My Orders, the seven content pages
+  (About/Contact/Faq/Returns/Terms/Shipping/Privacy), then the Admin area (~18 files) — continuing
+  the same infrastructure, not yet started.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
@@ -518,6 +531,11 @@ Known Issues:
   producing the exact DLLs each `ENTRYPOINT` expects. Only the container-runtime layer itself is
   unverified. Worth a real `docker compose up --build` pass in an environment where Docker Desktop
   can actually start.
+- `wwwroot/css/rtl.css` (Phase 41) is scoped to the components this project owns end to end, not an
+  exhaustive audit of the curated `ecomus` theme's ~12,000 lines of CSS — some hardcoded
+  `left:`/`right:`/`float` positioning outside the covered components (header, footer, hero,
+  product cards, tables, forms, auth panel) may not mirror correctly in RTL yet. Worth a pass once
+  the translation itself is complete across every page.
 
 Important Files:
 - AGENTS.md — entry point; "EF Core gotchas" + "Other gotchas" sections, including the new
@@ -534,7 +552,9 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..051.
+- docs/decisions.md — ADR-001..052.
+- docs/modules.md — "Localization" section (Phase 41) covers the resource-based setup, right after
+  "Dark mode".
 - docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after
   "Storefront UI polish".
 
@@ -610,4 +630,8 @@ first since `Product.Feature`/`Unfeature` had never been wired to any admin comm
 this session found that exact dead-domain-method shape), ADR-051 (Phase 40 adds a real storefront
 dark mode via a `data-theme` attribute toggle, overriding only `design-system.css`'s own `--ds-*`
 tokens rather than the theme's dual-purpose `--main`/`--white` variables, which would have broken
-223 existing text-color usages).
+223 existing text-color usages), ADR-052 (Phase 41 begins real Arabic/English localization — one
+shared `IStringLocalizer<SharedResource>` resource set, a header language switcher, RTL layout via
+a scoped `rtl.css`; hit and fixed a real .NET/ICU gap where `TextInfo.IsRightToLeft` returns false
+for the neutral "ar" culture, worked around with a direct language-code check — covering the
+entire core shopping flow so far, Auth/Profile/content pages and Admin still to come).

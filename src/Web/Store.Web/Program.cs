@@ -11,6 +11,7 @@ using Inventory.Infrastructure.Persistence;
 using Inventory.Infrastructure;
 using Messaging;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Localization;
 using Notifications.Infrastructure.Persistence;
 using Notifications.Infrastructure;
 using Observability;
@@ -72,6 +73,24 @@ try
     builder.Services.AddHttpClient();
     builder.Services.AddAppRateLimiting();
     builder.Services.AddScoped<IProductImageStorage, LocalProductImageStorage>();
+
+    // Phase 41 (ADR-052): Arabic/English localization. `ResourcesPath` points at
+    // Store.Web/Resources/ — SharedResource.cs (the empty marker type IStringLocalizer<T> binds
+    // to) lives at the project root specifically so it *isn't* inside that folder itself; a marker
+    // type physically inside its own ResourcesPath causes ASP.NET Core's resource-name resolution
+    // to look for "Resources.Resources.SharedResource.ar.resx" (doubled segment), not
+    // "Resources.SharedResource.ar.resx" — a well-documented gotcha with this exact setup.
+    builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+    builder.Services.Configure<RequestLocalizationOptions>(options =>
+    {
+        string[] supportedCultures = ["en", "ar"];
+        options.SetDefaultCulture(supportedCultures[0])
+            .AddSupportedCultures(supportedCultures)
+            .AddSupportedUICultures(supportedCultures);
+        // Default provider order (QueryString, then Cookie, then Accept-Language header) is fine
+        // as-is: LanguageController writes the same cookie
+        // (CookieRequestCultureProvider.DefaultCookieName) the built-in provider already reads.
+    });
 
     // --- Module composition root ---
     // Every module owns its own `Add{Module}Module(IServiceCollection, IConfiguration)` extension
@@ -156,6 +175,8 @@ try
     // images (Phase 29, wwwroot/uploads/products/...) need this plain, non-manifest static file
     // middleware alongside it.
     app.UseStaticFiles();
+
+    app.UseRequestLocalization();
 
     app.UseRouting();
     app.UseRateLimiter();

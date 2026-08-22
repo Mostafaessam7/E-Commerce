@@ -1,4 +1,5 @@
 @model ProductDetailsDto
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     ViewData["Title"] = Model.MetaTitle ?? Model.Name;
     ViewData["Description"] = Model.MetaDescription ?? Model.ShortDescription;
@@ -53,7 +54,7 @@
                         <form method="post" asp-controller="Cart" asp-action="Add" class="mt-4">
                             @if (Model.Variants.Count > 1)
                             {
-                                <label class="form-label fw-6">Variant</label>
+                                <label class="form-label fw-6">@Localizer["Variant"]</label>
                                 <select name="productVariantId" class="form-select mb-3" style="max-width:320px">
                                     @foreach (var variant in Model.Variants)
                                     {
@@ -67,7 +68,7 @@
                             }
                             <div class="d-flex align-items-center gap-3">
                                 <input type="number" name="quantity" value="1" min="1" class="form-control" style="width:90px" />
-                                <button type="submit" class="tf-btn btn-fill radius-3">Add to cart<i class="icon icon-bag"></i></button>
+                                <button type="submit" class="tf-btn btn-fill radius-3">@Localizer["Add to cart"]<i class="icon icon-bag"></i></button>
                             </div>
                         </form>
                     }
@@ -89,7 +90,7 @@
         {
             <div class="row mt-5">
                 <div class="col-12">
-                    <h5>Description</h5>
+                    <h5>@Localizer["Description"]</h5>
                     @* Plain-text encoded output, not Html.Raw: descriptions aren't sanitized rich
                        text yet. Revisit with an HTML sanitizer (e.g. HtmlSanitizer) if/when the
                        admin panel starts accepting formatted HTML for this field. *@
@@ -105,7 +106,7 @@
         <div class="row mt-5">
             <div class="col-lg-6">
                 <h5>
-                    Reviews
+                    @Localizer["Reviews"]
                     @if (reviews.AverageRating is double avg)
                     {
                         <span class="text-muted fs-16">— @avg.ToString("0.0")/5 (@reviews.ApprovedCount)</span>
@@ -128,7 +129,7 @@
 
                 @if (reviews.Reviews.Count == 0)
                 {
-                    <p class="mt-3 text-muted">No reviews yet — be the first.</p>
+                    <p class="mt-3 text-muted">@Localizer["No reviews yet — be the first."]</p>
                 }
                 else
                 {
@@ -149,37 +150,37 @@
             </div>
 
             <div class="col-lg-6">
-                <h5>Write a review</h5>
+                <h5>@Localizer["Write a review"]</h5>
                 <form method="post" asp-controller="Product" asp-action="SubmitReview" asp-route-slug="@Model.Slug" class="mt-3">
                     <input type="hidden" name="ProductId" value="@reviewForm.ProductId" />
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
+                        <label class="form-label">@Localizer["Name"]</label>
                         <input name="ReviewerName" class="form-control" required maxlength="200" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Email (optional)</label>
+                        <label class="form-label">@Localizer["Email (optional)"]</label>
                         <input name="ReviewerEmail" type="email" class="form-control" maxlength="256" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Rating</label>
+                        <label class="form-label">@Localizer["Rating"]</label>
                         <select name="Rating" class="form-select" style="max-width:160px" required>
-                            <option value="">Choose...</option>
-                            <option value="5">5 — Excellent</option>
-                            <option value="4">4 — Good</option>
-                            <option value="3">3 — Average</option>
-                            <option value="2">2 — Poor</option>
-                            <option value="1">1 — Terrible</option>
+                            <option value="">@Localizer["Choose..."]</option>
+                            <option value="5">5 — @Localizer["Excellent"]</option>
+                            <option value="4">4 — @Localizer["Good"]</option>
+                            <option value="3">3 — @Localizer["Average"]</option>
+                            <option value="2">2 — @Localizer["Poor"]</option>
+                            <option value="1">1 — @Localizer["Terrible"]</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Title (optional)</label>
+                        <label class="form-label">@Localizer["Title (optional)"]</label>
                         <input name="Title" class="form-control" maxlength="200" />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Review</label>
+                        <label class="form-label">@Localizer["Review"]</label>
                         <textarea name="Body" class="form-control" rows="4" required maxlength="4000"></textarea>
                     </div>
-                    <button type="submit" class="tf-btn btn-fill radius-3">Submit review</button>
+                    <button type="submit" class="tf-btn btn-fill radius-3">@Localizer["Submit review"]</button>
                 </form>
             </div>
         </div>

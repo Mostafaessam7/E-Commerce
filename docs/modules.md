@@ -440,6 +440,25 @@ up dark mode automatically; a handful of base rules (`body`, headings, `.text-mu
 needed an explicit dark override since they read the theme's variables directly. Admin's dark mode
 already existed (`admin-ecomus`'s own `.dark-theme` toggle, noted since Phase 24) — not rebuilt.
 
+## Localization (Phase 41, ADR-052 — in progress, not a module)
+Explicit user-requested Arabic/English support across the whole site, started as its own
+multi-phase rollout (infrastructure + highest-traffic pages first). Standard ASP.NET Core
+localization: `RequestLocalizationOptions` (`en` default, `en`/`ar` supported), one shared
+`IStringLocalizer<Store.Web.SharedResource>` resource set
+(`Store.Web/Resources/SharedResource.ar.resx`) rather than a `.resx` per view. `LanguageController`
+writes the framework's default culture cookie; a header button switches languages; `_Layout.cshtml`
+sets `<html lang dir>` and conditionally loads `wwwroot/css/rtl.css` — targeted at the components
+this project already owns (header, footer, hero, product cards, tables, forms, auth panel), not an
+exhaustive mirror of the curated theme's ~12,000 lines of CSS. RTL detection uses
+`TwoLetterISOLanguageName == "ar"`, not `TextInfo.IsRightToLeft` — that property returns `false` for
+the neutral `"ar"` culture in this environment, a real .NET/ICU gap for neutral vs. specific
+cultures. Translated so far: Header/Footer/MobileMenu, Home, Shop, Product Details, Cart, Checkout
++ Confirmation — the entire core shopping flow. Deliberately never localized: catalog content
+(product/category/brand names — admin-entered data, not UI chrome; would need multi-language
+domain fields, a separate effort) and domain-layer error messages (out of this phase's scope). Not
+yet translated: Auth/Profile/content pages, the Admin area. See docs/current-state.md for the
+remaining phases.
+
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,
 Customers, Promotions, Shipping, Reviews) have real Domain/Application/Infrastructure code — none

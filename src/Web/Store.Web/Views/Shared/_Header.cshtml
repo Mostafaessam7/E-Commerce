@@ -2,6 +2,11 @@
    showcasing ~30 demo homepage variants (irrelevant to a real store) — replaced with real site
    navigation using the same CSS classes (header-default, box-navigation, nav-icon, ...) so
    wwwroot/ecomus/css/styles.css still styles it correctly. See docs/current-state.md Phase 5. *@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
+@{
+    var otherCulture = System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar" ? "en" : "ar";
+    var otherCultureLabel = otherCulture == "ar" ? "العربية" : "English";
+}
 <header id="header" class="header-default header-absolute">
     <div class="px_15 lg-px_40">
         <div class="row wrapper-header align-items-center">
@@ -20,18 +25,25 @@
             <div class="col-xl-6 tf-md-hidden">
                 <nav class="box-navigation text-center">
                     <ul class="box-nav-ul d-flex align-items-center justify-content-center gap-30">
-                        <li class="menu-item"><a asp-controller="Home" asp-action="Index" class="item-link">Home</a></li>
-                        <li class="menu-item"><a asp-controller="Shop" asp-action="Index" class="item-link">Shop</a></li>
-                        <li class="menu-item"><a asp-controller="Home" asp-action="Index" asp-fragment="featured" class="item-link">Featured</a></li>
-                        <li class="menu-item"><a asp-controller="Home" asp-action="About" class="item-link">About</a></li>
-                        <li class="menu-item"><a asp-controller="Home" asp-action="Contact" class="item-link">Contact</a></li>
+                        <li class="menu-item"><a asp-controller="Home" asp-action="Index" class="item-link">@Localizer["Home"]</a></li>
+                        <li class="menu-item"><a asp-controller="Shop" asp-action="Index" class="item-link">@Localizer["Shop"]</a></li>
+                        <li class="menu-item"><a asp-controller="Home" asp-action="Index" asp-fragment="featured" class="item-link">@Localizer["Featured"]</a></li>
+                        <li class="menu-item"><a asp-controller="Home" asp-action="About" class="item-link">@Localizer["About"]</a></li>
+                        <li class="menu-item"><a asp-controller="Home" asp-action="Contact" class="item-link">@Localizer["Contact"]</a></li>
                     </ul>
                 </nav>
             </div>
             <div class="col-xl-3 col-md-4 col-3">
                 <ul class="nav-icon d-flex justify-content-end align-items-center gap-20">
                     <li>
-                        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                        <form asp-controller="Language" asp-action="SetLanguage" method="post">
+                            <input type="hidden" name="culture" value="@otherCulture" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                            <button type="submit" class="theme-toggle" style="width:auto;padding:0 10px;font-size:12px;font-weight:600" title="@otherCultureLabel">@otherCultureLabel</button>
+                        </form>
+                    </li>
+                    <li>
+                        <button type="button" class="theme-toggle" id="themeToggle" aria-label="@Localizer["Toggle dark mode"]" title="@Localizer["Toggle dark mode"]">
                             <svg class="icon-sun-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                                 <circle cx="12" cy="12" r="4"></circle>
                                 <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
