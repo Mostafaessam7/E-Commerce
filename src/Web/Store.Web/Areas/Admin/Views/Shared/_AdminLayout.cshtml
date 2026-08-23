@@ -1,12 +1,17 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @{
     var controllerName = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
     bool IsController(params string[] names) => names.Contains(controllerName, StringComparer.OrdinalIgnoreCase);
     string MenuClass(params string[] names) => IsController(names) ? "menu-item has-children active" : "menu-item has-children";
     string SubMenuStyle(params string[] names) => IsController(names) ? "display:block" : "display:none";
     string SubActive(bool current) => current ? "sub-menu-item active" : "sub-menu-item";
+    var currentCulture = System.Globalization.CultureInfo.CurrentUICulture;
+    var isRtl = currentCulture.TwoLetterISOLanguageName == "ar";
+    var otherCulture = isRtl ? "en" : "ar";
+    var otherCultureLabel = isRtl ? "English" : "العربية";
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@currentCulture.TwoLetterISOLanguageName" dir="@(isRtl ? "rtl" : "ltr")">
 <head>
     <meta charset="utf-8" />
     <title>@(ViewData["Title"] is not null ? $"{ViewData["Title"]} - Admin" : "Admin")</title>
@@ -19,6 +24,10 @@
     <link rel="stylesheet" href="~/admin-ecomus/font/fonts.css" />
     <link rel="stylesheet" href="~/admin-ecomus/icon/style.css" />
     <link rel="stylesheet" href="~/admin/admin-overrides.css" />
+    @if (isRtl)
+    {
+        <link rel="stylesheet" href="~/css/rtl.css" />
+    }
     <link rel="shortcut icon" href="~/ecomus/images/logo/favicon.png" />
 </head>
 <body>
@@ -40,91 +49,91 @@
                                     <li class="menu-item @(IsController("Dashboard") ? "active" : "")">
                                         <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
                                             <div class="icon"><i class="icon-home"></i></div>
-                                            <div class="text">Dashboard</div>
+                                            <div class="text">@Localizer["Dashboard"]</div>
                                         </a>
                                     </li>
                                     <li class="@MenuClass("Products")">
                                         <a href="#" class="menu-item-button">
                                             <div class="icon"><i class="icon-file-plus"></i></div>
-                                            <div class="text">Products</div>
+                                            <div class="text">@Localizer["Products"]</div>
                                         </a>
                                         <ul class="sub-menu" style="@SubMenuStyle("Products")">
                                             <li class="@SubActive(IsController("Products"))">
-                                                <a asp-area="Admin" asp-controller="Products" asp-action="Index"><div class="text">All Products</div></a>
+                                                <a asp-area="Admin" asp-controller="Products" asp-action="Index"><div class="text">@Localizer["All Products"]</div></a>
                                             </li>
                                             <li class="sub-menu-item">
-                                                <a asp-area="Admin" asp-controller="Products" asp-action="Create"><div class="text">Add Product</div></a>
+                                                <a asp-area="Admin" asp-controller="Products" asp-action="Create"><div class="text">@Localizer["Add Product"]</div></a>
                                             </li>
                                         </ul>
                                     </li>
                                     <li class="@MenuClass("Brands")">
                                         <a href="#" class="menu-item-button">
                                             <div class="icon"><i class="icon-award"></i></div>
-                                            <div class="text">Brands</div>
+                                            <div class="text">@Localizer["Brands"]</div>
                                         </a>
                                         <ul class="sub-menu" style="@SubMenuStyle("Brands")">
-                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Brands" asp-action="Index"><div class="text">All Brands</div></a></li>
-                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Brands" asp-action="Create"><div class="text">Add Brand</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Brands" asp-action="Index"><div class="text">@Localizer["All Brands"]</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Brands" asp-action="Create"><div class="text">@Localizer["Add Brand"]</div></a></li>
                                         </ul>
                                     </li>
                                     <li class="@MenuClass("Categories")">
                                         <a href="#" class="menu-item-button">
                                             <div class="icon"><i class="icon-layers"></i></div>
-                                            <div class="text">Categories</div>
+                                            <div class="text">@Localizer["Categories"]</div>
                                         </a>
                                         <ul class="sub-menu" style="@SubMenuStyle("Categories")">
-                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index"><div class="text">Category list</div></a></li>
-                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Create"><div class="text">New category</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Index"><div class="text">@Localizer["Category list"]</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Categories" asp-action="Create"><div class="text">@Localizer["New Category"]</div></a></li>
                                         </ul>
                                     </li>
                                     <li class="menu-item @(IsController("Orders") ? "active" : "")">
                                         <a asp-area="Admin" asp-controller="Orders" asp-action="Index">
                                             <div class="icon"><i class="icon-shopping-bag"></i></div>
-                                            <div class="text">Orders</div>
+                                            <div class="text">@Localizer["Orders"]</div>
                                         </a>
                                     </li>
                                     <li class="menu-item @(IsController("Payments") ? "active" : "")">
                                         <a asp-area="Admin" asp-controller="Payments" asp-action="Index">
                                             <div class="icon"><i class="icon-credit-card"></i></div>
-                                            <div class="text">Payments</div>
+                                            <div class="text">@Localizer["Payments"]</div>
                                         </a>
                                     </li>
                                     <li class="menu-item @(IsController("Stock") ? "active" : "")">
                                         <a asp-area="Admin" asp-controller="Stock" asp-action="Index">
                                             <div class="icon"><i class="icon-box"></i></div>
-                                            <div class="text">Stock</div>
+                                            <div class="text">@Localizer["Stock"]</div>
                                         </a>
                                     </li>
                                     <li class="@MenuClass("Coupons")">
                                         <a href="#" class="menu-item-button">
                                             <div class="icon"><i class="icon-percent"></i></div>
-                                            <div class="text">Coupons</div>
+                                            <div class="text">@Localizer["Coupons"]</div>
                                         </a>
                                         <ul class="sub-menu" style="@SubMenuStyle("Coupons")">
-                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Coupons" asp-action="Index"><div class="text">All Coupons</div></a></li>
-                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Coupons" asp-action="Create"><div class="text">New Coupon</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Coupons" asp-action="Index"><div class="text">@Localizer["All Coupons"]</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="Coupons" asp-action="Create"><div class="text">@Localizer["New Coupon"]</div></a></li>
                                         </ul>
                                     </li>
                                     <li class="@MenuClass("ShippingMethods")">
                                         <a href="#" class="menu-item-button">
                                             <div class="icon"><i class="icon-truck"></i></div>
-                                            <div class="text">Shipping</div>
+                                            <div class="text">@Localizer["Shipping"]</div>
                                         </a>
                                         <ul class="sub-menu" style="@SubMenuStyle("ShippingMethods")">
-                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="ShippingMethods" asp-action="Index"><div class="text">All Methods</div></a></li>
-                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="ShippingMethods" asp-action="Create"><div class="text">New Method</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="ShippingMethods" asp-action="Index"><div class="text">@Localizer["All Methods"]</div></a></li>
+                                            <li class="sub-menu-item"><a asp-area="Admin" asp-controller="ShippingMethods" asp-action="Create"><div class="text">@Localizer["New Method"]</div></a></li>
                                         </ul>
                                     </li>
                                     <li class="menu-item @(IsController("Reviews") ? "active" : "")">
                                         <a asp-area="Admin" asp-controller="Reviews" asp-action="Index">
                                             <div class="icon"><i class="icon-star"></i></div>
-                                            <div class="text">Reviews</div>
+                                            <div class="text">@Localizer["Reviews"]</div>
                                         </a>
                                     </li>
                                     <li class="menu-item">
                                         <a asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
                                             <div class="icon"><i class="icon-globe"></i></div>
-                                            <div class="text">View Store</div>
+                                            <div class="text">@Localizer["View Store"]</div>
                                         </a>
                                     </li>
                                 </ul>
@@ -143,6 +152,12 @@
                                 <div class="button-show-hide"><i class="icon-chevron-left"></i></div>
                             </div>
                             <div class="header-grid">
+                                <form asp-area="" asp-controller="Language" asp-action="SetLanguage" method="post" class="header-item" style="display:flex;align-items:center">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="culture" value="@otherCulture" />
+                                    <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                                    <button type="submit" class="btn btn-sm" style="border:none;background:none;padding:0 8px">@otherCultureLabel</button>
+                                </form>
                                 <div class="header-item button-dark-light">
                                     <i class="icon-moon"></i>
                                 </div>
@@ -154,7 +169,7 @@
                                                 <span class="image"><i class="icon-user" style="font-size:24px"></i></span>
                                                 <span class="flex flex-column">
                                                     <span class="body-text text-main-dark">@User.Identity?.Name</span>
-                                                    <span class="text-tiny">Administrator</span>
+                                                    <span class="text-tiny">@Localizer["Administrator"]</span>
                                                 </span>
                                             </span>
                                         </button>
@@ -163,7 +178,7 @@
                                                 <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
                                                     <button type="submit" class="user-item" style="width:100%;border:none;background:none;text-align:left">
                                                         <div class="icon"><i class="icon-log-out"></i></div>
-                                                        <div class="body-title-2">Sign out</div>
+                                                        <div class="body-title-2">@Localizer["Sign out"]</div>
                                                     </button>
                                                 </form>
                                             </li>
@@ -179,7 +194,7 @@
                                 <div class="flex items-center flex-wrap justify-between gap20 mb-30">
                                     <h3>@(ViewData["Title"] ?? "Admin")</h3>
                                     <ul class="breadcrumbs flex items-center flex-wrap justify-start gap10">
-                                        <li><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><div class="text-tiny">Dashboard</div></a></li>
+                                        <li><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><div class="text-tiny">@Localizer["Dashboard"]</div></a></li>
                                         <li><i class="icon-chevron-right"></i></li>
                                         <li><div class="text-tiny">@(ViewData["Title"] ?? "Admin")</div></li>
                                     </ul>
@@ -198,7 +213,7 @@
                             </div>
                         </div>
                         <div class="bottom-page">
-                            <div class="body-text">ECommerce Admin</div>
+                            <div class="body-text">@Localizer["ECommerce Admin"]</div>
                         </div>
                     </div>
                 </div>

@@ -1,22 +1,23 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model OrderDto
 @{
     ViewData["Title"] = $"Order {Model.OrderNumber}";
 }
 
 <div class="flex items-center gap10 mb-20 flex-wrap">
-    <h4>Order @Model.OrderNumber</h4>
-    <div class="@StatusBadge.CssClass(Model.Status) bg-1 fw-7">@Model.Status</div>
-    <div class="@StatusBadge.CssClass(Model.PaymentStatus) bg-1 fw-7">@Model.PaymentStatus</div>
+    <h4>@Localizer["Order"] @Model.OrderNumber</h4>
+    <div class="@StatusBadge.CssClass(Model.Status) bg-1 fw-7">@Localizer[Model.Status]</div>
+    <div class="@StatusBadge.CssClass(Model.PaymentStatus) bg-1 fw-7">@Localizer[Model.PaymentStatus]</div>
 </div>
 
 <div class="wg-box mb-20">
     <div class="wg-table table-all-category">
         <ul class="table-title flex gap20 mb-14">
-            <li><div class="body-title">Product</div></li>
-            <li><div class="body-title">SKU</div></li>
-            <li><div class="body-title">Qty</div></li>
-            <li><div class="body-title">Unit Price</div></li>
-            <li><div class="body-title">Line Total</div></li>
+            <li><div class="body-title">@Localizer["Product"]</div></li>
+            <li><div class="body-title">@Localizer["SKU"]</div></li>
+            <li><div class="body-title">@Localizer["Qty"]</div></li>
+            <li><div class="body-title">@Localizer["Unit Price"]</div></li>
+            <li><div class="body-title">@Localizer["Line Total"]</div></li>
         </ul>
         <ul class="flex flex-column">
         @foreach (var item in Model.Items)
@@ -34,52 +35,52 @@
 </div>
 
 <div class="wg-box mb-20">
-    <h5 class="mb-14">Totals</h5>
-    <div class="body-text">Subtotal: @Model.Subtotal.ToString("0.00") @Model.Currency</div>
-    <div class="body-text">Shipping: @Model.ShippingCost.ToString("0.00")</div>
-    <div class="body-text">Tax: @Model.Tax.ToString("0.00")</div>
-    <div class="body-text">Discount: @Model.Discount.ToString("0.00")</div>
-    <div class="body-title mt-10">Total: @Model.Total.ToString("0.00") @Model.Currency</div>
+    <h5 class="mb-14">@Localizer["Totals"]</h5>
+    <div class="body-text">@Localizer["Subtotal:"] @Model.Subtotal.ToString("0.00") @Model.Currency</div>
+    <div class="body-text">@Localizer["Shipping:"] @Model.ShippingCost.ToString("0.00")</div>
+    <div class="body-text">@Localizer["Tax:"] @Model.Tax.ToString("0.00")</div>
+    <div class="body-text">@Localizer["Discount:"] @Model.Discount.ToString("0.00")</div>
+    <div class="body-title mt-10">@Localizer["Total:"] @Model.Total.ToString("0.00") @Model.Currency</div>
 </div>
 
 <div class="wg-box">
-    <h5 class="mb-14">Actions</h5>
+    <h5 class="mb-14">@Localizer["Actions"]</h5>
     <div class="flex gap10 flex-wrap">
         @if (Model.Status == "Pending")
         {
             <form asp-action="Confirm" method="post">
                 <input type="hidden" name="id" value="@Model.Id" />
-                <button type="submit" class="tf-button style-1 w180">Confirm</button>
+                <button type="submit" class="tf-button style-1 w180">@Localizer["Confirm"]</button>
             </form>
         }
         @if (Model.Status == "Confirmed")
         {
             <form asp-action="StartProcessing" method="post">
                 <input type="hidden" name="id" value="@Model.Id" />
-                <button type="submit" class="tf-button style-1 w180">Start Processing</button>
+                <button type="submit" class="tf-button style-1 w180">@Localizer["Start Processing"]</button>
             </form>
         }
         @if (Model.Status == "Processing")
         {
             <form asp-action="Ship" method="post" class="flex gap10">
                 <input type="hidden" name="OrderId" value="@Model.Id" />
-                <input type="text" name="TrackingNumber" placeholder="Tracking # (optional)" />
-                <button type="submit" class="tf-button style-1 w180">Mark Shipped</button>
+                <input type="text" name="TrackingNumber" placeholder="@Localizer["Tracking # (optional)"]" />
+                <button type="submit" class="tf-button style-1 w180">@Localizer["Mark Shipped"]</button>
             </form>
         }
         @if (Model.Status == "Shipped")
         {
             <form asp-action="Deliver" method="post">
                 <input type="hidden" name="id" value="@Model.Id" />
-                <button type="submit" class="tf-button style-1 w180">Mark Delivered</button>
+                <button type="submit" class="tf-button style-1 w180">@Localizer["Mark Delivered"]</button>
             </form>
         }
         @if (Model.Status is "Pending" or "Confirmed" or "Processing")
         {
             <form asp-action="Cancel" method="post" class="flex gap10" onsubmit="return confirm('Cancel this order?');">
                 <input type="hidden" name="OrderId" value="@Model.Id" />
-                <input type="text" name="Reason" placeholder="Cancellation reason" required />
-                <button type="submit" class="tf-button style-2 w180" style="color:var(--Palette-Red-500,#EF4444)">Cancel Order</button>
+                <input type="text" name="Reason" placeholder="@Localizer["Cancellation reason"]" required />
+                <button type="submit" class="tf-button style-2 w180" style="color:var(--Palette-Red-500,#EF4444)">@Localizer["Cancel Order"]</button>
             </form>
         }
     </div>

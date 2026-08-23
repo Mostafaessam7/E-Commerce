@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model ProductFormModel
 @{
     ViewData["Title"] = "New Product";
@@ -8,32 +9,32 @@
         <div asp-validation-summary="ModelOnly" class="admin-alert admin-alert-error"></div>
 
         <fieldset class="name">
-            <div class="body-title">Product name <span class="tf-color-1">*</span></div>
+            <div class="body-title">@Localizer["Product name"] <span class="tf-color-1">*</span></div>
             <input asp-for="Name" class="flex-grow" type="text" />
             <span asp-validation-for="Name" class="text-danger"></span>
         </fieldset>
 
         <fieldset class="name">
-            <div class="body-title">Slug <span class="tf-color-1">*</span></div>
+            <div class="body-title">@Localizer["Slug"] <span class="tf-color-1">*</span></div>
             <input asp-for="Slug" class="flex-grow" type="text" placeholder="e.g. blue-cotton-tshirt" />
             <span asp-validation-for="Slug" class="text-danger"></span>
         </fieldset>
 
         <fieldset class="name">
-            <div class="body-title">Short description</div>
+            <div class="body-title">@Localizer["Short description"]</div>
             <input asp-for="ShortDescription" class="flex-grow" type="text" />
         </fieldset>
 
         <fieldset class="category">
-            <div class="body-title">Description</div>
+            <div class="body-title">@Localizer["Description"]</div>
             <textarea asp-for="Description" class="flex-grow" rows="5"></textarea>
         </fieldset>
 
         <fieldset class="category">
-            <div class="body-title">Brand</div>
+            <div class="body-title">@Localizer["Brand"]</div>
             <div class="select flex-grow">
                 <select asp-for="BrandId" class="">
-                    <option value="">— No brand —</option>
+                    <option value="">@Localizer["— No brand —"]</option>
                     @foreach (var brand in (IReadOnlyList<BrandDto>)ViewBag.Brands)
                     {
                         <option value="@brand.Id">@brand.Name</option>
@@ -43,7 +44,7 @@
         </fieldset>
 
         <fieldset class="category">
-            <div class="body-title">Categories</div>
+            <div class="body-title">@Localizer["Categories"]</div>
             <div class="flex flex-wrap gap10">
                 @foreach (var category in (IReadOnlyList<CategoryDto>)ViewBag.Categories)
                 {
@@ -54,14 +55,14 @@
                 }
                 @if (((IReadOnlyList<CategoryDto>)ViewBag.Categories).Count == 0)
                 {
-                    <p class="text-muted mb-0">No categories yet.</p>
+                    <p class="text-muted mb-0">@Localizer["No categories yet."]</p>
                 }
             </div>
         </fieldset>
 
         <div class="bot">
-            <a asp-action="Index" class="tf-button style-2 w208">Cancel</a>
-            <button class="tf-button w208" type="submit">Create Draft</button>
+            <a asp-action="Index" class="tf-button style-2 w208">@Localizer["Cancel"]</a>
+            <button class="tf-button w208" type="submit">@Localizer["Create Draft"]</button>
         </div>
     </form>
 </div>

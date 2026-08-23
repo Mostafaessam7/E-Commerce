@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model IReadOnlyList<CouponDto>
 @{
     ViewData["Title"] = "Coupons";
@@ -5,18 +6,18 @@
 
 <div class="wg-box">
     <div class="flex items-center justify-between gap10 flex-wrap mb-20">
-        <div class="body-text">@Model.Count coupon(s) total.</div>
-        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>New Coupon</a>
+        <div class="body-text">@Model.Count @Localizer["coupon(s) total."]</div>
+        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>@Localizer["New Coupon"]</a>
     </div>
 
     <div class="wg-table table-all-category">
         <ul class="table-title flex gap20 mb-14">
-            <li><div class="body-title">Code</div></li>
-            <li><div class="body-title">Discount</div></li>
-            <li><div class="body-title">Status</div></li>
-            <li><div class="body-title">Usage</div></li>
-            <li><div class="body-title">Expires</div></li>
-            <li><div class="body-title">Action</div></li>
+            <li><div class="body-title">@Localizer["Code"]</div></li>
+            <li><div class="body-title">@Localizer["Discount"]</div></li>
+            <li><div class="body-title">@Localizer["Status"]</div></li>
+            <li><div class="body-title">@Localizer["Usage"]</div></li>
+            <li><div class="body-title">@Localizer["Expires"]</div></li>
+            <li><div class="body-title">@Localizer["Action"]</div></li>
         </ul>
         <ul class="flex flex-column">
         @foreach (var coupon in Model)
@@ -25,7 +26,7 @@
                 <div class="body-text text-main-dark mt-4"><code>@coupon.Code</code></div>
                 <div class="body-text text-main-dark mt-4">@(coupon.DiscountType == "Percentage" ? $"{coupon.Value}%" : $"{coupon.Value:0.00} {coupon.Currency}")</div>
                 <div class="mt-4">
-                    <div class="@(coupon.IsActive ? "block-available" : "block-stock") bg-1 fw-7">@(coupon.IsActive ? "Active" : "Inactive")</div>
+                    <div class="@(coupon.IsActive ? "block-available" : "block-stock") bg-1 fw-7">@(coupon.IsActive ? Localizer["Active"] : Localizer["Inactive"])</div>
                 </div>
                 <div class="body-text text-main-dark mt-4">@coupon.UsageCount@(coupon.UsageLimit is int limit ? $" / {limit}" : "")</div>
                 <div class="body-text text-main-dark mt-4">@(coupon.ExpiresAtUtc?.ToString("yyyy-MM-dd") ?? "—")</div>
@@ -34,14 +35,14 @@
                     {
                         <form asp-action="Deactivate" method="post">
                             <input type="hidden" name="id" value="@coupon.Id" />
-                            <button type="submit" class="item edit" title="Deactivate"><i class="icon-slash"></i></button>
+                            <button type="submit" class="item edit" title="@Localizer["Deactivate"]"><i class="icon-slash"></i></button>
                         </form>
                     }
                     else
                     {
                         <form asp-action="Activate" method="post">
                             <input type="hidden" name="id" value="@coupon.Id" />
-                            <button type="submit" class="item eye" title="Activate"><i class="icon-check"></i></button>
+                            <button type="submit" class="item eye" title="@Localizer["Activate"]"><i class="icon-check"></i></button>
                         </form>
                     }
                 </div>
@@ -52,6 +53,6 @@
 
     @if (Model.Count == 0)
     {
-        <p class="mt-14">No coupons yet.</p>
+        <p class="mt-14">@Localizer["No coupons yet."]</p>
     }
 </div>

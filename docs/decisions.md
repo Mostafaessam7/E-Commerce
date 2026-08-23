@@ -1247,3 +1247,45 @@ as the seed admin account — confirmed full-page Arabic rendering including loc
 decimal separators on the Shipping cost column. All 168 tests still passing.
 Status: Accepted (Phase 42) — second phase of the localization rollout; only the Admin area
 (~18 files) remains, tracked in docs/current-state.md.
+
+---
+**ADR-054**
+Decision: Phase 43 finishes the localization rollout (ADR-052/053) — the entire Admin area:
+`_AdminLayout.cshtml` (sidebar menu, header language switcher mirroring the storefront one, `<html
+lang dir>`, conditional `rtl.css`, breadcrumb, footer), Dashboard, Products Index/Create/Edit,
+Brands, Categories, Coupons, Orders Index/Details, Payments, Stock, ShippingMethods, Reviews. Every
+`StatusBadge.CssClass`-mapped status value (`Active`, `Pending`, `Processing`, `Draft`, `Approved`,
+`Succeeded`, `Paid`, `Confirmed`, `Fulfilled`, `Cancelled`, `Rejected`, `Failed`, `Archived`,
+`Inactive`, `Shipped`, `Refunded`, `PartiallyRefunded`) now renders through `@Localizer[value]`
+instead of the raw enum-derived string, same pattern already used for order/payment status on the
+storefront's Checkout Confirmation and My Orders pages. Every admin controller's TempData
+success message goes through `IStringLocalizer<SharedResource>` (all 9 controllers: Brands,
+Categories, Coupons, Orders, Payments, Products, Reviews, ShippingMethods, Stock); `result.Error
+.Message` (domain errors) stays in English, the same scoping decision as every prior phase and as
+`ProfileController` in ADR-053.
+Reason: this is the final piece of the user's original scope, "الموقع كله بما فيه لوحة الأدمن" (the
+whole site including the admin panel) — completing it here closes out the localization initiative
+entirely rather than leaving the admin panel as a permanent English-only exception. Real bug found
+and fixed during this phase: writing distinct-looking admin resx keys independently from the
+storefront's already-large key set produced three pairs of keys differing only by letter case
+(`"Short Description"`/`"Short description"`, `"Back to Sign In"`/`"Back to sign in"`, `"New
+Category"`/`"New category"`) — confirmed live via `document.querySelectorAll('.body-title')` DOM
+reads (not just `get_page_text`, to rule out the sandboxed browser's known stale-read quirk from
+Phase 35/38/40) that one key of each pair silently failed to resolve and rendered its own English
+key text verbatim in the middle of an otherwise fully-Arabic page — a genuine .NET resx/`.resources`
+case-collision gap, not a caching artifact, since a plain `grep` case-sensitive duplicate check had
+reported the file clean. Fixed by consolidating each pair down to one key (reusing whichever
+casing more views already depended on) and updating the losing view(s) to reference it. The
+existing `grep -oP '(?<=<data name=")[^"]*' … | sort | uniq -d` checkpoint is now paired with a
+second, case-folding pass — `tr 'A-Z' 'a-z' | sort | uniq -d` — run before every commit that touches
+`SharedResource.ar.resx`, to catch this category of collision the case-sensitive check cannot see.
+Verified live end to end: signed in as the seed admin account, switched language via the new admin
+header switcher, and read every one of the ~18 admin pages' full text/DOM content in Arabic
+(Dashboard stat tiles, Products list/create/edit including variants/images/status actions, Brands/
+Categories/Coupons/ShippingMethods list+create, Orders list+details+action buttons, Payments list
+with refund form, Stock list with adjust form, Reviews list with approve/reject) — including
+status-badge values and post-action TempData banners; confirmed the English toggle switches back
+correctly. All 168 tests still passing (the `EndToEndTests` HTTP client never sets a culture
+cookie, so it continues to exercise the English default throughout, admin included).
+Status: Accepted (Phase 43) — closes the localization rollout begun in ADR-052; the whole site,
+storefront and admin, is now bilingual.

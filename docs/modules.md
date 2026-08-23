@@ -440,28 +440,36 @@ up dark mode automatically; a handful of base rules (`body`, headings, `.text-mu
 needed an explicit dark override since they read the theme's variables directly. Admin's dark mode
 already existed (`admin-ecomus`'s own `.dark-theme` toggle, noted since Phase 24) — not rebuilt.
 
-## Localization (Phases 41-42, ADR-052/053 — in progress, not a module)
-Explicit user-requested Arabic/English support across the whole site, started as its own
-multi-phase rollout (infrastructure + highest-traffic pages first). Standard ASP.NET Core
+## Localization (Phases 41-43, ADR-052/053/054 — complete)
+Explicit user-requested Arabic/English support across the whole site, delivered as a multi-phase
+rollout (infrastructure + highest-traffic pages first, admin last). Standard ASP.NET Core
 localization: `RequestLocalizationOptions` (`en` default, `en`/`ar` supported), one shared
 `IStringLocalizer<Store.Web.SharedResource>` resource set
 (`Store.Web/Resources/SharedResource.ar.resx`) rather than a `.resx` per view. `LanguageController`
-writes the framework's default culture cookie; a header button switches languages; `_Layout.cshtml`
-sets `<html lang dir>` and conditionally loads `wwwroot/css/rtl.css` — targeted at the components
+writes the framework's default culture cookie; a header button switches languages (storefront and
+admin each have their own, both posting to the same controller); `_Layout.cshtml`/`_AdminLayout.cshtml`
+both set `<html lang dir>` and conditionally load `wwwroot/css/rtl.css` — targeted at the components
 this project already owns (header, footer, hero, product cards, tables, forms, auth panel), not an
 exhaustive mirror of the curated theme's ~12,000 lines of CSS. RTL detection uses
 `TwoLetterISOLanguageName == "ar"`, not `TextInfo.IsRightToLeft` — that property returns `false` for
 the neutral `"ar"` culture in this environment, a real .NET/ICU gap for neutral vs. specific
-cultures. Translated so far: Header/Footer/MobileMenu, Home, Shop, Product Details, Cart, Checkout
-+ Confirmation (Phase 41 — the entire core shopping flow), Auth (Login/Register/ForgotPassword/
+cultures. Translated: Header/Footer/MobileMenu, Home, Shop, Product Details, Cart, Checkout +
+Confirmation (Phase 41 — the entire core shopping flow), Auth (Login/Register/ForgotPassword/
 ResetPassword + six confirmation/status pages), Profile + My Orders, and all seven content pages —
-About/Contact/Faq/Returns/Terms/Shipping/Privacy (Phase 42). Phase 42 also fixed a related gap found
-while localizing: several Auth/Checkout ViewModels had no `[Display(Name=)]` attributes, so empty
+About/Contact/Faq/Returns/Terms/Shipping/Privacy (Phase 42), and the entire Admin area — layout
+chrome, all ~18 list/create/edit views, every `StatusBadge`-mapped status value, and every
+controller's TempData messages (Phase 43). Phase 42 also fixed a related gap found while
+localizing: several Auth/Checkout ViewModels had no `[Display(Name=)]` attributes, so empty
 `<label asp-for="X">` tags rendered raw property names — every such label now has explicit localized
-child content. Deliberately never localized: catalog content (product/category/brand names —
-admin-entered data, not UI chrome; would need multi-language domain fields, a separate effort) and
-domain-layer error messages (out of scope). Not yet translated: the Admin area. See
-docs/current-state.md for the remaining phase.
+child content. Phase 43 found and fixed a genuine .NET resx gap: two keys differing only by letter
+case (e.g. `"Short Description"` vs `"Short description"`) silently collide in the compiled
+`.resources` lookup — one always resolves, the other falls back to rendering its own English key
+text even mid-Arabic-page. Fixed by consolidating each pair to a single key; a case-insensitive
+duplicate check (`tr 'A-Z' 'a-z' | sort | uniq -d`, alongside the existing case-sensitive one) is
+now part of the pre-commit checkpoint for any `SharedResource.ar.resx` change. Deliberately never
+localized: catalog content (product/category/brand names — admin-entered data, not UI chrome; would
+need multi-language domain fields, a separate effort) and domain-layer error messages (out of
+scope).
 
 ---
 As of Phase 29: all ten modules (Catalog, Inventory, Ordering, Payments, Identity, Notifications,

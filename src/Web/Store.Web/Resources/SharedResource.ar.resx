@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -187,7 +187,6 @@
   <data name="Forgot Password" xml:space="preserve"><value>نسيت كلمة المرور</value></data>
   <data name="Enter your email and we'll send you a link to reset your password." xml:space="preserve"><value>ادخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.</value></data>
   <data name="Send Reset Link" xml:space="preserve"><value>إرسال رابط إعادة التعيين</value></data>
-  <data name="Back to sign in" xml:space="preserve"><value>العودة لتسجيل الدخول</value></data>
   <data name="We've got you" xml:space="preserve"><value>احنا معاك</value></data>
   <data name="A reset link will land in your inbox in a moment." xml:space="preserve"><value>سيصلك رابط إعادة التعيين في بريدك الوارد بعد لحظات.</value></data>
   <data name="Reset Password" xml:space="preserve"><value>إعادة تعيين كلمة المرور</value></data>
@@ -308,4 +307,207 @@
   <data name="account page" xml:space="preserve"><value>صفحة حسابك</value></data>
   <data name="or remove a saved address there. To request deletion of your account data, contact us using the details below." xml:space="preserve"><value>أو إزالة عنوان محفوظ هناك. لطلب حذف بيانات حسابك، تواصل معنا باستخدام التفاصيل أدناه.</value></data>
   <data name="Questions about this policy can be sent to" xml:space="preserve"><value>يمكن إرسال الأسئلة حول هذه السياسة إلى</value></data>
+
+  <!-- Admin — layout & dashboard -->
+  <data name="Dashboard" xml:space="preserve"><value>لوحة التحكم</value></data>
+  <data name="All Products" xml:space="preserve"><value>كل المنتجات</value></data>
+  <data name="Add Product" xml:space="preserve"><value>إضافة منتج</value></data>
+  <data name="All Brands" xml:space="preserve"><value>كل الماركات</value></data>
+  <data name="Add Brand" xml:space="preserve"><value>إضافة ماركة</value></data>
+  <data name="Category list" xml:space="preserve"><value>قائمة الفئات</value></data>
+  <data name="Orders" xml:space="preserve"><value>الطلبات</value></data>
+  <data name="Payments" xml:space="preserve"><value>المدفوعات</value></data>
+  <data name="Stock" xml:space="preserve"><value>المخزون</value></data>
+  <data name="All Coupons" xml:space="preserve"><value>كل الكوبونات</value></data>
+  <data name="New Coupon" xml:space="preserve"><value>كوبون جديد</value></data>
+  <data name="All Methods" xml:space="preserve"><value>كل الطرق</value></data>
+  <data name="New Method" xml:space="preserve"><value>طريقة جديدة</value></data>
+  <data name="View Store" xml:space="preserve"><value>عرض المتجر</value></data>
+  <data name="Administrator" xml:space="preserve"><value>مسؤول</value></data>
+  <data name="Sign out" xml:space="preserve"><value>تسجيل الخروج</value></data>
+  <data name="ECommerce Admin" xml:space="preserve"><value>لوحة تحكم ECommerce</value></data>
+  <data name="Here's what's happening across the store today." xml:space="preserve"><value>إليك ما يحدث في المتجر اليوم.</value></data>
+  <data name="Products" xml:space="preserve"><value>المنتجات</value></data>
+  <data name="Pending Orders" xml:space="preserve"><value>الطلبات المعلقة</value></data>
+  <data name="Tracked Stock Items" xml:space="preserve"><value>عناصر المخزون المتتبعة</value></data>
+  <data name="Quick links" xml:space="preserve"><value>روابط سريعة</value></data>
+  <data name="New Product" xml:space="preserve"><value>منتج جديد</value></data>
+  <data name="View Orders" xml:space="preserve"><value>عرض الطلبات</value></data>
+  <data name="Manage Stock" xml:space="preserve"><value>إدارة المخزون</value></data>
+
+  <!-- Admin — shared table/form chrome -->
+  <data name="Slug" xml:space="preserve"><value>المعرف النصي</value></data>
+  <data name="Action" xml:space="preserve"><value>إجراء</value></data>
+  <data name="Actions" xml:space="preserve"><value>الإجراءات</value></data>
+  <data name="Active" xml:space="preserve"><value>مفعّل</value></data>
+  <data name="Inactive" xml:space="preserve"><value>غير مفعّل</value></data>
+  <data name="Activate" xml:space="preserve"><value>تفعيل</value></data>
+  <data name="Deactivate" xml:space="preserve"><value>إلغاء التفعيل</value></data>
+  <data name="Cancel" xml:space="preserve"><value>إلغاء</value></data>
+  <data name="Save" xml:space="preserve"><value>حفظ</value></data>
+  <data name="Currency" xml:space="preserve"><value>العملة</value></data>
+  <data name="Reason" xml:space="preserve"><value>السبب</value></data>
+  <data name="Reason (optional)" xml:space="preserve"><value>السبب (اختياري)</value></data>
+  <data name="Categories" xml:space="preserve"><value>الفئات</value></data>
+  <data name="Parent" xml:space="preserve"><value>الفئة الأصل</value></data>
+  <data name="Parent Category (optional)" xml:space="preserve"><value>الفئة الأصل (اختياري)</value></data>
+  <data name="— Top level —" xml:space="preserve"><value>— المستوى الأعلى —</value></data>
+  <data name="Brand" xml:space="preserve"><value>الماركة</value></data>
+  <data name="Brands" xml:space="preserve"><value>الماركات</value></data>
+  <data name="— No brand —" xml:space="preserve"><value>— بدون ماركة —</value></data>
+  <data name="Code" xml:space="preserve"><value>الكود</value></data>
+  <data name="Coupons" xml:space="preserve"><value>الكوبونات</value></data>
+
+  <!-- Admin — Brands -->
+  <data name="brand(s) total." xml:space="preserve"><value>ماركة إجمالًا.</value></data>
+  <data name="New Brand" xml:space="preserve"><value>ماركة جديدة</value></data>
+  <data name="No brands yet." xml:space="preserve"><value>لا توجد ماركات بعد.</value></data>
+  <data name="Create Brand" xml:space="preserve"><value>إنشاء ماركة</value></data>
+
+  <!-- Admin — Categories -->
+  <data name="categor(y/ies) total." xml:space="preserve"><value>فئة إجمالًا.</value></data>
+  <data name="New Category" xml:space="preserve"><value>فئة جديدة</value></data>
+  <data name="No categories yet." xml:space="preserve"><value>لا توجد فئات بعد.</value></data>
+  <data name="Create Category" xml:space="preserve"><value>إنشاء فئة</value></data>
+
+  <!-- Admin — Coupons -->
+  <data name="coupon(s) total." xml:space="preserve"><value>كوبون إجمالًا.</value></data>
+  <data name="Discount" xml:space="preserve"><value>الخصم</value></data>
+  <data name="Usage" xml:space="preserve"><value>الاستخدام</value></data>
+  <data name="Expires" xml:space="preserve"><value>تنتهي في</value></data>
+  <data name="No coupons yet." xml:space="preserve"><value>لا توجد كوبونات بعد.</value></data>
+  <data name="Discount Type" xml:space="preserve"><value>نوع الخصم</value></data>
+  <data name="Percentage" xml:space="preserve"><value>نسبة مئوية</value></data>
+  <data name="Fixed Amount" xml:space="preserve"><value>مبلغ ثابت</value></data>
+  <data name="Value (% or amount)" xml:space="preserve"><value>القيمة (نسبة أو مبلغ)</value></data>
+  <data name="Expires At (optional)" xml:space="preserve"><value>تاريخ الانتهاء (اختياري)</value></data>
+  <data name="Usage Limit (optional)" xml:space="preserve"><value>حد الاستخدام (اختياري)</value></data>
+  <data name="Minimum Order Amount (optional)" xml:space="preserve"><value>الحد الأدنى لمبلغ الطلب (اختياري)</value></data>
+  <data name="Create Coupon" xml:space="preserve"><value>إنشاء كوبون</value></data>
+
+  <!-- Admin — Shipping methods -->
+  <data name="shipping method(s) total." xml:space="preserve"><value>طريقة شحن إجمالًا.</value></data>
+  <data name="New Shipping Method" xml:space="preserve"><value>طريقة شحن جديدة</value></data>
+  <data name="Estimate" xml:space="preserve"><value>التقدير</value></data>
+  <data name="No shipping methods yet." xml:space="preserve"><value>لا توجد طرق شحن بعد.</value></data>
+  <data name="Description (optional)" xml:space="preserve"><value>الوصف (اختياري)</value></data>
+  <data name="Estimated Days Min (optional)" xml:space="preserve"><value>أقل عدد أيام تقديري (اختياري)</value></data>
+  <data name="Estimated Days Max (optional)" xml:space="preserve"><value>أكبر عدد أيام تقديري (اختياري)</value></data>
+  <data name="Create Shipping Method" xml:space="preserve"><value>إنشاء طريقة شحن</value></data>
+
+  <!-- Admin — Products -->
+  <data name="product(s) total." xml:space="preserve"><value>منتج إجمالًا.</value></data>
+  <data name="No products yet." xml:space="preserve"><value>لا توجد منتجات بعد.</value></data>
+  <data name="Product name" xml:space="preserve"><value>اسم المنتج</value></data>
+  <data name="Short description" xml:space="preserve"><value>وصف مختصر</value></data>
+  <data name="Create Draft" xml:space="preserve"><value>إنشاء مسودة</value></data>
+  <data name="Variants" xml:space="preserve"><value>المتغيرات</value></data>
+  <data name="SKU" xml:space="preserve"><value>رمز المنتج</value></data>
+  <data name="Sale Price" xml:space="preserve"><value>سعر التخفيض</value></data>
+  <data name="No variants yet — a product needs at least one to be published." xml:space="preserve"><value>لا توجد متغيرات بعد — يحتاج المنتج إلى متغير واحد على الأقل لنشره.</value></data>
+  <data name="Sale price (optional)" xml:space="preserve"><value>سعر التخفيض (اختياري)</value></data>
+  <data name="Add Variant" xml:space="preserve"><value>إضافة متغير</value></data>
+  <data name="Images" xml:space="preserve"><value>الصور</value></data>
+  <data name="Primary" xml:space="preserve"><value>رئيسية</value></data>
+  <data name="No images yet." xml:space="preserve"><value>لا توجد صور بعد.</value></data>
+  <data name="Set as primary" xml:space="preserve"><value>تعيين كصورة رئيسية</value></data>
+  <data name="Upload Image" xml:space="preserve"><value>رفع صورة</value></data>
+  <data name="Publish" xml:space="preserve"><value>نشر</value></data>
+  <data name="Remove from Featured" xml:space="preserve"><value>إزالة من المميز</value></data>
+  <data name="Mark as Featured" xml:space="preserve"><value>تمييز المنتج</value></data>
+  <data name="Archive" xml:space="preserve"><value>أرشفة</value></data>
+  <data name="Delete" xml:space="preserve"><value>حذف</value></data>
+
+  <!-- Admin — Orders -->
+  <data name="order(s) total." xml:space="preserve"><value>طلب إجمالًا.</value></data>
+  <data name="No orders yet." xml:space="preserve"><value>لا توجد طلبات بعد.</value></data>
+  <data name="Order" xml:space="preserve"><value>الطلب</value></data>
+  <data name="Unit Price" xml:space="preserve"><value>سعر الوحدة</value></data>
+  <data name="Line Total" xml:space="preserve"><value>إجمالي السطر</value></data>
+  <data name="Totals" xml:space="preserve"><value>الإجماليات</value></data>
+  <data name="Subtotal:" xml:space="preserve"><value>الإجمالي الفرعي:</value></data>
+  <data name="Shipping:" xml:space="preserve"><value>الشحن:</value></data>
+  <data name="Tax:" xml:space="preserve"><value>الضريبة:</value></data>
+  <data name="Discount:" xml:space="preserve"><value>الخصم:</value></data>
+  <data name="Total:" xml:space="preserve"><value>الإجمالي:</value></data>
+  <data name="Confirm" xml:space="preserve"><value>تأكيد</value></data>
+  <data name="Start Processing" xml:space="preserve"><value>بدء المعالجة</value></data>
+  <data name="Tracking # (optional)" xml:space="preserve"><value>رقم التتبع (اختياري)</value></data>
+  <data name="Mark Shipped" xml:space="preserve"><value>وضع علامة تم الشحن</value></data>
+  <data name="Mark Delivered" xml:space="preserve"><value>وضع علامة تم التسليم</value></data>
+  <data name="Cancellation reason" xml:space="preserve"><value>سبب الإلغاء</value></data>
+  <data name="Cancel Order" xml:space="preserve"><value>إلغاء الطلب</value></data>
+
+  <!-- Admin — Payments -->
+  <data name="payment(s) total." xml:space="preserve"><value>عملية دفع إجمالًا.</value></data>
+  <data name="Provider" xml:space="preserve"><value>مزوّد الدفع</value></data>
+  <data name="Amount" xml:space="preserve"><value>المبلغ</value></data>
+  <data name="Refunded Amount" xml:space="preserve"><value>المبلغ المسترد</value></data>
+  <data name="Date" xml:space="preserve"><value>التاريخ</value></data>
+  <data name="Refund" xml:space="preserve"><value>استرداد</value></data>
+  <data name="No payments yet." xml:space="preserve"><value>لا توجد مدفوعات بعد.</value></data>
+
+  <!-- Admin — Stock -->
+  <data name="stock item(s) tracked." xml:space="preserve"><value>عنصر مخزون متتبع إجمالًا.</value></data>
+  <data name="On Hand" xml:space="preserve"><value>المتوفر</value></data>
+  <data name="Reserved" xml:space="preserve"><value>المحجوز</value></data>
+  <data name="Available" xml:space="preserve"><value>المتاح</value></data>
+  <data name="Low Stock Threshold" xml:space="preserve"><value>حد المخزون المنخفض</value></data>
+  <data name="Adjust" xml:space="preserve"><value>تعديل</value></data>
+  <data name="Product not found in Catalog" xml:space="preserve"><value>المنتج غير موجود في الكتالوج</value></data>
+  <data name="Out of stock" xml:space="preserve"><value>غير متوفر</value></data>
+  <data name="No stock is tracked yet." xml:space="preserve"><value>لا يوجد مخزون متتبع بعد.</value></data>
+
+  <!-- Admin — Reviews -->
+  <data name="review(s) shown." xml:space="preserve"><value>تقييم معروض إجمالًا.</value></data>
+  <data name="All" xml:space="preserve"><value>الكل</value></data>
+  <data name="Reviewer" xml:space="preserve"><value>المُقيِّم</value></data>
+  <data name="Body" xml:space="preserve"><value>النص</value></data>
+  <data name="Submitted" xml:space="preserve"><value>تاريخ الإرسال</value></data>
+  <data name="No reviews to show." xml:space="preserve"><value>لا توجد تقييمات لعرضها.</value></data>
+  <data name="Approve" xml:space="preserve"><value>الموافقة</value></data>
+  <data name="Reject" xml:space="preserve"><value>الرفض</value></data>
+
+  <!-- Admin — status values (StatusBadge-mapped) -->
+  <data name="Approved" xml:space="preserve"><value>تمت الموافقة</value></data>
+  <data name="Archived" xml:space="preserve"><value>مؤرشف</value></data>
+  <data name="Draft" xml:space="preserve"><value>مسودة</value></data>
+  <data name="Fulfilled" xml:space="preserve"><value>مُنفَّذ</value></data>
+  <data name="PartiallyRefunded" xml:space="preserve"><value>مسترد جزئيًا</value></data>
+  <data name="Rejected" xml:space="preserve"><value>مرفوض</value></data>
+  <data name="Succeeded" xml:space="preserve"><value>ناجح</value></data>
+
+  <!-- Admin — controller TempData messages -->
+  <data name="Brand created." xml:space="preserve"><value>تم إنشاء الماركة.</value></data>
+  <data name="Brand deactivated." xml:space="preserve"><value>تم إلغاء تفعيل الماركة.</value></data>
+  <data name="Brand activated." xml:space="preserve"><value>تم تفعيل الماركة.</value></data>
+  <data name="Category created." xml:space="preserve"><value>تم إنشاء الفئة.</value></data>
+  <data name="Category deactivated." xml:space="preserve"><value>تم إلغاء تفعيل الفئة.</value></data>
+  <data name="Category activated." xml:space="preserve"><value>تم تفعيل الفئة.</value></data>
+  <data name="Coupon created." xml:space="preserve"><value>تم إنشاء الكوبون.</value></data>
+  <data name="Coupon deactivated." xml:space="preserve"><value>تم إلغاء تفعيل الكوبون.</value></data>
+  <data name="Coupon activated." xml:space="preserve"><value>تم تفعيل الكوبون.</value></data>
+  <data name="Order confirmed." xml:space="preserve"><value>تم تأكيد الطلب.</value></data>
+  <data name="Order is now processing." xml:space="preserve"><value>الطلب الآن قيد المعالجة.</value></data>
+  <data name="Order marked as shipped." xml:space="preserve"><value>تم وضع علامة على الطلب بأنه تم شحنه.</value></data>
+  <data name="Order marked as delivered." xml:space="preserve"><value>تم وضع علامة على الطلب بأنه تم تسليمه.</value></data>
+  <data name="Order cancelled." xml:space="preserve"><value>تم إلغاء الطلب.</value></data>
+  <data name="Refund processed." xml:space="preserve"><value>تمت معالجة الاسترداد.</value></data>
+  <data name="Product created as a draft. Add a variant, then publish it." xml:space="preserve"><value>تم إنشاء المنتج كمسودة. أضف متغيرًا ثم انشره.</value></data>
+  <data name="Product updated." xml:space="preserve"><value>تم تحديث المنتج.</value></data>
+  <data name="Variant added." xml:space="preserve"><value>تمت إضافة المتغير.</value></data>
+  <data name="Product marked as featured." xml:space="preserve"><value>تم تمييز المنتج.</value></data>
+  <data name="Product removed from featured." xml:space="preserve"><value>تمت إزالة المنتج من المميز.</value></data>
+  <data name="Product published." xml:space="preserve"><value>تم نشر المنتج.</value></data>
+  <data name="Product archived." xml:space="preserve"><value>تمت أرشفة المنتج.</value></data>
+  <data name="Choose an image file first." xml:space="preserve"><value>اختر ملف صورة أولاً.</value></data>
+  <data name="Image uploaded." xml:space="preserve"><value>تم رفع الصورة.</value></data>
+  <data name="Image removed." xml:space="preserve"><value>تمت إزالة الصورة.</value></data>
+  <data name="Product deleted." xml:space="preserve"><value>تم حذف المنتج.</value></data>
+  <data name="Review approved." xml:space="preserve"><value>تمت الموافقة على التقييم.</value></data>
+  <data name="Review rejected." xml:space="preserve"><value>تم رفض التقييم.</value></data>
+  <data name="Shipping method created." xml:space="preserve"><value>تم إنشاء طريقة الشحن.</value></data>
+  <data name="Shipping method deactivated." xml:space="preserve"><value>تم إلغاء تفعيل طريقة الشحن.</value></data>
+  <data name="Shipping method activated." xml:space="preserve"><value>تم تفعيل طريقة الشحن.</value></data>
+  <data name="Stock adjusted." xml:space="preserve"><value>تم تعديل المخزون.</value></data>
 </root>

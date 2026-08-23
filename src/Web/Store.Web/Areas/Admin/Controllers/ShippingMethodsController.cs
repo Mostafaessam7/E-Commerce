@@ -1,6 +1,7 @@
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Security;
 using Shipping.Application.Methods;
 using Shipping.Contracts;
@@ -13,8 +14,13 @@ namespace Store.Web.Areas.Admin.Controllers;
 public sealed class ShippingMethodsController : Controller
 {
     private readonly IDispatcher _dispatcher;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public ShippingMethodsController(IDispatcher dispatcher) => _dispatcher = dispatcher;
+    public ShippingMethodsController(IDispatcher dispatcher, IStringLocalizer<SharedResource> localizer)
+    {
+        _dispatcher = dispatcher;
+        _localizer = localizer;
+    }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
@@ -46,7 +52,7 @@ public sealed class ShippingMethodsController : Controller
             return View(form);
         }
 
-        TempData["Success"] = "Shipping method created.";
+        TempData["Success"] = _localizer["Shipping method created."].Value;
         return RedirectToAction(nameof(Index));
     }
 
@@ -56,7 +62,7 @@ public sealed class ShippingMethodsController : Controller
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new DeactivateShippingMethodCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Shipping method deactivated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Shipping method deactivated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -66,7 +72,7 @@ public sealed class ShippingMethodsController : Controller
     public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new ActivateShippingMethodCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Shipping method activated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Shipping method activated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 }

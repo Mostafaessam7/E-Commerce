@@ -2,6 +2,7 @@ using Catalog.Application.Brands;
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Security;
 using Store.Web.Areas.Admin.Models;
 
@@ -12,8 +13,13 @@ namespace Store.Web.Areas.Admin.Controllers;
 public sealed class BrandsController : Controller
 {
     private readonly IDispatcher _dispatcher;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public BrandsController(IDispatcher dispatcher) => _dispatcher = dispatcher;
+    public BrandsController(IDispatcher dispatcher, IStringLocalizer<SharedResource> localizer)
+    {
+        _dispatcher = dispatcher;
+        _localizer = localizer;
+    }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
@@ -42,7 +48,7 @@ public sealed class BrandsController : Controller
             return View(form);
         }
 
-        TempData["Success"] = "Brand created.";
+        TempData["Success"] = _localizer["Brand created."].Value;
         return RedirectToAction(nameof(Index));
     }
 
@@ -52,7 +58,7 @@ public sealed class BrandsController : Controller
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new DeactivateBrandCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Brand deactivated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Brand deactivated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -62,7 +68,7 @@ public sealed class BrandsController : Controller
     public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new ActivateBrandCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Brand activated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Brand activated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 }

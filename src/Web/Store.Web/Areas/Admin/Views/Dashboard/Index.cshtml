@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
@@ -6,8 +7,8 @@
 <div class="wg-box mb-30">
     <div class="flex items-center justify-between gap20 flex-wrap">
         <div>
-            <h4 class="mb-4">Welcome back</h4>
-            <div class="body-text">Here's what's happening across the store today.</div>
+            <h4 class="mb-4">@Localizer["Welcome back"]</h4>
+            <div class="body-text">@Localizer["Here's what's happening across the store today."]</div>
         </div>
     </div>
 </div>
@@ -19,7 +20,7 @@
                 <i class="icon-box"></i>
             </div>
             <div>
-                <div class="body-text mb-4">Products</div>
+                <div class="body-text mb-4">@Localizer["Products"]</div>
                 <h4>@Model.TotalProducts</h4>
             </div>
         </div>
@@ -30,7 +31,7 @@
                 <i class="icon-shopping-bag"></i>
             </div>
             <div>
-                <div class="body-text mb-4">Orders</div>
+                <div class="body-text mb-4">@Localizer["Orders"]</div>
                 <h4>@Model.TotalOrders</h4>
             </div>
         </div>
@@ -41,7 +42,7 @@
                 <i class="icon-clock"></i>
             </div>
             <div>
-                <div class="body-text mb-4">Pending Orders</div>
+                <div class="body-text mb-4">@Localizer["Pending Orders"]</div>
                 <h4>@Model.PendingOrders</h4>
             </div>
         </div>
@@ -52,7 +53,7 @@
                 <i class="icon-archive"></i>
             </div>
             <div>
-                <div class="body-text mb-4">Tracked Stock Items</div>
+                <div class="body-text mb-4">@Localizer["Tracked Stock Items"]</div>
                 <h4>@Model.TrackedStockItems</h4>
             </div>
         </div>
@@ -60,10 +61,10 @@
 </div>
 
 <div class="wg-box">
-    <h5 class="mb-14">Quick links</h5>
+    <h5 class="mb-14">@Localizer["Quick links"]</h5>
     <div class="flex gap10 flex-wrap">
-        <a asp-area="Admin" asp-controller="Products" asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>New Product</a>
-        <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="tf-button style-2 w208">View Orders</a>
-        <a asp-area="Admin" asp-controller="Stock" asp-action="Index" class="tf-button style-2 w208">Manage Stock</a>
+        <a asp-area="Admin" asp-controller="Products" asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>@Localizer["New Product"]</a>
+        <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="tf-button style-2 w208">@Localizer["View Orders"]</a>
+        <a asp-area="Admin" asp-controller="Stock" asp-action="Index" class="tf-button style-2 w208">@Localizer["Manage Stock"]</a>
     </div>
 </div>

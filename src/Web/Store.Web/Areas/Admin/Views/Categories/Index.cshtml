@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model IReadOnlyList<CategoryDto>
 @{
     ViewData["Title"] = "Categories";
@@ -6,17 +7,17 @@
 
 <div class="wg-box">
     <div class="flex items-center justify-between gap10 flex-wrap mb-20">
-        <div class="body-text">@Model.Count categor(y/ies) total.</div>
-        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>New Category</a>
+        <div class="body-text">@Model.Count @Localizer["categor(y/ies) total."]</div>
+        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>@Localizer["New Category"]</a>
     </div>
 
     <div class="wg-table table-all-category">
         <ul class="table-title flex gap20 mb-14">
-            <li><div class="body-title">Name</div></li>
-            <li><div class="body-title">Slug</div></li>
-            <li><div class="body-title">Parent</div></li>
-            <li><div class="body-title">Status</div></li>
-            <li><div class="body-title">Action</div></li>
+            <li><div class="body-title">@Localizer["Name"]</div></li>
+            <li><div class="body-title">@Localizer["Slug"]</div></li>
+            <li><div class="body-title">@Localizer["Parent"]</div></li>
+            <li><div class="body-title">@Localizer["Status"]</div></li>
+            <li><div class="body-title">@Localizer["Action"]</div></li>
         </ul>
         <ul class="flex flex-column">
         @foreach (var category in Model)
@@ -26,21 +27,21 @@
                 <div class="body-text text-main-dark mt-4"><code>@category.Slug</code></div>
                 <div class="body-text text-main-dark mt-4">@(category.ParentId is Guid parentId && byId.TryGetValue(parentId, out var parent) ? parent.Name : "—")</div>
                 <div class="mt-4">
-                    <div class="@(category.IsActive ? "block-available" : "block-stock") bg-1 fw-7">@(category.IsActive ? "Active" : "Inactive")</div>
+                    <div class="@(category.IsActive ? "block-available" : "block-stock") bg-1 fw-7">@(category.IsActive ? Localizer["Active"] : Localizer["Inactive"])</div>
                 </div>
                 <div class="list-icon-function">
                     @if (category.IsActive)
                     {
                         <form asp-action="Deactivate" method="post">
                             <input type="hidden" name="id" value="@category.Id" />
-                            <button type="submit" class="item edit" title="Deactivate"><i class="icon-slash"></i></button>
+                            <button type="submit" class="item edit" title="@Localizer["Deactivate"]"><i class="icon-slash"></i></button>
                         </form>
                     }
                     else
                     {
                         <form asp-action="Activate" method="post">
                             <input type="hidden" name="id" value="@category.Id" />
-                            <button type="submit" class="item eye" title="Activate"><i class="icon-check"></i></button>
+                            <button type="submit" class="item eye" title="@Localizer["Activate"]"><i class="icon-check"></i></button>
                         </form>
                     }
                 </div>
@@ -51,6 +52,6 @@
 
     @if (Model.Count == 0)
     {
-        <p class="mt-14">No categories yet.</p>
+        <p class="mt-14">@Localizer["No categories yet."]</p>
     }
 </div>

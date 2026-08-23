@@ -1,6 +1,7 @@
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Payments.Application.Payments;
 using Security;
 using Store.Web.Areas.Admin.Models;
@@ -12,8 +13,13 @@ namespace Store.Web.Areas.Admin.Controllers;
 public sealed class PaymentsController : Controller
 {
     private readonly IDispatcher _dispatcher;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public PaymentsController(IDispatcher dispatcher) => _dispatcher = dispatcher;
+    public PaymentsController(IDispatcher dispatcher, IStringLocalizer<SharedResource> localizer)
+    {
+        _dispatcher = dispatcher;
+        _localizer = localizer;
+    }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
@@ -29,7 +35,7 @@ public sealed class PaymentsController : Controller
         var result = await _dispatcher.Send(
             new RefundPaymentCommand(form.PaymentTransactionId, form.Amount, form.Reason), cancellationToken);
 
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Refund processed." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Refund processed."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 }

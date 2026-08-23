@@ -1,20 +1,21 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model IReadOnlyList<PaymentListItemDto>
 @{
     ViewData["Title"] = "Payments";
 }
 
 <div class="wg-box">
-    <div class="body-text mb-20">@Model.Count payment(s) total.</div>
+    <div class="body-text mb-20">@Model.Count @Localizer["payment(s) total."]</div>
 
     <div class="wg-table table-all-category">
         <ul class="table-title flex gap20 mb-14">
-            <li><div class="body-title">Order</div></li>
-            <li><div class="body-title">Provider</div></li>
-            <li><div class="body-title">Status</div></li>
-            <li><div class="body-title">Amount</div></li>
-            <li><div class="body-title">Refunded</div></li>
-            <li><div class="body-title">Date</div></li>
-            <li><div class="body-title">Refund</div></li>
+            <li><div class="body-title">@Localizer["Order"]</div></li>
+            <li><div class="body-title">@Localizer["Provider"]</div></li>
+            <li><div class="body-title">@Localizer["Status"]</div></li>
+            <li><div class="body-title">@Localizer["Amount"]</div></li>
+            <li><div class="body-title">@Localizer["Refunded Amount"]</div></li>
+            <li><div class="body-title">@Localizer["Date"]</div></li>
+            <li><div class="body-title">@Localizer["Refund"]</div></li>
         </ul>
         <ul class="flex flex-column">
         @foreach (var payment in Model)
@@ -25,7 +26,7 @@
                     <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@payment.OrderId">@(payment.OrderNumber ?? payment.OrderId.ToString())</a>
                 </div>
                 <div class="body-text text-main-dark mt-4">@payment.Provider</div>
-                <div class="mt-4"><div class="@StatusBadge.CssClass(payment.Status) bg-1 fw-7">@payment.Status</div></div>
+                <div class="mt-4"><div class="@StatusBadge.CssClass(payment.Status) bg-1 fw-7">@Localizer[payment.Status]</div></div>
                 <div class="body-text text-main-dark mt-4">@payment.Amount.ToString("0.00") @payment.Currency</div>
                 <div class="body-text text-main-dark mt-4">@payment.RefundedAmount.ToString("0.00")</div>
                 <div class="body-text text-main-dark mt-4">@payment.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm")</div>
@@ -35,9 +36,9 @@
                         <form asp-action="Refund" method="post" class="flex gap10">
                             <input type="hidden" name="PaymentTransactionId" value="@payment.Id" />
                             <input type="number" name="Amount" step="0.01" max="@(payment.Amount - payment.RefundedAmount)"
-                                   style="width:90px" placeholder="Amount" required />
-                            <input type="text" name="Reason" style="width:120px" placeholder="Reason (optional)" />
-                            <button type="submit" class="tf-button style-2 w128">Refund</button>
+                                   style="width:90px" placeholder="@Localizer["Amount"]" required />
+                            <input type="text" name="Reason" style="width:120px" placeholder="@Localizer["Reason (optional)"]" />
+                            <button type="submit" class="tf-button style-2 w128">@Localizer["Refund"]</button>
                         </form>
                     }
                 </div>
@@ -48,6 +49,6 @@
 
     @if (Model.Count == 0)
     {
-        <p class="mt-14">No payments yet.</p>
+        <p class="mt-14">@Localizer["No payments yet."]</p>
     }
 </div>

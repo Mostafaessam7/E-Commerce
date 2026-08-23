@@ -4,6 +4,7 @@ using Catalog.Application.Products;
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Security;
 using Store.Web.Areas.Admin.Models;
 using Store.Web.Infrastructure.Uploads;
@@ -16,11 +17,13 @@ public sealed class ProductsController : Controller
 {
     private readonly IDispatcher _dispatcher;
     private readonly IProductImageStorage _imageStorage;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public ProductsController(IDispatcher dispatcher, IProductImageStorage imageStorage)
+    public ProductsController(IDispatcher dispatcher, IProductImageStorage imageStorage, IStringLocalizer<SharedResource> localizer)
     {
         _dispatcher = dispatcher;
         _imageStorage = imageStorage;
+        _localizer = localizer;
     }
 
     public async Task<IActionResult> Index(int page = 1, CancellationToken cancellationToken = default)
@@ -60,7 +63,7 @@ public sealed class ProductsController : Controller
             return View(form);
         }
 
-        TempData["Success"] = "Product created as a draft. Add a variant, then publish it.";
+        TempData["Success"] = _localizer["Product created as a draft. Add a variant, then publish it."].Value;
         return RedirectToAction(nameof(Edit), new { id = result.Value });
     }
 
@@ -101,7 +104,7 @@ public sealed class ProductsController : Controller
             return View(reload.Value);
         }
 
-        TempData["Success"] = "Product updated.";
+        TempData["Success"] = _localizer["Product updated."].Value;
         return RedirectToAction(nameof(Edit), new { id = form.Id });
     }
 
@@ -121,7 +124,7 @@ public sealed class ProductsController : Controller
         var result = await _dispatcher.Send(
             new AddProductVariantCommand(form.ProductId, form.Sku, form.Price, form.Currency, form.SalePrice), cancellationToken);
 
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Variant added." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Variant added."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id = form.ProductId });
     }
 
@@ -131,7 +134,7 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> Feature(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new FeatureProductCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Product marked as featured." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Product marked as featured."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id });
     }
 
@@ -141,7 +144,7 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> Unfeature(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new UnfeatureProductCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Product removed from featured." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Product removed from featured."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id });
     }
 
@@ -151,7 +154,7 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> Publish(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new PublishProductCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Product published." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Product published."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id });
     }
 
@@ -161,7 +164,7 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> Archive(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new ArchiveProductCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Product archived." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Product archived."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id });
     }
 
@@ -173,7 +176,7 @@ public sealed class ProductsController : Controller
     {
         if (file is null)
         {
-            TempData["Error"] = "Choose an image file first.";
+            TempData["Error"] = _localizer["Choose an image file first."].Value;
             return RedirectToAction(nameof(Edit), new { id = productId });
         }
 
@@ -187,7 +190,7 @@ public sealed class ProductsController : Controller
         var result = await _dispatcher.Send(
             new AddProductImageCommand(productId, saveResult.Value, file.FileName, isPrimary), cancellationToken);
 
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Image uploaded." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Image uploaded."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id = productId });
     }
 
@@ -197,7 +200,7 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> RemoveImage(Guid productId, Guid imageId, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new RemoveProductImageCommand(productId, imageId), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Image removed." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Image removed."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id = productId });
     }
 
@@ -207,7 +210,7 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new DeleteProductCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Product deleted." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Product deleted."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 }

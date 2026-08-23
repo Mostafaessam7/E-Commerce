@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model ProductDetailsDto
 @{
     ViewData["Title"] = $"Edit {Model.Name}";
@@ -5,7 +6,7 @@
 
 <div class="flex items-center gap10 mb-20">
     <h4>@Model.Name</h4>
-    <div class="@StatusBadge.CssClass(Model.Status) bg-1 fw-7">@Model.Status</div>
+    <div class="@StatusBadge.CssClass(Model.Status) bg-1 fw-7">@Localizer[Model.Status]</div>
 </div>
 
 <div class="flex gap20 flex-wrap" style="align-items:flex-start">
@@ -15,25 +16,25 @@
             <input type="hidden" name="Id" value="@Model.Id" />
 
             <fieldset class="name">
-                <div class="body-title">Name</div>
+                <div class="body-title">@Localizer["Name"]</div>
                 <input name="Name" class="flex-grow" type="text" value="@Model.Name" required />
             </fieldset>
 
             <fieldset class="name">
-                <div class="body-title">Short Description</div>
+                <div class="body-title">@Localizer["Short description"]</div>
                 <input name="ShortDescription" class="flex-grow" type="text" value="@Model.ShortDescription" />
             </fieldset>
 
             <fieldset class="category">
-                <div class="body-title">Description</div>
+                <div class="body-title">@Localizer["Description"]</div>
                 <textarea name="Description" class="flex-grow" rows="5">@Model.Description</textarea>
             </fieldset>
 
             <fieldset class="category">
-                <div class="body-title">Brand</div>
+                <div class="body-title">@Localizer["Brand"]</div>
                 <div class="select flex-grow">
                     <select name="BrandId">
-                        <option value="">— No brand —</option>
+                        <option value="">@Localizer["— No brand —"]</option>
                         @foreach (var brand in (IReadOnlyList<BrandDto>)ViewBag.Brands)
                         {
                             <option value="@brand.Id" selected="@(brand.Id == Model.BrandId)">@brand.Name</option>
@@ -43,7 +44,7 @@
             </fieldset>
 
             <fieldset class="category">
-                <div class="body-title">Categories</div>
+                <div class="body-title">@Localizer["Categories"]</div>
                 <div class="flex flex-wrap gap10">
                     @foreach (var category in (IReadOnlyList<CategoryDto>)ViewBag.Categories)
                     {
@@ -54,23 +55,23 @@
                     }
                     @if (((IReadOnlyList<CategoryDto>)ViewBag.Categories).Count == 0)
                     {
-                        <p class="text-muted mb-0">No categories yet.</p>
+                        <p class="text-muted mb-0">@Localizer["No categories yet."]</p>
                     }
                 </div>
             </fieldset>
 
-            <div class="bot"><div></div><button class="tf-button w208" type="submit">Save</button></div>
+            <div class="bot"><div></div><button class="tf-button w208" type="submit">@Localizer["Save"]</button></div>
         </form>
     </div>
 
     <div style="flex:1;min-width:320px">
         <div class="wg-box mb-20">
-            <h5 class="mb-14">Variants</h5>
+            <h5 class="mb-14">@Localizer["Variants"]</h5>
             <div class="wg-table table-all-category">
                 <ul class="table-title flex gap20 mb-14">
-                    <li><div class="body-title">SKU</div></li>
-                    <li><div class="body-title">Price</div></li>
-                    <li><div class="body-title">Sale Price</div></li>
+                    <li><div class="body-title">@Localizer["SKU"]</div></li>
+                    <li><div class="body-title">@Localizer["Price"]</div></li>
+                    <li><div class="body-title">@Localizer["Sale Price"]</div></li>
                 </ul>
                 <ul class="flex flex-column">
                 @foreach (var variant in Model.Variants)
@@ -85,21 +86,21 @@
             </div>
             @if (Model.Variants.Count == 0)
             {
-                <p class="text-muted mt-10">No variants yet — a product needs at least one to be published.</p>
+                <p class="text-muted mt-10">@Localizer["No variants yet — a product needs at least one to be published."]</p>
             }
 
             <form asp-action="AddVariant" method="post" class="form-style-1 mt-20">
                 <input type="hidden" name="ProductId" value="@Model.Id" />
-                <fieldset class="name"><input name="Sku" class="flex-grow" placeholder="SKU" required /></fieldset>
-                <fieldset class="name"><input name="Price" type="number" step="0.01" class="flex-grow" placeholder="Price" required /></fieldset>
+                <fieldset class="name"><input name="Sku" class="flex-grow" placeholder="@Localizer["SKU"]" required /></fieldset>
+                <fieldset class="name"><input name="Price" type="number" step="0.01" class="flex-grow" placeholder="@Localizer["Price"]" required /></fieldset>
                 <fieldset class="name"><input name="Currency" class="flex-grow" value="EGP" required /></fieldset>
-                <fieldset class="name"><input name="SalePrice" type="number" step="0.01" class="flex-grow" placeholder="Sale price (optional)" /></fieldset>
-                <button type="submit" class="tf-button style-2 w208">Add Variant</button>
+                <fieldset class="name"><input name="SalePrice" type="number" step="0.01" class="flex-grow" placeholder="@Localizer["Sale price (optional)"]" /></fieldset>
+                <button type="submit" class="tf-button style-2 w208">@Localizer["Add Variant"]</button>
             </form>
         </div>
 
         <div class="wg-box mb-20">
-            <h5 class="mb-14">Images</h5>
+            <h5 class="mb-14">@Localizer["Images"]</h5>
             @if (Model.Images.Count > 0)
             {
                 <div class="flex flex-wrap gap10 mb-14">
@@ -109,12 +110,12 @@
                             <img src="@image.Url" alt="@image.AltText" style="width:100px;height:100px;object-fit:cover;border-radius:8px" />
                             @if (image.IsPrimary)
                             {
-                                <span class="block-available bg-1 fw-7" style="position:absolute;top:4px;left:4px;font-size:10px">Primary</span>
+                                <span class="block-available bg-1 fw-7" style="position:absolute;top:4px;left:4px;font-size:10px">@Localizer["Primary"]</span>
                             }
                             <form asp-action="RemoveImage" method="post" onsubmit="return confirm('Remove this image?');" class="mt-4">
                                 <input type="hidden" name="productId" value="@Model.Id" />
                                 <input type="hidden" name="imageId" value="@image.Id" />
-                                <button type="submit" class="tf-button style-2 w-100" style="font-size:11px;padding:4px">Remove</button>
+                                <button type="submit" class="tf-button style-2 w-100" style="font-size:11px;padding:4px">@Localizer["Remove"]</button>
                             </form>
                         </div>
                     }
@@ -122,7 +123,7 @@
             }
             else
             {
-                <p class="text-muted mb-14">No images yet.</p>
+                <p class="text-muted mb-14">@Localizer["No images yet."]</p>
             }
 
             <form asp-action="UploadImage" method="post" enctype="multipart/form-data" class="form-style-1">
@@ -130,46 +131,46 @@
                 <fieldset class="name"><input name="file" type="file" accept=".jpg,.jpeg,.png,.webp,.gif" class="flex-grow" required /></fieldset>
                 <label style="display:flex;align-items:center;gap:6px" class="mb-14">
                     <input type="checkbox" name="isPrimary" value="true" />
-                    <span class="body-text">Set as primary</span>
+                    <span class="body-text">@Localizer["Set as primary"]</span>
                 </label>
-                <button type="submit" class="tf-button style-2 w208">Upload Image</button>
+                <button type="submit" class="tf-button style-2 w208">@Localizer["Upload Image"]</button>
             </form>
         </div>
 
         <div class="wg-box">
-            <h5 class="mb-14">Status</h5>
+            <h5 class="mb-14">@Localizer["Status"]</h5>
             <div class="flex gap10 flex-wrap">
                 @if (Model.Status != "Active")
                 {
                     <form asp-action="Publish" method="post">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="tf-button style-1 w180">Publish</button>
+                        <button type="submit" class="tf-button style-1 w180">@Localizer["Publish"]</button>
                     </form>
                 }
                 @if (Model.IsFeatured)
                 {
                     <form asp-action="Unfeature" method="post">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="tf-button style-2 w180">Remove from Featured</button>
+                        <button type="submit" class="tf-button style-2 w180">@Localizer["Remove from Featured"]</button>
                     </form>
                 }
                 else
                 {
                     <form asp-action="Feature" method="post">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="tf-button style-2 w180">Mark as Featured</button>
+                        <button type="submit" class="tf-button style-2 w180">@Localizer["Mark as Featured"]</button>
                     </form>
                 }
                 @if (Model.Status != "Archived")
                 {
                     <form asp-action="Archive" method="post">
                         <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="tf-button style-2 w180">Archive</button>
+                        <button type="submit" class="tf-button style-2 w180">@Localizer["Archive"]</button>
                     </form>
                 }
                 <form asp-action="Delete" method="post" onsubmit="return confirm('Delete this product?');">
                     <input type="hidden" name="id" value="@Model.Id" />
-                    <button type="submit" class="tf-button style-2 w180" style="color:var(--Palette-Red-500,#EF4444)">Delete</button>
+                    <button type="submit" class="tf-button style-2 w180" style="color:var(--Palette-Red-500,#EF4444)">@Localizer["Delete"]</button>
                 </form>
             </div>
         </div>

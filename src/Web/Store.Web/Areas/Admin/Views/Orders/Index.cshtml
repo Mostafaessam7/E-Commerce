@@ -1,31 +1,32 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model OrderSearchResultDto
 @{
     ViewData["Title"] = "Orders";
 }
 
 <div class="wg-box">
-    <div class="body-text mb-20">@Model.TotalCount order(s) total.</div>
+    <div class="body-text mb-20">@Model.TotalCount @Localizer["order(s) total."]</div>
 
     <div class="wg-table table-all-category">
         <ul class="table-title flex gap20 mb-14">
-            <li><div class="body-title">Order #</div></li>
-            <li><div class="body-title">Status</div></li>
-            <li><div class="body-title">Payment</div></li>
-            <li><div class="body-title">Total</div></li>
-            <li><div class="body-title">Placed</div></li>
-            <li><div class="body-title">Action</div></li>
+            <li><div class="body-title">@Localizer["Order #"]</div></li>
+            <li><div class="body-title">@Localizer["Status"]</div></li>
+            <li><div class="body-title">@Localizer["Payment"]</div></li>
+            <li><div class="body-title">@Localizer["Total"]</div></li>
+            <li><div class="body-title">@Localizer["Placed"]</div></li>
+            <li><div class="body-title">@Localizer["Action"]</div></li>
         </ul>
         <ul class="flex flex-column">
         @foreach (var order in Model.Items)
         {
             <li class="wg-product item-row gap20">
                 <div class="body-text text-main-dark mt-4">@order.OrderNumber</div>
-                <div class="mt-4"><div class="@StatusBadge.CssClass(order.Status) bg-1 fw-7">@order.Status</div></div>
-                <div class="mt-4"><div class="@StatusBadge.CssClass(order.PaymentStatus) bg-1 fw-7">@order.PaymentStatus</div></div>
+                <div class="mt-4"><div class="@StatusBadge.CssClass(order.Status) bg-1 fw-7">@Localizer[order.Status]</div></div>
+                <div class="mt-4"><div class="@StatusBadge.CssClass(order.PaymentStatus) bg-1 fw-7">@Localizer[order.PaymentStatus]</div></div>
                 <div class="body-text text-main-dark mt-4">@order.Total.ToString("0.00") @order.Currency</div>
                 <div class="body-text text-main-dark mt-4">@order.PlacedAtUtc.ToString("yyyy-MM-dd HH:mm")</div>
                 <div class="list-icon-function">
-                    <a asp-action="Details" asp-route-id="@order.Id" class="item eye" title="View"><i class="icon-eye"></i></a>
+                    <a asp-action="Details" asp-route-id="@order.Id" class="item eye" title="@Localizer["View"]"><i class="icon-eye"></i></a>
                 </div>
             </li>
         }
@@ -34,7 +35,7 @@
 
     @if (Model.TotalCount == 0)
     {
-        <p class="mt-14">No orders yet.</p>
+        <p class="mt-14">@Localizer["No orders yet."]</p>
     }
 
     @{

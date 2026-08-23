@@ -1,19 +1,20 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model StockSearchResultDto
 @{
     ViewData["Title"] = "Stock";
 }
 
 <div class="wg-box">
-    <div class="body-text mb-20">@Model.TotalCount stock item(s) tracked.</div>
+    <div class="body-text mb-20">@Model.TotalCount @Localizer["stock item(s) tracked."]</div>
 
     <div class="wg-table table-all-category">
         <ul class="table-title flex gap20 mb-14">
-            <li><div class="body-title">Product</div></li>
-            <li><div class="body-title">On Hand</div></li>
-            <li><div class="body-title">Reserved</div></li>
-            <li><div class="body-title">Available</div></li>
-            <li><div class="body-title">Low Stock Threshold</div></li>
-            <li><div class="body-title">Adjust</div></li>
+            <li><div class="body-title">@Localizer["Product"]</div></li>
+            <li><div class="body-title">@Localizer["On Hand"]</div></li>
+            <li><div class="body-title">@Localizer["Reserved"]</div></li>
+            <li><div class="body-title">@Localizer["Available"]</div></li>
+            <li><div class="body-title">@Localizer["Low Stock Threshold"]</div></li>
+            <li><div class="body-title">@Localizer["Adjust"]</div></li>
         </ul>
         <ul class="flex flex-column">
         @foreach (var item in Model.Items)
@@ -28,7 +29,7 @@
                     else
                     {
                         <div class="body-text text-main-dark"><code>@item.ProductVariantId</code></div>
-                        <div class="text-muted fs-14">Product not found in Catalog</div>
+                        <div class="text-muted fs-14">@Localizer["Product not found in Catalog"]</div>
                     }
                 </div>
                 <div class="body-text text-main-dark mt-4">@item.QuantityOnHand</div>
@@ -37,15 +38,15 @@
                     <span class="body-text text-main-dark">@item.AvailableQuantity</span>
                     @if (item.IsOutOfStock)
                     {
-                        <div class="block-not-available bg-1 fw-7 mt-4">Out of stock</div>
+                        <div class="block-not-available bg-1 fw-7 mt-4">@Localizer["Out of stock"]</div>
                     }
                 </div>
                 <div class="body-text text-main-dark mt-4">@item.LowStockThreshold</div>
                 <form asp-action="Adjust" method="post" class="flex gap10">
                     <input type="hidden" name="ProductVariantId" value="@item.ProductVariantId" />
                     <input type="number" name="NewQuantityOnHand" style="width:90px" value="@item.QuantityOnHand" required />
-                    <input type="text" name="Reason" placeholder="Reason" required />
-                    <button type="submit" class="tf-button style-2 w128">Adjust</button>
+                    <input type="text" name="Reason" placeholder="@Localizer["Reason"]" required />
+                    <button type="submit" class="tf-button style-2 w128">@Localizer["Adjust"]</button>
                 </form>
             </li>
         }
@@ -54,7 +55,7 @@
 
     @if (Model.TotalCount == 0)
     {
-        <p class="mt-14">No stock is tracked yet.</p>
+        <p class="mt-14">@Localizer["No stock is tracked yet."]</p>
     }
 
     @{

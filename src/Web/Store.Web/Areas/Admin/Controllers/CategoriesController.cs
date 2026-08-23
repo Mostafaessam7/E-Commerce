@@ -2,6 +2,7 @@ using Catalog.Application.Categories;
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Security;
 using Store.Web.Areas.Admin.Models;
 
@@ -12,8 +13,13 @@ namespace Store.Web.Areas.Admin.Controllers;
 public sealed class CategoriesController : Controller
 {
     private readonly IDispatcher _dispatcher;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public CategoriesController(IDispatcher dispatcher) => _dispatcher = dispatcher;
+    public CategoriesController(IDispatcher dispatcher, IStringLocalizer<SharedResource> localizer)
+    {
+        _dispatcher = dispatcher;
+        _localizer = localizer;
+    }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
@@ -51,7 +57,7 @@ public sealed class CategoriesController : Controller
             return View(form);
         }
 
-        TempData["Success"] = "Category created.";
+        TempData["Success"] = _localizer["Category created."].Value;
         return RedirectToAction(nameof(Index));
     }
 
@@ -61,7 +67,7 @@ public sealed class CategoriesController : Controller
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new DeactivateCategoryCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Category deactivated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Category deactivated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -71,7 +77,7 @@ public sealed class CategoriesController : Controller
     public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new ActivateCategoryCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Category activated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Category activated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 }

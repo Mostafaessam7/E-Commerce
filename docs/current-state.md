@@ -506,12 +506,24 @@ Completed:
   "Shipping", "Contact", "Returns + Exchanges") instead of duplicating; checked for duplicate
   `<data name>` keys before every commit. Verified live via `get_page_text` on every new page.
   All 168 tests still passing.
-
-In Progress:
-- Phase 43+: the Admin area (~18 files: `_AdminLayout.cshtml`, Dashboard, Products Index/Create/
-  Edit, Brands, Categories, Coupons, Orders Index/Details, Payments, Stock, ShippingMethods,
-  Reviews) — the last remaining piece of "الموقع كله بما فيه لوحة الأدمن" (the whole site including
-  the admin panel), not yet started.
+- Phase 43: Arabic/English localization completed (ADR-054) — the entire Admin area: `_AdminLayout.cshtml`
+  (sidebar, header language switcher, breadcrumb, footer, `dir`/`lang`/`rtl.css`), Dashboard, Products
+  Index/Create/Edit, Brands, Categories, Coupons, Orders Index/Details, Payments, Stock,
+  ShippingMethods, Reviews — every status badge value (`Active`/`Pending`/`Approved`/`Succeeded`/
+  `Archived`/etc., the full `StatusBadge.CssClass` vocabulary) and every controller TempData message
+  now render in the current language; domain `Error.Message` text still stays in English, same
+  scoping as every prior localization phase. This closes "الموقع كله بما فيه لوحة الأدمن" — the whole
+  site including the admin panel is now bilingual. Real bug hit and fixed: two resx keys differing
+  only by case ("Short Description" vs "Short description", "Back to Sign In" vs "Back to sign in",
+  "New Category" vs "New category") silently collided — one of each pair failed to resolve at
+  runtime and rendered its English key text verbatim even on an otherwise fully-Arabic page, a
+  genuine .NET resx/.resources case-sensitivity gap, not a caching artifact (confirmed via live
+  `querySelector` DOM reads showing the same result as the raw HTTP response). Fixed by
+  consolidating each pair to one key; added a case-insensitive duplicate check
+  (`tr 'A-Z' 'a-z' | sort | uniq -d`) to the existing case-sensitive one before every resx commit
+  going forward. Verified live via `get_page_text`/DOM reads across all ~18 admin pages while signed
+  in as the seed admin account, including status-badge values, TempData success messages, and the
+  language switcher round-trip back to English. All 168 tests still passing.
 
 Next:
 - All five originally-empty placeholder modules now have real code (Notifications: Phase 15,
@@ -565,8 +577,8 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..053.
-- docs/modules.md — "Localization" section (Phases 41-42) covers the resource-based setup, right
+- docs/decisions.md — ADR-001..054.
+- docs/modules.md — "Localization" section (Phases 41-43) covers the resource-based setup, right
   after "Dark mode".
 - docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after
   "Storefront UI polish".
@@ -650,4 +662,7 @@ for the neutral "ar" culture, worked around with a direct language-code check �
 entire core shopping flow so far, Auth/Profile/content pages and Admin still to come), ADR-053
 (Phase 42 continues the localization rollout — Auth pages, Profile/My Orders, and all seven content
 pages; opportunistically fixed several ViewModels' missing `[Display(Name=)]` attributes while
-localizing their labels — only the Admin area remains).
+localizing their labels — only the Admin area remains), ADR-054 (Phase 43 finishes the rollout —
+the entire Admin area, ~18 files, every status badge value and controller TempData message; found
+and fixed a real .NET resx case-sensitivity gap where two keys differing only by letter case
+silently collided, one always losing at runtime).

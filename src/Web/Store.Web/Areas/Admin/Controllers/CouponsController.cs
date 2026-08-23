@@ -1,6 +1,7 @@
 using Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Promotions.Application.Coupons;
 using Promotions.Domain;
 using Security;
@@ -13,8 +14,13 @@ namespace Store.Web.Areas.Admin.Controllers;
 public sealed class CouponsController : Controller
 {
     private readonly IDispatcher _dispatcher;
+    private readonly IStringLocalizer<SharedResource> _localizer;
 
-    public CouponsController(IDispatcher dispatcher) => _dispatcher = dispatcher;
+    public CouponsController(IDispatcher dispatcher, IStringLocalizer<SharedResource> localizer)
+    {
+        _dispatcher = dispatcher;
+        _localizer = localizer;
+    }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
@@ -47,7 +53,7 @@ public sealed class CouponsController : Controller
             return View(form);
         }
 
-        TempData["Success"] = "Coupon created.";
+        TempData["Success"] = _localizer["Coupon created."].Value;
         return RedirectToAction(nameof(Index));
     }
 
@@ -57,7 +63,7 @@ public sealed class CouponsController : Controller
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new DeactivateCouponCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Coupon deactivated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Coupon deactivated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 
@@ -67,7 +73,7 @@ public sealed class CouponsController : Controller
     public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new ActivateCouponCommand(id), cancellationToken);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Coupon activated." : result.Error.Message;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Coupon activated."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }
 }

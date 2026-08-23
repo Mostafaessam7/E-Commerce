@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model CreateShippingMethodFormModel
 @{
     ViewData["Title"] = "New Shipping Method";
@@ -8,40 +9,40 @@
         <div asp-validation-summary="ModelOnly" class="admin-alert admin-alert-error"></div>
 
         <fieldset class="name">
-            <div class="body-title">Name <span class="tf-color-1">*</span></div>
+            <div class="body-title">@Localizer["Name"] <span class="tf-color-1">*</span></div>
             <input asp-for="Name" class="flex-grow" type="text" placeholder="e.g. Standard" />
             <span asp-validation-for="Name" class="text-danger"></span>
         </fieldset>
 
         <fieldset class="name">
-            <div class="body-title">Description (optional)</div>
+            <div class="body-title">@Localizer["Description (optional)"]</div>
             <input asp-for="Description" class="flex-grow" type="text" />
         </fieldset>
 
         <fieldset class="name">
-            <div class="body-title">Cost <span class="tf-color-1">*</span></div>
+            <div class="body-title">@Localizer["Cost"] <span class="tf-color-1">*</span></div>
             <input asp-for="Cost" type="number" step="0.01" class="flex-grow" />
             <span asp-validation-for="Cost" class="text-danger"></span>
         </fieldset>
 
         <fieldset class="name">
-            <div class="body-title">Currency</div>
+            <div class="body-title">@Localizer["Currency"]</div>
             <input asp-for="Currency" class="flex-grow" type="text" />
         </fieldset>
 
         <fieldset class="name">
-            <div class="body-title">Estimated Days Min (optional)</div>
+            <div class="body-title">@Localizer["Estimated Days Min (optional)"]</div>
             <input asp-for="EstimatedDaysMin" type="number" class="flex-grow" />
         </fieldset>
 
         <fieldset class="name">
-            <div class="body-title">Estimated Days Max (optional)</div>
+            <div class="body-title">@Localizer["Estimated Days Max (optional)"]</div>
             <input asp-for="EstimatedDaysMax" type="number" class="flex-grow" />
         </fieldset>
 
         <div class="bot">
-            <a asp-action="Index" class="tf-button style-2 w208">Cancel</a>
-            <button class="tf-button w208" type="submit">Create Shipping Method</button>
+            <a asp-action="Index" class="tf-button style-2 w208">@Localizer["Cancel"]</a>
+            <button class="tf-button w208" type="submit">@Localizer["Create Shipping Method"]</button>
         </div>
     </form>
 </div>

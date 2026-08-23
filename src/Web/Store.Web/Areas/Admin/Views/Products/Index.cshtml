@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Store.Web.SharedResource> Localizer
 @model ProductSearchResultDto
 @{
     ViewData["Title"] = "Products";
@@ -5,17 +6,17 @@
 
 <div class="wg-box">
     <div class="flex items-center justify-between gap10 flex-wrap mb-20">
-        <div class="body-text">@Model.TotalCount product(s) total.</div>
-        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>New Product</a>
+        <div class="body-text">@Model.TotalCount @Localizer["product(s) total."]</div>
+        <a asp-action="Create" class="tf-button style-1 w208"><i class="icon-plus"></i>@Localizer["New Product"]</a>
     </div>
 
     <div class="wg-table table-product-list">
         <ul class="table-title flex gap20 mb-14">
-            <li><div class="body-title">Product</div></li>
-            <li><div class="body-title">Slug</div></li>
-            <li><div class="body-title">Status</div></li>
-            <li><div class="body-title">Price</div></li>
-            <li><div class="body-title">Action</div></li>
+            <li><div class="body-title">@Localizer["Product"]</div></li>
+            <li><div class="body-title">@Localizer["Slug"]</div></li>
+            <li><div class="body-title">@Localizer["Status"]</div></li>
+            <li><div class="body-title">@Localizer["Price"]</div></li>
+            <li><div class="body-title">@Localizer["Action"]</div></li>
         </ul>
         <ul class="flex flex-column">
         @foreach (var product in Model.Items)
@@ -31,7 +32,7 @@
                     </div>
                 </div>
                 <div class="body-text text-main-dark mt-4">@product.Slug</div>
-                <div class="mt-4"><div class="@StatusBadge.CssClass(product.Status) bg-1 fw-7">@product.Status</div></div>
+                <div class="mt-4"><div class="@StatusBadge.CssClass(product.Status) bg-1 fw-7">@Localizer[product.Status]</div></div>
                 <div class="body-text text-main-dark mt-4">
                     @(product.MinPrice is decimal price ? $"{price:0.00} {product.Currency}" : "—")
                 </div>
@@ -45,7 +46,7 @@
 
     @if (Model.TotalCount == 0)
     {
-        <p class="mt-14">No products yet.</p>
+        <p class="mt-14">@Localizer["No products yet."]</p>
     }
 
     @{
