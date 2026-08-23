@@ -557,13 +557,16 @@ Known Issues:
   producing the exact DLLs each `ENTRYPOINT` expects. Only the container-runtime layer itself is
   unverified. Worth a real `docker compose up --build` pass in an environment where Docker Desktop
   can actually start.
-- `wwwroot/css/rtl.css` (Phase 41) is scoped to the components this project owns end to end, not an
-  exhaustive audit of the curated `ecomus`/`admin-ecomus` themes' CSS — some hardcoded
-  `left:`/`right:`/`float` positioning outside the covered components (header, footer, hero,
-  product cards, tables, forms, auth panel) may not mirror correctly in RTL yet, and the Admin area
-  (Phase 43) reuses the same storefront `rtl.css` rather than getting its own admin-specific pass.
-  Now that translation itself is complete everywhere (Phase 43), this is the one worthwhile
-  follow-up pass left on the localization initiative.
+- `wwwroot/css/rtl.css` (Phase 41, re-audited Phase 44/ADR-055) is scoped to the components this
+  app actually renders, cross-checked against every class its own `.cshtml` files reference — not
+  a blind guess. The one real gap found and fixed was the admin sidebar/header/content-offset
+  skeleton (`_AdminLayout.cshtml`); everything else candidate (product-card badges, mobile
+  toolbar/offcanvas, `.sidebar-filter`) turned out either already symmetric or genuinely unused
+  in this app's views. One property (`.main-content`'s `padding-left`/`padding-right` mirror)
+  couldn't be confirmed via this session's browser tooling — `getComputedStyle` kept returning the
+  old value even after an inline style override, which is impossible under a real CSS cascade, so
+  it's logged as a tool-side stale-read artifact rather than a defect (source-level cascade
+  order/specificity checked and correct) — worth a quick visual spot-check in a normal browser.
 
 Important Files:
 - AGENTS.md — entry point; "EF Core gotchas" + "Other gotchas" sections, including the new
@@ -580,7 +583,7 @@ Important Files:
 - docs/security.md — rate limiting section added (Phase 26).
 - docs/modules.md — "Storefront UI polish" section (Phase 30) covers Vanta.js + the auth-pages
   redesign, right after the Admin area section; Ordering section has the Phase 31 Cart UI note.
-- docs/decisions.md — ADR-001..054.
+- docs/decisions.md — ADR-001..055.
 - docs/modules.md — "Localization" section (Phases 41-43) covers the resource-based setup, right
   after "Dark mode".
 - docs/modules.md — "Design system" section (Phase 36) covers the new token layer, right after

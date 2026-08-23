@@ -1,13 +1,18 @@
 /* ==========================================================================
-   RTL support (Phase 41, ADR-052) — loaded only when dir="rtl" (_Layout.cshtml).
+   RTL support (Phase 41, ADR-052; extended Phase 44, ADR-055) — loaded on both the storefront
+   (_Layout.cshtml) and the admin area (_AdminLayout.cshtml) whenever dir="rtl".
    Bootstrap 5's own utilities (`.ps-*`/`.pe-*`, `.start-0`/`.end-0`, `.text-start`) are already
    logical-property-based and auto-flip correctly with `dir="rtl"` — no override needed there.
-   This file targets specifically the places the curated `ecomus` theme and this project's own
-   design-system.css use *physical* left/right (hardcoded `float`, `margin-left`, absolute
-   `left:`/`right:`) that dir="rtl" alone does not flip, scoped to the components this project
-   already controls end to end (header, footer, hero, product cards, forms). The base theme's own
-   ~12,000 lines of CSS are not exhaustively audited here — genuinely out of reach for this pass;
-   see docs/current-state.md for what's tracked as a known RTL gap.
+   This file targets specifically the places the curated `ecomus`/`admin-ecomus` themes and this
+   project's own design-system.css use *physical* left/right (hardcoded `float`, `margin-left`,
+   absolute `left:`/`right:`) that dir="rtl" alone does not flip, scoped to the components this
+   project actually renders somewhere in its own views — not an exhaustive audit of either theme's
+   several thousand lines of CSS, most of which (offcanvas menus, product-card badges/action icons,
+   the mobile bottom toolbar) already turned out to be either untouched by this app's markup or
+   already symmetric/logical-property-based and needing no mirror. Phase 44 re-audited both themes
+   against every class this app's own .cshtml files actually reference and found exactly one real,
+   rendered gap: the admin sidebar/header/content skeleton below. See docs/current-state.md for
+   what (if anything) remains tracked as a known RTL gap.
    ========================================================================== */
 
 /* Hero */
@@ -72,4 +77,82 @@
 input[type="number"] {
     direction: ltr;
     text-align: right;
+}
+
+/* ==========================================================================
+   Admin area (Phase 43, ADR-054) — `_AdminLayout.cshtml` loads this same file when dir="rtl".
+   `admin-ecomus/css/styles.css` pins the whole sidebar/header/content skeleton with hardcoded
+   `left:`/`right:`/`padding-left` (fixed sidebar at the left edge, main content offset by
+   `padding-left: 320px`, header spanning the remaining width from the right) — none of that
+   flips on its own under `dir="rtl"`. Mirrored here so the sidebar sits at the *reading start*
+   (the right edge in Arabic) instead of leaving it pinned to the physical left while every other
+   admin element mirrors around it.
+   ========================================================================== */
+
+.layout-wrap .section-menu-left {
+    left: auto;
+    right: 0;
+}
+
+.layout-wrap .section-menu-left > .box-logo {
+    left: auto;
+    right: 0;
+    padding: 23px 27px 15px 24px;
+}
+
+.layout-wrap .section-content-right .main-content {
+    padding-left: 0;
+    padding-right: 320px;
+}
+
+.header-dashboard {
+    right: auto;
+    left: 0;
+}
+
+/* Collapse toggle: base chevron points toward the sidebar's outer edge (now the right); the
+   existing `full-width` rule still applies its own `rotate(180deg)` on top of this mirror, so
+   the collapsed state continues to flip in the opposite direction, same as the LTR toggle. */
+.layout-wrap .section-menu-left .button-show-hide i {
+    transform: scaleX(-1);
+}
+
+/* Collapsed ("full-width") state slides the sidebar off-screen via `left: -320px` and expands
+   the content/header with `padding-left`/`padding-left !important` — mirror both to the right. */
+.layout-wrap.full-width .section-menu-left {
+    left: auto;
+    right: -320px;
+}
+
+.layout-wrap.full-width .section-menu-left > .box-logo {
+    left: auto;
+    right: -320px;
+}
+
+.layout-wrap.full-width .section-content-right .main-content {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.layout-wrap.full-width .section-content-right .header-dashboard {
+    padding-left: 0 !important;
+    padding-right: 30px !important;
+}
+
+/* Submenu indent + active-state accent bar — both hardcoded to the left edge. */
+.layout-wrap .section-menu-left .menu-item.has-children .sub-menu .sub-menu-item {
+    padding: 12px 76px 12px 0;
+}
+
+.layout-wrap .section-menu-left .menu-item.has-children .sub-menu .sub-menu-item.active::after {
+    left: auto;
+    right: 0;
+}
+
+/* Collapsed icon-only flyout submenu (theme's `menu-style-icon-default` variant) opens to the
+   right of the rail via `left: 100%` — not toggled by this app's own collapse button today, but
+   mirrored for completeness since the theme CSS ships it active-by-selector regardless. */
+.layout-wrap.menu-style-icon-default .section-menu-left .center-item .menu-item.has-children .sub-menu {
+    left: auto;
+    right: 100%;
 }

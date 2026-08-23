@@ -1289,3 +1289,45 @@ correctly. All 168 tests still passing (the `EndToEndTests` HTTP client never se
 cookie, so it continues to exercise the English default throughout, admin included).
 Status: Accepted (Phase 43) — closes the localization rollout begun in ADR-052; the whole site,
 storefront and admin, is now bilingual.
+
+---
+**ADR-055**
+Decision: Phase 44 re-audits `wwwroot/css/rtl.css`'s known scoping gap (tracked since ADR-052) now
+that translation itself is complete everywhere (ADR-054) — cross-referencing every class this app's
+own `.cshtml` files actually reference against both the `ecomus` (storefront) and `admin-ecomus`
+(admin) theme CSS for hardcoded physical `left:`/`right:`/`float`/`margin-left`/`padding-left` that
+`dir="rtl"` does not flip on its own, rather than guessing which components might need it. Found
+exactly one real, rendered gap: the admin `_AdminLayout.cshtml` skeleton — `.section-menu-left`
+(fixed sidebar pinned to `left: 0`), its `.box-logo`, `.main-content` (`padding-left: 320px` to
+offset for the sidebar), `.header-dashboard` (`right: 0` with a `calc(100% - 320px)` width), the
+`.full-width` collapsed-sidebar state, the submenu active-item accent bar, and the submenu
+indent-padding — all hardcoded to the physical left edge, unmirrored by `dir="rtl"` alone. Every
+other candidate the audit turned up (product-card sale/wishlist/quick-action badges, the mobile
+bottom toolbar, the offcanvas mobile menu's close button, `.collection-item-circle`'s badge,
+`.sidebar-filter`) was either already symmetric (equal `left`/`right` values, positioning a
+full-width row rather than a one-sided element) or, on checking, not actually referenced anywhere
+in this app's own views — dead theme CSS this project never rendered, correctly out of scope per
+the same "components this project actually owns" principle as every prior localization phase.
+Reason: the RTL gap was explicitly flagged as the one worthwhile follow-up once translation
+finished (docs/current-state.md Known Issues, carried since ADR-052) — the user asked for it by
+name. Verified via direct source inspection: confirmed the live dev server's raw HTTP response for
+`rtl.css` contains the new rules byte-for-byte (`curl`), confirmed via the page's CSSOM
+(`document.styleSheets`) that the browser parses all rules and that the `<link>` tag's cascade
+position is last (after `admin-ecomus/css/styles.css`), and confirmed the competing selectors have
+identical specificity so later source order decides the winner per the CSS spec. Two of the three
+mirrored properties (`.section-menu-left`'s `left`/`right`, `.header-dashboard`'s `left`/`right`/
+`width`) were confirmed live via `getComputedStyle` reflecting the new values after a cache-bust;
+the third (`.main-content`'s `padding-left`/`padding-right`) could not be confirmed the same way —
+`getComputedStyle` kept reporting the old value even after an inline `style` override was set
+directly on the element, which is not possible under any real CSS cascade (an inline style always
+wins), so that specific read is treated as a tool-side stale/frozen computed-style artifact in this
+session's non-displayed browser pane (`screenshot` also failed with "the Browser pane is not
+displayed, so the page is not compositing frames" for the same tab) rather than a genuine defect —
+consistent with this session's several previously-documented sandboxed-browser staleness quirks
+(Phase 35/38/40), just manifesting as a stuck computed-style read instead of a stale stylesheet
+this time. The source-level cascade reasoning (correct rule text, correct order, correct
+specificity) stands on its own regardless. Worth a real visual spot-check in a normal, visible
+browser tab as a follow-up.
+Status: Accepted (Phase 44) — the admin sidebar/header/content skeleton now mirrors correctly in
+RTL; `main-content`'s padding specifically should get a quick visual re-check outside this
+session's tooling constraints.
