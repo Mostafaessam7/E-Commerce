@@ -536,9 +536,10 @@ Next:
   Cart page has real product images + a working coupon UI (Phase 31), the Admin area's status
   badges/Stock page are fixed (Phase 32), the Payments page/Checkout confirmation badges are
   fixed (Phase 33), a site-wide CSS class-name audit found and fixed long-standing
-  zero-padding/broken-flex/wrong-width/missing-margin defects across 20+ files (Phases 34-35), and
-  a full premium storefront redesign is underway on a new design-token foundation (Phase 36,
-  in progress — see "In Progress" above).
+  zero-padding/broken-flex/wrong-width/missing-margin defects across 20+ files (Phases 34-35), a
+  full premium storefront redesign shipped on a new design-token foundation with dark mode
+  (Phases 36-40), and Arabic/English localization now covers the entire site including the Admin
+  area (Phases 41-43).
 - No branch protection rule requiring CI to pass before merge — the repo has had a real remote
   (`github.com/Mostafaessam7/E-Commerce`) since a couple of phases back, so this is no longer
   blocked on "no remote"; it's a GitHub repo Settings action only the repo owner can take (walked
@@ -557,10 +558,12 @@ Known Issues:
   unverified. Worth a real `docker compose up --build` pass in an environment where Docker Desktop
   can actually start.
 - `wwwroot/css/rtl.css` (Phase 41) is scoped to the components this project owns end to end, not an
-  exhaustive audit of the curated `ecomus` theme's ~12,000 lines of CSS — some hardcoded
+  exhaustive audit of the curated `ecomus`/`admin-ecomus` themes' CSS — some hardcoded
   `left:`/`right:`/`float` positioning outside the covered components (header, footer, hero,
-  product cards, tables, forms, auth panel) may not mirror correctly in RTL yet. Worth a pass once
-  the translation itself is complete across every page.
+  product cards, tables, forms, auth panel) may not mirror correctly in RTL yet, and the Admin area
+  (Phase 43) reuses the same storefront `rtl.css` rather than getting its own admin-specific pass.
+  Now that translation itself is complete everywhere (Phase 43), this is the one worthwhile
+  follow-up pass left on the localization initiative.
 
 Important Files:
 - AGENTS.md — entry point; "EF Core gotchas" + "Other gotchas" sections, including the new
