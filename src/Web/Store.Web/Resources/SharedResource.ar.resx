@@ -510,4 +510,19 @@
   <data name="Shipping method deactivated." xml:space="preserve"><value>تم إلغاء تفعيل طريقة الشحن.</value></data>
   <data name="Shipping method activated." xml:space="preserve"><value>تم تفعيل طريقة الشحن.</value></data>
   <data name="Stock adjusted." xml:space="preserve"><value>تم تعديل المخزون.</value></data>
+
+  <!-- About page -->
+  <data name="About ECommerce" xml:space="preserve"><value>عن ECommerce</value></data>
+  <data name="We started with a simple idea: good, well-made pieces shouldn't be hard to find or complicated to buy. Every product in our catalog is chosen and listed by our small team, and every order — from checkout to delivery — is something we've built and tested ourselves, end to end." xml:space="preserve"><value>بدأنا بفكرة بسيطة: القطع الجيدة والمصنوعة بعناية لا يجب أن يكون إيجادها أو شراؤها معقدًا. كل منتج في كتالوجنا يختاره ويدرجه فريقنا الصغير بأنفسنا، وكل طلب — من الدفع وحتى التسليم — بنيناه واختبرناه بأنفسنا من البداية للنهاية.</value></data>
+  <data name="We're a young store. We don't have a hundred-year history to tell you about, but we do care about getting the basics right: clear product information, honest pricing, and a checkout that actually works the way it should." xml:space="preserve"><value>نحن متجر ناشئ. ليس لدينا تاريخ يمتد لمئة عام لنرويه، لكننا نهتم بإتقان الأساسيات: معلومات واضحة عن المنتجات، وأسعار صادقة، وعملية دفع تعمل فعلاً كما ينبغي.</value></data>
+  <data name="Where we are" xml:space="preserve"><value>موقعنا</value></data>
+  <data name="Have a question about an order, a product, or anything else? Visit our" xml:space="preserve"><value>لديك سؤال عن طلب أو منتج أو أي شيء آخر؟ زر</value></data>
+  <data name="contact page" xml:space="preserve"><value>صفحة التواصل</value></data>
+  <data name="we read every message." xml:space="preserve"><value>نقرأ كل رسالة تصلنا.</value></data>
+
+  <!-- Contact page -->
+  <data name="Get in Touch" xml:space="preserve"><value>تواصل معنا</value></data>
+  <data name="We usually reply within one business day." xml:space="preserve"><value>نرد عادةً خلال يوم عمل واحد.</value></data>
+  <data name="For a question about an existing order, sign in and check your" xml:space="preserve"><value>لسؤال عن طلب موجود، سجّل الدخول وراجع</value></data>
+  <data name="first — order status and saved addresses are there. For anything else, reach us at the email above." xml:space="preserve"><value>أولاً — حالة الطلب والعناوين المحفوظة موجودة هناك. لأي شيء آخر، تواصل معنا على البريد الإلكتروني أعلاه.</value></data>
 </root>

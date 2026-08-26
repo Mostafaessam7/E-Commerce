@@ -506,6 +506,14 @@ Completed:
   "Shipping", "Contact", "Returns + Exchanges") instead of duplicating; checked for duplicate
   `<data name>` keys before every commit. Verified live via `get_page_text` on every new page.
   All 168 tests still passing.
+  Post-Phase-44 fix (found by a `/code-review` pass, not caught at the time): About.cshtml and
+  Contact.cshtml were correctly wrapped in `@Localizer[...]` back in this phase, but 12 of their
+  resx keys were never actually added — the duplicate-key checkpoint only ever caught keys that
+  were wrongly *repeated*, not ones that were simply missing, so both pages silently rendered in
+  English under Arabic until fixed. Added the missing keys, and while doing so hit the exact same
+  case-collision shape as ADR-055's finding (`"Get in Touch"` vs `"Get in touch"` — this time
+  self-inflicted while writing the fix) — caught immediately by the case-insensitive check and
+  consolidated to one key before it ever shipped. Verified live via `get_page_text` on both pages.
 - Phase 43: Arabic/English localization completed (ADR-054) — the entire Admin area: `_AdminLayout.cshtml`
   (sidebar, header language switcher, breadcrumb, footer, `dir`/`lang`/`rtl.css`), Dashboard, Products
   Index/Create/Edit, Brands, Categories, Coupons, Orders Index/Details, Payments, Stock,
