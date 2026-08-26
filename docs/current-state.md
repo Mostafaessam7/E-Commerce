@@ -6,9 +6,11 @@ feature exists), a dead Wishlist link (removed), no rate limiting (Phase 26), no
 (Phase 28, ADR-039 — `MergeCartCommand` had existed since Phase 7/8, registered in DI, but was
 never once dispatched from anywhere until now), and no way for an admin to attach a product image
 despite the storefront already rendering `PrimaryImageUrl` everywhere (Phase 29, ADR-040). Only two
-items remain genuinely out of reach in this environment (branch protection needs a GitHub remote; a
-real `docker compose up --build` needs a Docker daemon this sandbox can't run) or are deliberate
-scope cuts recorded in their own ADRs (no Tax module, no 2FA/social login, no Wishlist module).
+item remains genuinely out of reach in this environment (a real `docker compose up --build` needs a
+Docker daemon this sandbox can't run — genuinely attempted, Docker Desktop's backend never reaches
+a ready state here) or are deliberate scope cuts recorded in their own ADRs (no Tax module, no
+2FA/social login, no Wishlist module). Branch protection on `main` (require `build-and-test` to
+pass before merge) is now live — the repo was made public and a `gh api` call applied it directly.
 
 Completed:
 - Phase 1-6: Foundation, Persistence BB, Identity, Catalog, Ecomus storefront, Inventory.
@@ -548,10 +550,9 @@ Next:
   full premium storefront redesign shipped on a new design-token foundation with dark mode
   (Phases 36-40), and Arabic/English localization now covers the entire site including the Admin
   area (Phases 41-43).
-- No branch protection rule requiring CI to pass before merge — the repo has had a real remote
-  (`github.com/Mostafaessam7/E-Commerce`) since a couple of phases back, so this is no longer
-  blocked on "no remote"; it's a GitHub repo Settings action only the repo owner can take (walked
-  through with them once already — see docs/ci-cd.md for the exact steps).
+- Branch protection on `main` is now live (repo made public, then applied via `gh api PUT
+  repos/.../branches/main/protection`: requires the `build-and-test` status check, strict/up-to-date
+  branches, no force-pushes, no deletions). See docs/ci-cd.md for the exact request.
 
 Known Issues:
 - `docker compose up --build` still hasn't been run against a real Docker daemon — genuinely
