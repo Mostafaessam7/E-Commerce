@@ -49,7 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IRequestHandler<UpdateProductCommand, Unit>, UpdateProductCommandHandler>();
         services.AddScoped<IRequestHandler<AddProductVariantCommand, Guid>, AddProductVariantCommandHandler>();
         services.AddScoped<IRequestHandler<AddProductImageCommand, Unit>, AddProductImageCommandHandler>();
-        services.AddScoped<IRequestHandler<RemoveProductImageCommand, Unit>, RemoveProductImageCommandHandler>();
+        services.AddScoped<IRequestHandler<RemoveProductImageCommand, string>, RemoveProductImageCommandHandler>();
         services.AddScoped<IRequestHandler<FeatureProductCommand, Unit>, FeatureProductCommandHandler>();
         services.AddScoped<IRequestHandler<UnfeatureProductCommand, Unit>, UnfeatureProductCommandHandler>();
         services.AddScoped<IRequestHandler<PublishProductCommand, Unit>, PublishProductCommandHandler>();

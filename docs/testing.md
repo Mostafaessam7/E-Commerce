@@ -32,6 +32,13 @@
   `CreateClient()`'s default `http://` base silently never sends them back, and every request
   looks like a brand new anonymous visitor.
 
+  One class in here is **not** an end-to-end test: `LocalProductImageStorageTests` (2026-08-28)
+  covers `LocalProductImageStorage`'s delete paths against a temp directory — no database, no
+  `WebApplicationFactory`, so it doesn't participate in the shared-DB serialization above. It lives
+  here purely because `UnitTests` deliberately doesn't reference `Store.Web`. Its path-traversal
+  cases were checked by removing the guard and confirming they fail, so they assert real protection
+  rather than passing incidentally.
+
 Run one project at a time — `dotnet test` rejects multiple `.csproj` args:
 
 ```bash

@@ -681,3 +681,49 @@ localizing their labels — only the Admin area remains), ADR-054 (Phase 43 fini
 the entire Admin area, ~18 files, every status badge value and controller TempData message; found
 and fixed a real .NET resx case-sensitivity gap where two keys differing only by letter case
 silently collided, one always losing at runtime).
+
+
+---
+
+## Phase 45 (2026-08-28): orphaned upload files, CI vulnerability gate, restore caching
+
+Three items carried as known gaps were closed; a fourth was found while closing the first.
+
+**Product image files are now actually deleted.** ADR-040 recorded "`RemoveImage` deletes the DB
+row only, not the physical file" as an accepted simplification. Reviewing it found the gap was
+wider than written — three orphan paths, not one:
+
+1. `RemoveImage` — row deleted, file kept (the documented one).
+2. `UploadImage` — the file is written to disk *before* `AddProductImageCommand` runs; if that
+   command fails, the file stays with nothing referencing it. Never recorded anywhere.
+3. `Delete` (the product itself) — takes every image row with it, leaving the entire per-product
+   upload folder behind.
+
+`IProductImageStorage` gained `Delete(url)` and `DeleteAllForProduct(productId)`; all three call
+sites clean up. `RemoveProductImageCommand` returns the removed URL instead of `Unit` so the Web
+layer knows which file to drop — Catalog still only ever handles a URL string, keeping the
+ADR-040 seam intact. Deletion happens *after* the row is gone, preserving the property ADR-040
+called out: an orphaned file is untidy, a row pointing at a missing file is a broken storefront
+image.
+
+`Delete` treats the URL as untrusted despite it coming from the database, requiring the resolved
+path to sit under `wwwroot/uploads/products` before touching anything. New
+`LocalProductImageStorageTests` (12 tests, no DB) covers this; the traversal cases were verified to
+fail when the guard is removed, so they assert real protection rather than passing incidentally.
+
+**CI now gates on vulnerable NuGet packages** (`docs/ci-cd.md`). The step inspects the command's
+output rather than its exit code — `dotnet list package --vulnerable` exits 0 even when it finds
+something, so simply running it would report and pass. Placed right after restore so a bad
+dependency fails before the slow LocalDB/migrations/integration stretch. The tree is clean today,
+so the gate went in green.
+
+**Dependabot added** (`.github/dependabot.yml`) — weekly NuGet + github-actions, with Microsoft/
+System and test-tooling grouped so a .NET release train is one PR rather than a dozen.
+
+**NuGet restore caching enabled.** `docs/ci-cd.md` recorded this as blocked on a
+`packages-lock.json` the repo doesn't generate. It wasn't blocked: `cache-dependency-path` accepts
+any file to hash, and Central Package Management already puts every version in a single
+`Directory.Packages.props` — a complete cache key on its own.
+
+Verification: `dotnet build` clean, and the full suite run locally against LocalDB —
+**102 unit + 29 architecture + 31 integration + 18 end-to-end = 180 passing, 0 failed**.

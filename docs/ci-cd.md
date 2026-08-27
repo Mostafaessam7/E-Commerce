@@ -66,9 +66,12 @@ environment where Docker Desktop can actually start.
 
 ## Not yet built
 
-- No NuGet restore caching (`actions/cache` / `setup-dotnet`'s built-in cache needs a
-  `packages-lock.json` this repo doesn't generate) — every run restores from scratch. Fine at this
-  project's size; revisit if CI time becomes annoying.
+- ~~No NuGet restore caching~~ — now enabled (2026-08-28). The blocker recorded here was that
+  `setup-dotnet`'s cache wants a `packages-lock.json` this repo doesn't generate; that turned out
+  not to be a blocker at all, because `cache-dependency-path` accepts any file to hash and Central
+  Package Management already concentrates *every* package version into a single
+  `Directory.Packages.props`. That one file is a complete cache key — a lock file per project would
+  add nothing here. Restores now hit the cache unless a package version actually changes.
 - ~~No branch protection rule~~ — now live. Classic branch protection (and the newer repository
   rulesets) both require GitHub Pro for a *private* repo; once the repo owner made
   `github.com/Mostafaessam7/E-Commerce` public, a plain `gh api` call turned it on:
@@ -90,6 +93,14 @@ environment where Docker Desktop can actually start.
   — `strict: true`) before a merge is allowed; force-pushes and branch deletion are blocked too.
   `enforce_admins: false` so the repo owner can still push directly when needed. Verify with
   `gh api repos/.../branches/main/protection`.
-- No automatic dependency/vulnerability scanning (Dependabot, `dotnet list package
-  --vulnerable`) beyond the one-time manual pins already in `Directory.Packages.props`
-  (docs/decisions.md ADR mentions e.g. the `System.Security.Cryptography.Xml` pin).
+- ~~No automatic dependency/vulnerability scanning~~ — both added (2026-08-28):
+  - **CI gate**: a `Check for known-vulnerable NuGet packages` step runs straight after restore, so
+    a bad dependency fails before the slow LocalDB + migrations + integration-test stretch. It
+    inspects the command's *output* rather than its exit code, because `dotnet list package
+    --vulnerable` exits 0 even when it finds something — a step that only ran the command would
+    report findings and pass anyway. Fails on High/Critical only. The dependency tree is clean as
+    of this change, so the gate went in green rather than immediately red.
+  - **Dependabot** (`.github/dependabot.yml`): weekly NuGet + github-actions updates. NuGet updates
+    land in `Directory.Packages.props` (Central Package Management), with Microsoft/System and
+    test-tooling packages grouped so a .NET release train arrives as one reviewable PR instead of a
+    dozen.

@@ -28,9 +28,27 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+          # Central Package Management means every version lives in Directory.Packages.props, so
+          # that one file is the whole cache key — no lock files to hash across 30+ projects.
+          cache: true
+          cache-dependency-path: Directory.Packages.props
 
       - name: Restore
         run: dotnet restore ECommerce.slnx
+
+      # Runs right after restore so a vulnerable dependency fails the build before the (much
+      # slower) LocalDB + migration + integration-test stretch below. `dotnet list package
+      # --vulnerable` exits 0 even when it finds something, so its output has to be inspected —
+      # without this the step would report findings and pass anyway.
+      - name: Check for known-vulnerable NuGet packages
+        shell: bash
+        run: |
+          dotnet list ECommerce.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt
+          if grep -qE '[[:space:]](High|Critical)[[:space:]]' vulnerable.txt; then
+            echo "::error::High or Critical severity NuGet vulnerability found (see the table above)."
+            exit 1
+          fi
+          echo "No High/Critical NuGet vulnerabilities found."
 
       - name: Build (Release)
         run: dotnet build ECommerce.slnx --configuration Release --no-restore

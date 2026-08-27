@@ -190,6 +190,13 @@ public sealed class ProductsController : Controller
         var result = await _dispatcher.Send(
             new AddProductImageCommand(productId, saveResult.Value, file.FileName, isPrimary), cancellationToken);
 
+        if (result.IsFailure)
+        {
+            // The file is already on disk but nothing references it now — clean it up rather than
+            // leave an orphan behind (e.g. the product was deleted between the save and this call).
+            _imageStorage.Delete(saveResult.Value);
+        }
+
         TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Image uploaded."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id = productId });
     }
@@ -200,6 +207,14 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> RemoveImage(Guid productId, Guid imageId, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new RemoveProductImageCommand(productId, imageId), cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            // Delete the file only after the row is gone: an orphaned file is untidy, but a row
+            // pointing at a file that no longer exists is a broken image on the storefront.
+            _imageStorage.Delete(result.Value);
+        }
+
         TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Image removed."].Value : result.Error.Message;
         return RedirectToAction(nameof(Edit), new { id = productId });
     }
@@ -210,6 +225,15 @@ public sealed class ProductsController : Controller
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         var result = await _dispatcher.Send(new DeleteProductCommand(id), cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            // Deleting the product takes its image rows with it, so the whole per-product upload
+            // folder is orphaned — drop it wholesale rather than per URL, which would leave the
+            // now-empty directory behind anyway.
+            _imageStorage.DeleteAllForProduct(id);
+        }
+
         TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? _localizer["Product deleted."].Value : result.Error.Message;
         return RedirectToAction(nameof(Index));
     }

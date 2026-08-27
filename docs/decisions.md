@@ -750,9 +750,28 @@ speculative one. Deliberately local-disk storage, not blob storage: this is a si
 dev/demo deployment (docs/deployment.md), and adding a cloud storage dependency for it would be
 solving a scaling problem this project doesn't have yet — `IProductImageStorage` exists specifically
 so that decision is revisited in one place, not scattered through Catalog, if it ever needs to be.
-Known simplification: `RemoveImage` deletes the DB row only, not the physical file — an orphaned
-file on disk costs nothing at this scale and periodic cleanup is a fair thing to defer, unlike a
-dangling *DB reference* to a missing file, which this design never produces. Verified live: uploaded
+~~Known simplification: `RemoveImage` deletes the DB row only, not the physical file.~~ **Closed
+2026-08-28.** Reviewing this found the gap was wider than recorded — there were three orphan paths,
+not one: `RemoveImage` (row deleted, file kept), `UploadImage` (file written, then the command
+fails, so nothing ever references it), and `Delete` on the product itself (every image row goes,
+leaving the whole per-product folder behind). `IProductImageStorage` gained `Delete(url)` and
+`DeleteAllForProduct(productId)`, and all three call sites now clean up.
+
+The ordering in `RemoveImage` is deliberate: the file is deleted only *after* the row is gone, which
+preserves the property this note originally called out — an orphaned file is untidy, but a row
+pointing at a missing file is a broken image on the storefront, so the failure mode is kept on the
+harmless side.
+
+`RemoveProductImageCommand` now returns the removed URL instead of `Unit`. Catalog still has no
+opinion on where files live (it only ever handled a URL string); it just reports which URL stopped
+being referenced, and the Web layer decides what that means on disk — the `IProductImageStorage`
+seam this ADR already established.
+
+`Delete` treats its input as untrusted even though the URL comes from the database: it resolves the
+absolute path and requires it to sit under `wwwroot/uploads/products` before touching anything, so a
+stored value like `/uploads/products/../../appsettings.json` can't reach outside. Covered by
+`LocalProductImageStorageTests` (12 tests), whose traversal cases were verified to actually fail
+when the guard is removed rather than merely passing alongside it. Verified live: uploaded
 a real PNG through the admin panel, confirmed the exact bytes round-tripped back with a `200
 image/png` response from the new static-file path, confirmed it appeared as the storefront-facing
 thumbnail on both `/Admin/Products` and the product's own admin edit page, then removed it and

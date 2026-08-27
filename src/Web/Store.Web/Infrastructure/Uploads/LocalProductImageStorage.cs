@@ -56,4 +56,43 @@ public sealed class LocalProductImageStorage : IProductImageStorage
         var url = "/" + string.Join('/', relativeDirectory.Split(Path.DirectorySeparatorChar)) + "/" + fileName;
         return Result.Success(url);
     }
+
+    public bool Delete(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return false;
+        }
+
+        // The URL is read back from the database, but treat it as untrusted anyway: a stored value
+        // like "/uploads/products/../../../appsettings.json" must never resolve into a delete. Build
+        // the absolute path, then require it to sit under the uploads root before touching anything.
+        var uploadsRoot = Path.GetFullPath(Path.Combine(_environment.WebRootPath, "uploads", "products"));
+        var relative = url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+        var absolutePath = Path.GetFullPath(Path.Combine(_environment.WebRootPath, relative));
+
+        if (!absolutePath.StartsWith(uploadsRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        // Already-missing file is a success, not an error: the point is that it is gone.
+        if (File.Exists(absolutePath))
+        {
+            File.Delete(absolutePath);
+        }
+
+        return true;
+    }
+
+    public void DeleteAllForProduct(Guid productId)
+    {
+        var directory = Path.GetFullPath(
+            Path.Combine(_environment.WebRootPath, "uploads", "products", productId.ToString()));
+
+        if (Directory.Exists(directory))
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
 }

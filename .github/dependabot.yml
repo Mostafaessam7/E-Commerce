@@ -1,0 +1,30 @@
+version: 2
+
+updates:
+  # NuGet versions are centrally managed in Directory.Packages.props (Central Package Management),
+  # so Dependabot edits that one file rather than 30+ csproj files. Grouped deliberately: the
+  # Microsoft/EF/ASP.NET packages move in lockstep with the .NET release train and are meaningless
+  # to review one at a time, so they arrive as a single PR instead of a dozen.
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      microsoft:
+        patterns:
+          - "Microsoft.*"
+          - "System.*"
+      test-tooling:
+        patterns:
+          - "xunit*"
+          - "FluentAssertions"
+          - "coverlet.*"
+
+  # Keeps the pinned action versions in .github/workflows current — the CI gate added alongside
+  # this file only covers NuGet, not the actions the workflow itself runs.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3

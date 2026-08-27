@@ -110,9 +110,15 @@ public sealed class AddProductImageCommandHandler : IRequestHandler<AddProductIm
     }
 }
 
-public sealed record RemoveProductImageCommand(Guid ProductId, Guid ImageId) : ICommand<Unit>;
+/// <summary>
+/// Returns the removed image's URL rather than <c>Unit</c> so the Web layer can delete the backing
+/// file. Catalog still has no opinion on where that file lives (it only ever handled a URL string);
+/// it just reports which URL stopped being referenced, and <c>IProductImageStorage</c> decides what
+/// that means on disk. Before this, removing an image deleted the row and left the file orphaned.
+/// </summary>
+public sealed record RemoveProductImageCommand(Guid ProductId, Guid ImageId) : ICommand<string>;
 
-public sealed class RemoveProductImageCommandHandler : IRequestHandler<RemoveProductImageCommand, Unit>
+public sealed class RemoveProductImageCommandHandler : IRequestHandler<RemoveProductImageCommand, string>
 {
     private readonly IProductRepository _repository;
     private readonly ICatalogUnitOfWork _unitOfWork;
@@ -123,22 +129,25 @@ public sealed class RemoveProductImageCommandHandler : IRequestHandler<RemovePro
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Unit>> Handle(RemoveProductImageCommand request, CancellationToken cancellationToken = default)
+    public async Task<Result<string>> Handle(RemoveProductImageCommand request, CancellationToken cancellationToken = default)
     {
         var product = await _repository.GetByIdAsync(request.ProductId, cancellationToken);
         if (product is null)
         {
-            return Result.Failure<Unit>(Error.NotFound("Product.NotFound", "Product was not found."));
+            return Result.Failure<string>(Error.NotFound("Product.NotFound", "Product was not found."));
         }
+
+        // Captured before removal — afterwards the image is off the collection and its URL is gone.
+        var removedUrl = product.Images.FirstOrDefault(i => i.Id == request.ImageId)?.Url;
 
         var result = product.RemoveImage(request.ImageId);
         if (result.IsFailure)
         {
-            return Result.Failure<Unit>(result.Error);
+            return Result.Failure<string>(result.Error);
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        return Result.Success(Unit.Value);
+        return Result.Success(removedUrl ?? string.Empty);
     }
 }
 

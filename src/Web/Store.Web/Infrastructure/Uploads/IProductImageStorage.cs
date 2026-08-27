@@ -12,4 +12,18 @@ namespace Store.Web.Infrastructure.Uploads;
 public interface IProductImageStorage
 {
     Task<Result<string>> SaveAsync(Guid productId, IFormFile file, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes the file behind a stored image URL. Best-effort by design: the database row is the
+    /// source of truth, so a file that is already gone is not an error. Returns false only when the
+    /// URL does not point somewhere this storage owns — the caller should treat that as suspicious
+    /// rather than routine.
+    /// </summary>
+    bool Delete(string url);
+
+    /// <summary>
+    /// Deletes every image belonging to a product — used when the product itself is deleted, where
+    /// removing files one URL at a time would leave the (now empty) product folder behind anyway.
+    /// </summary>
+    void DeleteAllForProduct(Guid productId);
 }
