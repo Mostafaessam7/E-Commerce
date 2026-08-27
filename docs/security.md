@@ -47,9 +47,9 @@
 
 ## Account controller + Admin panel authorization (Phase 11)
 
-- `Store.Web/Controllers/AccountController.cs`: `[AllowAnonymous]`, Login/Logout/AccessDenied only
-  (no Register/ForgotPassword UI yet — not needed until self-service customer accounts are
-  scheduled). `Login` calls `IIdentityService.LoginAsync`; the cookie's `LoginPath`/`AccessDeniedPath`
+- `Store.Web/Controllers/AccountController.cs`: `[AllowAnonymous]`, initially just Login/Logout/
+  AccessDenied (Register/ForgotPassword/ResetPassword added one phase later, see below). `Login`
+  calls `IIdentityService.LoginAsync`; the cookie's `LoginPath`/`AccessDeniedPath`
   (Identity's `DependencyInjection.cs`) already point here, so any `[Authorize]`-gated page redirects
   to it automatically, `returnUrl` and all.
 - Admin area (`Areas/Admin`) controllers are gated with `[Authorize(Policy = Permissions.X)]` per

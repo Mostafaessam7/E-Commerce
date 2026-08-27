@@ -20,8 +20,9 @@
     <AnalysisMode>Recommended</AnalysisMode>
 
     <!-- Keeps ICU data available (ar-EG/en-US culture-aware string comparison, number/currency/
-         date formatting) for when real Arabic+English localization is built — no UI translation,
-         resource files, or RTL markup exist yet; this flag alone doesn't provide any of that. -->
+         date formatting). Required since Phases 41-44 added real Arabic+English localization
+         (RequestLocalizationOptions, SharedResource.ar.resx, rtl.css) — with this flag left at
+         its Alpine-image default (true), Arabic number/date formatting would silently misbehave. -->
     <InvariantGlobalization>false</InvariantGlobalization>
 
     <Deterministic>true</Deterministic>

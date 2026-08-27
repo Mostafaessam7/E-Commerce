@@ -27,9 +27,10 @@ requires `SQL_SA_PASSWORD` explicitly (`${SQL_SA_PASSWORD:?...}`, no hardcoded d
 - `Store.Web` uses the `aspnet` runtime image (needs the ASP.NET Core shared framework);
   `Store.Worker` uses the plain `runtime` image (no inbound HTTP — docs/observability.md). Both use
   the Debian-based tag, not `-alpine`: `Directory.Build.props` sets `InvariantGlobalization=false`
-  to keep ICU data available for future Arabic+English culture-aware formatting, which Alpine
-  strips out by default — no actual localization (translated UI, resource files, RTL markup) is
-  built yet; this flag only keeps the door open for it.
+  to keep ICU data available for Arabic+English culture-aware formatting — real since Phases 41-44
+  (`RequestLocalizationOptions`, `SharedResource.ar.resx`, `rtl.css`; see docs/modules.md's
+  "Localization" section), not just a placeholder flag anymore. Alpine strips ICU data by default,
+  which is the other reason the Debian-based tag is used.
 - `.dockerignore` excludes `ecomus-package/`/`Mecodex-Brand-Assets/` (175MB+ of raw ThemeForest
   template source, not referenced by any project — only the curated subset already committed
   under `src/Web/Store.Web/wwwroot/ecomus` is served at runtime, see ADR (Phase 5)).
