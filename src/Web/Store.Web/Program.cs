@@ -154,6 +154,10 @@ try
     app.UseCorrelationId();
     app.UseSerilogRequestLogging();
 
+    // Registered early so the headers are present on error responses too - a 500 rendered by the
+    // exception handler below is still an HTML page and still needs framing/sniffing protection.
+    app.UseMiddleware<Store.Web.Middleware.SecurityHeadersMiddleware>();
+
     // Configure the HTTP request pipeline.
     app.UseExceptionHandler(new ExceptionHandlerOptions
     {
