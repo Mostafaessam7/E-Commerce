@@ -12,18 +12,18 @@
        flooded backgrounds. Built on top of the theme's own --main/--primary
        rather than replacing them, so anything not re-themed here still
        matches. --- */
-    --ds-ink: #121212;
-    --ds-ink-soft: #5c5c5c;
-    --ds-ink-faint: #8f8f8f;
-    --ds-bg: #ffffff;
-    --ds-bg-soft: #faf9f7;
-    --ds-bg-sunk: #f3f2ef;
-    --ds-border: #e9e7e2;
-    --ds-border-strong: #d8d5cd;
-    --ds-accent: #db1215;
-    --ds-accent-dark: #a80e10;
-    --ds-accent-soft: #fdecec;
-    --ds-ink-inverse: #ffffff;
+    --ds-ink: var(--mx-text);
+    --ds-ink-soft: var(--mx-text-secondary);
+    --ds-ink-faint: var(--mx-text-muted);
+    --ds-bg: var(--mx-surface);
+    --ds-bg-soft: var(--mx-surface-base);
+    --ds-bg-sunk: var(--mx-surface-sunk);
+    --ds-border: var(--mx-border);
+    --ds-border-strong: var(--mx-border-strong);
+    --ds-accent: var(--mx-accent);
+    --ds-accent-dark: var(--mx-accent-hover);
+    --ds-accent-soft: var(--mx-accent-subtle);
+    --ds-ink-inverse: var(--mx-text-on-accent);
     --ds-bg-inverse: #121212;
     --ds-bg-inverse-soft: #1c1c1c;
 
@@ -75,18 +75,18 @@
    theme's own variables directly and need an explicit override here.
    ========================================================================== */
 :root[data-theme="dark"] {
-    --ds-ink: #f0f0ef;
-    --ds-ink-soft: #b8b6b1;
-    --ds-ink-faint: #83817c;
-    --ds-bg: #141413;
-    --ds-bg-soft: #1c1c1a;
-    --ds-bg-sunk: #101010;
-    --ds-border: #302f2c;
-    --ds-border-strong: #3f3e3a;
-    --ds-accent: #ff4d4f;
-    --ds-accent-dark: #e0393b;
-    --ds-accent-soft: rgba(255, 77, 79, 0.16);
-    --ds-ink-inverse: #141413;
+    --ds-ink: var(--mx-text);
+    --ds-ink-soft: var(--mx-text-secondary);
+    --ds-ink-faint: var(--mx-text-muted);
+    --ds-bg: var(--mx-surface);
+    --ds-bg-soft: var(--mx-surface-base);
+    --ds-bg-sunk: var(--mx-surface-sunk);
+    --ds-border: var(--mx-border);
+    --ds-border-strong: var(--mx-border-strong);
+    --ds-accent: var(--mx-accent);
+    --ds-accent-dark: var(--mx-accent-hover);
+    --ds-accent-soft: var(--mx-accent-subtle);
+    --ds-ink-inverse: var(--mx-text-on-accent);
     --ds-bg-inverse: #f0f0ef;
     --ds-bg-inverse-soft: #e2e2df;
 }

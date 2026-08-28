@@ -34,6 +34,11 @@
     <link rel="stylesheet" href="~/ecomus/css/animate.css" />
     <link rel="stylesheet" href="~/ecomus/css/styles.css" />
     <link rel="stylesheet" href="~/css/site-custom.css" />
+    @* Shared Mecodex tokens load first: design-system.css's own --ds-* tokens now
+       alias onto --mx-*, so those have to be defined before it. E-Commerce is
+       assigned Amber Commerce. *@
+    <link rel="stylesheet" href="~/design-system/tokens.css" />
+    <link rel="stylesheet" href="~/design-system/themes/amber-commerce.css" />
     <link rel="stylesheet" href="~/css/design-system.css" />
     @if (isRtl)
     {
