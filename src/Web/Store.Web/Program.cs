@@ -46,6 +46,24 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
+    // Optional Azure Key Vault integration. Set KeyVault__Uri to pull secrets from a vault instead
+    // of (or on top of) environment variables and User Secrets. Off by default, so nothing changes
+    // for anyone not using Azure. Registered first so every later consumer -- connection strings,
+    // the payment webhook signing secret -- sees vault values as ordinary configuration.
+    //
+    // DefaultAzureCredential resolves a managed identity in Azure, or `az login` locally.
+    //
+    // Key Vault secret names cannot contain ':', so they use '--' instead: a secret named
+    // "ConnectionStrings--Default" maps onto ConnectionStrings:Default.
+    var keyVaultUri = builder.Configuration["KeyVault:Uri"];
+
+    if (!string.IsNullOrWhiteSpace(keyVaultUri))
+    {
+        builder.Configuration.AddAzureKeyVault(
+            new Uri(keyVaultUri),
+            new Azure.Identity.DefaultAzureCredential());
+    }
+
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .MinimumLevel.Information()
         .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
