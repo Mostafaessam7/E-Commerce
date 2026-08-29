@@ -91,8 +91,38 @@ environment where Docker Desktop can actually start.
   ```
   `main` now requires the `build-and-test` check to pass (and to be up to date with the base branch
   — `strict: true`) before a merge is allowed; force-pushes and branch deletion are blocked too.
-  `enforce_admins: false` so the repo owner can still push directly when needed. Verify with
-  `gh api repos/.../branches/main/protection`.
+
+  **`enforce_admins` was turned on (2026-08-29).** It shipped as `false` — "so the repo owner can
+  still push directly when needed" — and that turned out to mean the protection did not protect
+  anything against the one account most likely to push to `main`. A direct push succeeded and
+  reported:
+
+  ```
+  remote: Bypassed rule violations for refs/heads/main:
+  remote: - Required status check "build-and-test" is expected.
+  ```
+
+  So the rule was evaluated, found unsatisfied, and applied anyway. A required check that an admin
+  silently steps over is a check whose result nobody has to act on.
+
+  ```
+  gh api -X POST repos/Mostafaessam7/E-Commerce/branches/main/protection/enforce_admins
+  ```
+
+  Verified by attempting a direct push rather than by re-reading the setting — it is now refused:
+
+  ```
+  remote: error: GH006: Protected branch update failed for refs/heads/main.
+  remote: - Required status check "build-and-test" is expected.
+   ! [remote rejected] main -> main (protected branch hook declined)
+  ```
+
+  **Consequence, and it applies to everyone including the owner:** `main` can only be updated
+  through a pull request whose `build-and-test` check has passed. A direct push cannot satisfy a
+  required status check, because the commit has no status until CI has run it. To undo this in an
+  emergency: `gh api -X DELETE repos/.../branches/main/protection/enforce_admins`.
+
+  Verify current state with `gh api repos/.../branches/main/protection`.
 - ~~No automatic dependency/vulnerability scanning~~ — both added (2026-08-28):
   - **CI gate**: a `Check for known-vulnerable NuGet packages` step runs straight after restore, so
     a bad dependency fails before the slow LocalDB + migrations + integration-test stretch. It
