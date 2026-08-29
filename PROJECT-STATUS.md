@@ -34,7 +34,12 @@ Recent, and not covered by the phase log before this pass:
   Package Management already puts every version in `Directory.Packages.props`.
 - **Shared design system, Amber Commerce theme** — colour now comes from `MeCodex/design-system`.
   The Ecomus theme and the Young Serif / Albert Sans type stack are untouched on purpose.
-- **Branch protection on `main`** is live (`build-and-test` must pass before merge).
+- **Branch protection on `main`** is live and **enforced against admins too** (2026-08-29).
+  `build-and-test` must pass before merge, force-pushes and deletions are blocked, and
+  `enforce_admins` is on — so `main` is only reachable through a pull request with a green check.
+  It previously shipped with `enforce_admins: false`, which meant a direct push from the owner
+  bypassed the required check and said so (`Bypassed rule violations`). Verified by attempting a
+  direct push, which is now refused with `GH006`.
 
 ---
 
