@@ -11,8 +11,9 @@ Promotions, Shipping, Reviews) have real Domain/Application/Infrastructure code.
 admin panel, checkout, payments (fake gateway with real webhook mechanics), Redis caching,
 CI (build/test/image publish), rate limiting, sitemap/robots.txt, a full design-system redesign
 with dark mode, and Arabic/English localization (including the admin area) are all implemented.
-See `docs/current-state.md` for the authoritative, up-to-date account of what's done and what
-remains open — it is the single most current file in this repo.
+Start at `PROJECT-STATUS.md` — what is closed, which decisions are adopted, what is still open,
+known debt, and what was deferred on purpose. For the full phase-by-phase account behind it, see
+`docs/current-state.md`; for the reasoning behind individual choices, `docs/decisions.md`.
 
 ## Architecture
 

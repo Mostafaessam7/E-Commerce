@@ -727,3 +727,27 @@ any file to hash, and Central Package Management already puts every version in a
 
 Verification: `dotnet build` clean, and the full suite run locally against LocalDB —
 **102 unit + 29 architecture + 31 integration + 18 end-to-end = 180 passing, 0 failed**.
+
+---
+
+## Shared design system — Amber Commerce theme (2026-08-29)
+
+The storefront now takes its colour from the workspace-shared design system in
+`MeCodex/design-system` rather than defining it locally. 24 declarations across 12 `--ds-*` tokens
+re-point at the shared `--mx-*` set; `design-system.css` keeps its own structure and every
+component rule, so only the colour values moved.
+
+Deliberately **not** changed: the purchased Ecomus theme and this storefront's type stack (Young
+Serif / Albert Sans). The workspace theme decision covered colour. The display face is part of this
+storefront's identity, and swapping it is a different change needing its own rationale.
+
+Worth recording because it nearly went wrong silently: this app serves static files through
+`MapStaticAssets`, which resolves a fingerprinted manifest baked at compile time. Files dropped
+into `wwwroot` can 404 at runtime even though they exist on disk, if the build did not pick them
+up. Verified against a running instance rather than assumed — `/design-system/tokens.css` and
+`/design-system/themes/amber-commerce.css` both return 200 and the served file is the theme, not a
+stale copy.
+
+Every other product in the workspace has its own theme over the same token architecture; this one
+is Amber Commerce. Token *names* are identical across all themes, so a component written against
+`--mx-surface` works under any of them.
