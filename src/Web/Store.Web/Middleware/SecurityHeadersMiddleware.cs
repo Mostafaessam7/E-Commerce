@@ -16,6 +16,11 @@ namespace Store.Web.Middleware;
 /// what has to move out of the markup first. Switch the header name to
 /// <c>Content-Security-Policy</c> once that list is empty — the policy string itself does not need
 /// to change.
+///
+/// The reports are collected by <see cref="Store.Web.Controllers.CspReportController"/> via the
+/// <c>report-uri</c> directive. Until that existed the browser computed every violation and threw
+/// it away, so Report-Only mode was costing a header and producing nothing — the list it was meant
+/// to generate was never being written down anywhere.
 /// </summary>
 public sealed class SecurityHeadersMiddleware(RequestDelegate next)
 {
@@ -34,7 +39,12 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
         "frame-ancestors 'none'; " +
         "form-action 'self'; " +
         "base-uri 'self'; " +
-        "object-src 'none'";
+        "object-src 'none'; " +
+        // Without this the browser computed every violation and discarded it, so Report-Only mode
+        // produced nothing to act on and the policy could never be enforced. report-uri is
+        // deprecated in favour of the Reporting API, but it is what actually works across current
+        // browsers; CspReportController receives these.
+        "report-uri /csp-report";
 
     public async Task InvokeAsync(HttpContext context)
     {
