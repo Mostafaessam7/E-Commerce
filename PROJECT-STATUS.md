@@ -97,3 +97,28 @@ Recent, and not covered by the phase log before this pass:
 | **Clearing the 17 analyzer warnings** | A mechanical refactor across working code for tidiness alone |
 | **API versioning** | One webhook receiver, no public API consumers |
 | **Tax module, 2FA/social login, Wishlist** | Explicit scope cuts, each recorded in its own ADR |
+
+---
+
+## Update 2026-08-30 — Key Vault, App Insights, and enforced protection
+
+| Feature | Enabled by | Notes |
+|---|---|---|
+| Azure Key Vault | `KeyVault__Uri` | Registered as the first configuration step, so connection strings and the payment webhook signing secret can come from a vault |
+| Application Insights | `APPLICATIONINSIGHTS_CONNECTION_STRING` | Reads through configuration, so a value held in Key Vault works |
+
+Both are **inert until configured** — each registers only when its value is present, so nothing
+changes for a deployment that supplies neither.
+
+**Branch protection now applies to admins too.** It previously shipped with `enforce_admins: false`,
+which meant a direct push from the owner bypassed the required `build-and-test` check and said so
+(`Bypassed rule violations`). Verified by attempting a direct push, which is now refused with
+`GH006`. `main` is reachable only through a pull request with a green check — for everyone.
+
+**No browser-side Sentry here, deliberately.** The workspace decision was "Sentry frontend", and
+that was applied to the five application frontends. This storefront is server-rendered Razor: the
+logic that can fail lives on the server, where Application Insights now covers it, and the
+client-side JavaScript is largely the purchased Ecomus template. Adding a browser error reporter
+would also interact with the Content-Security-Policy work that is still in Report-Only mode. If
+client-side reporting is wanted later, Application Insights' own JavaScript snippet is the natural
+fit, since the backend is already reporting there.
