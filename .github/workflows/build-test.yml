@@ -129,6 +129,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # GHCR rejects any tag whose repository name is not lowercase, and github.repository keeps
+      # the real casing of both owner and repo ("Mostafaessam7/E-Commerce"). Every push failed with:
+      #   invalid tag "ghcr.io/Mostafaessam7/E-Commerce-store-web:<sha>":
+      #   repository name must be lowercase
+      # so no image has ever actually been published, despite this job existing to do exactly that.
+      # Workflow expressions have no lowercase filter, so it is done once here and reused below.
+      - name: Lowercase the image repository
+        run: echo "IMAGE_REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
       # Build context is the repo root, not the project folder — Directory.Packages.props/
       # Directory.Build.props live there and these projects reference most of src/ (see
       # docs/deployment.md's "Images" section — same reason `docker compose build` uses the repo
@@ -141,8 +150,8 @@ jobs:
           file: src/Web/Store.Web/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}-store-web:${{ github.sha }}
-            ghcr.io/${{ github.repository }}-store-web:latest
+            ghcr.io/${{ env.IMAGE_REPO }}-store-web:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_REPO }}-store-web:latest
 
       - name: Build and push store-worker
         uses: docker/build-push-action@v6
@@ -151,5 +160,5 @@ jobs:
           file: src/Workers/Store.Worker/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}-store-worker:${{ github.sha }}
-            ghcr.io/${{ github.repository }}-store-worker:latest
+            ghcr.io/${{ env.IMAGE_REPO }}-store-worker:${{ github.sha }}
+            ghcr.io/${{ env.IMAGE_REPO }}-store-worker:latest
