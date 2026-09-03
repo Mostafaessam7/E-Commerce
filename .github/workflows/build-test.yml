@@ -144,7 +144,7 @@ jobs:
       # root today). Each image gets two tags: the immutable commit SHA (for rollback/audit) and
       # `latest` (for anyone just pulling the newest build).
       - name: Build and push store-web
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: src/Web/Store.Web/Dockerfile
@@ -154,7 +154,7 @@ jobs:
             ghcr.io/${{ env.IMAGE_REPO }}-store-web:latest
 
       - name: Build and push store-worker
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: src/Workers/Store.Worker/Dockerfile
