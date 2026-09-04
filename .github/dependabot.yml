@@ -1,5 +1,18 @@
 version: 2
 
+# Routine version updates are OFF: every open-pull-requests-limit below is 0.
+#
+# These repos are kept at a single `main` branch with no long-lived branches, and a weekly
+# stream of version-bump PRs meant a steady stream of branches to merge or close. Setting the
+# limit to 0 is the documented way to stop that without deleting this file.
+#
+# Security updates are NOT affected. Dependabot ignores the open-PR limit for security
+# advisories, so a dependency with a known vulnerability still opens a PR. What stops is only
+# the "a newer version exists" churn.
+#
+# To bring routine updates back, set the limits to a non-zero number again. The grouping below
+# is kept for that reason.
+
 updates:
   # NuGet versions are centrally managed in Directory.Packages.props (Central Package Management),
   # so Dependabot edits that one file rather than 30+ csproj files. Grouped deliberately: the
@@ -9,7 +22,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
     groups:
       microsoft:
         patterns:
@@ -27,4 +40,4 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
