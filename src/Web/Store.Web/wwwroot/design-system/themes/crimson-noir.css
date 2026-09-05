@@ -1,7 +1,7 @@
 /* ============================================================================
- * Mecodex theme — Amber Commerce
+ * Mecodex theme — Crimson Noir
  *
- * Assigned to: POS, E-Commerce
+ * Assigned to: E-Commerce
  *
  * Pairs with tokens.css, which carries everything theme-independent (type scale,
  * spacing, radius, motion, elevation). This file defines ONLY what varies between
@@ -22,31 +22,31 @@
  * ========================================================================== */
 
 :root {
-  --mx-surface-sunk: #f6f4f1;
-  --mx-surface-base: #fbf9f7;
+  --mx-surface-sunk: #f5f4f4;
+  --mx-surface-base: #f9f8f8;
   --mx-surface: #ffffff;
   --mx-surface-raised: #ffffff;
 
-  --mx-text: #423324;
-  --mx-text-secondary: #645546;
-  --mx-text-muted: #817162;
+  --mx-text: #3a3433;
+  --mx-text-secondary: #5c5655;
+  --mx-text-muted: #797271;
   --mx-text-on-accent: #ffffff;
 
-  --mx-border: #e2dbd4;
-  --mx-border-strong: #c9bdb1;
+  --mx-border: #dfdddc;
+  --mx-border-strong: #c2bdbd;
 
-  --mx-accent: #b15e16;
-  --mx-accent-hover: #9b4800;
-  --mx-accent-subtle: rgba(177, 94, 22, 0.12);
-  --mx-accent-border: rgba(177, 94, 22, 0.42);
+  --mx-accent: #df2b31;
+  --mx-accent-hover: #c9151b;
+  --mx-accent-subtle: rgba(223, 43, 49, 0.12);
+  --mx-accent-border: rgba(223, 43, 49, 0.42);
 
-  --mx-secondary: #207caa;
-  --mx-secondary-subtle: rgba(32, 124, 170, 0.12);
+  --mx-secondary: #2b77c3;
+  --mx-secondary-subtle: rgba(43, 119, 195, 0.12);
 
-  --mx-accent-alt: #d0441a;
-  --mx-accent-alt-subtle: rgba(208, 68, 26, 0.12);
+  --mx-accent-alt: #c5501e;
+  --mx-accent-alt-subtle: rgba(197, 80, 30, 0.12);
 
-  --mx-focus-ring: 0 0 0 3px rgba(177, 94, 22, 0.38);
+  --mx-focus-ring: 0 0 0 3px rgba(223, 43, 49, 0.38);
 
   --mx-success: #19864c;
   --mx-success-subtle: rgba(25, 134, 76, 0.12);
@@ -60,31 +60,31 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --mx-surface-sunk: #16110b;
-    --mx-surface-base: #1f1811;
-    --mx-surface: #292017;
-    --mx-surface-raised: #382d21;
+    --mx-surface-sunk: #131111;
+    --mx-surface-base: #1d1919;
+    --mx-surface: #252120;
+    --mx-surface-raised: #332e2e;
 
-    --mx-text: #e7ded6;
-    --mx-text-secondary: #baab9b;
-    --mx-text-muted: #988776;
+    --mx-text: #e2dfde;
+    --mx-text-secondary: #b1acab;
+    --mx-text-muted: #908a89;
     --mx-text-on-accent: #0b0f16;
 
-    --mx-border: #4d4033;
-    --mx-border-strong: #6c5c4b;
+    --mx-border: #474141;
+    --mx-border-strong: #655e5d;
 
-    --mx-accent: #d66d10;
-    --mx-accent-hover: #f0872a;
-    --mx-accent-subtle: rgba(214, 109, 16, 0.18);
-    --mx-accent-border: rgba(214, 109, 16, 0.42);
+    --mx-accent: #ee555a;
+    --mx-accent-hover: #ff6f74;
+    --mx-accent-subtle: rgba(238, 85, 90, 0.18);
+    --mx-accent-border: rgba(238, 85, 90, 0.42);
 
-    --mx-secondary: #1a93d0;
-    --mx-secondary-subtle: rgba(26, 147, 208, 0.18);
+    --mx-secondary: #3a8ee2;
+    --mx-secondary-subtle: rgba(58, 142, 226, 0.18);
 
-    --mx-accent-alt: #e65f36;
-    --mx-accent-alt-subtle: rgba(230, 95, 54, 0.18);
+    --mx-accent-alt: #e06631;
+    --mx-accent-alt-subtle: rgba(224, 102, 49, 0.18);
 
-    --mx-focus-ring: 0 0 0 3px rgba(214, 109, 16, 0.38);
+    --mx-focus-ring: 0 0 0 3px rgba(238, 85, 90, 0.38);
 
     --mx-success: #259e5d;
     --mx-success-subtle: rgba(37, 158, 93, 0.2);
@@ -98,31 +98,31 @@
 }
 
 :root[data-theme="dark"] {
-  --mx-surface-sunk: #16110b;
-  --mx-surface-base: #1f1811;
-  --mx-surface: #292017;
-  --mx-surface-raised: #382d21;
+  --mx-surface-sunk: #131111;
+  --mx-surface-base: #1d1919;
+  --mx-surface: #252120;
+  --mx-surface-raised: #332e2e;
 
-  --mx-text: #e7ded6;
-  --mx-text-secondary: #baab9b;
-  --mx-text-muted: #988776;
+  --mx-text: #e2dfde;
+  --mx-text-secondary: #b1acab;
+  --mx-text-muted: #908a89;
   --mx-text-on-accent: #0b0f16;
 
-  --mx-border: #4d4033;
-  --mx-border-strong: #6c5c4b;
+  --mx-border: #474141;
+  --mx-border-strong: #655e5d;
 
-  --mx-accent: #d66d10;
-  --mx-accent-hover: #f0872a;
-  --mx-accent-subtle: rgba(214, 109, 16, 0.12);
-  --mx-accent-border: rgba(214, 109, 16, 0.42);
+  --mx-accent: #ee555a;
+  --mx-accent-hover: #ff6f74;
+  --mx-accent-subtle: rgba(238, 85, 90, 0.12);
+  --mx-accent-border: rgba(238, 85, 90, 0.42);
 
-  --mx-secondary: #1a93d0;
-  --mx-secondary-subtle: rgba(26, 147, 208, 0.12);
+  --mx-secondary: #3a8ee2;
+  --mx-secondary-subtle: rgba(58, 142, 226, 0.12);
 
-  --mx-accent-alt: #e65f36;
-  --mx-accent-alt-subtle: rgba(230, 95, 54, 0.12);
+  --mx-accent-alt: #e06631;
+  --mx-accent-alt-subtle: rgba(224, 102, 49, 0.12);
 
-  --mx-focus-ring: 0 0 0 3px rgba(214, 109, 16, 0.38);
+  --mx-focus-ring: 0 0 0 3px rgba(238, 85, 90, 0.38);
 
   --mx-success: #259e5d;
   --mx-success-subtle: rgba(37, 158, 93, 0.2);
