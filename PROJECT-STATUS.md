@@ -145,3 +145,37 @@ workflow:
 **Security updates are unaffected** — Dependabot ignores that limit for security advisories, so a
 dependency with a known vulnerability still opens a PR. Set the limits back to a non-zero number to
 bring routine updates back.
+
+---
+
+## Update 2026-09-05 — the CSP is enforced
+
+It had been Report-Only since it was added, which means it had never blocked anything. The reason
+was real: the views could not satisfy `script-src 'self'` — four inline `<script>` blocks across
+three files, and 61 inline `style="..."` attributes across 34 views of a purchased theme.
+
+Those are not the same risk, so they were not solved the same way.
+
+**Scripts are strict.** Every response now carries a fresh 128-bit CSPRNG nonce, and the four inline
+blocks carry it via `Context.CspNonce()`. `'unsafe-inline'` stays out of `script-src`, so an
+injected `<script>` is blocked — a per-request nonce cannot be guessed. This is the directive that
+actually stops XSS and it is not weakened anywhere.
+
+**Styles get `'unsafe-inline'`, knowingly.** A nonce cannot cover a `style="..."` attribute; nonces
+apply to `<style>` elements and CSP has no attribute-level equivalent short of hashing all 61 and
+rehashing on every theme edit. Rewriting 34 views of a purchased theme into classes is a large
+change to working UI with real regression risk and no benefit against the threat that matters.
+
+The residual exposure is recorded on the middleware rather than hidden: CSS injection stays possible
+for someone who can already write markup, bounded by `connect-src 'self'` and `img-src`. Deleting
+`'unsafe-inline'` from `StyleSources` is the one change that closes it later.
+
+**Seven tests added**, because an enforced policy fails as dead JavaScript rather than a log line —
+nothing had covered any of this. They pin that the header is enforcing with no Report-Only beside
+it, that `script-src` never gains `'unsafe-inline'` or `'unsafe-eval'`, that `'unsafe-inline'`
+appears exactly once in the whole policy, that the header's nonce is the one views render, that 50
+responses give 50 distinct nonces, that reading the nonce without the middleware throws instead of
+silently returning `""`, and that no `.cshtml` has an inline `<script>` without a nonce.
+
+Verified by breaking it: `'unsafe-inline'` in `script-src` fails 2 tests; removing one view's nonce
+fails 1 and names the file. Restored: 102 + 36 + 31 + 18 = **187 tests pass** in CI.
