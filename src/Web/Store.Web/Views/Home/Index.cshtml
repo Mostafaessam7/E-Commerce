@@ -125,7 +125,7 @@
 @section Scripts {
     <script src="~/vendor/vanta/three.min.js"></script>
     <script src="~/vendor/vanta/vanta.net.min.js"></script>
-    <script>
+    <script nonce="@Context.CspNonce()">
         // Phase 30 (ADR-041): animated brand-colored hero background. Guarded behind
         // prefers-reduced-motion and a WebGL capability check — VANTA.NET throws if WebGL isn't
         // available, and a static hero is a perfectly fine fallback rather than a broken page.

@@ -4,7 +4,7 @@
    Home hero (_Home/Index.cshtml). *@
 <script src="~/vendor/vanta/three.min.js"></script>
 <script src="~/vendor/vanta/vanta.waves.min.js"></script>
-<script>
+<script nonce="@Context.CspNonce()">
     (function () {
         function supportsWebGl() {
             try {

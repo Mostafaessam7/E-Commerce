@@ -16,7 +16,7 @@
     @* Phase 40 (ADR-051): set the theme attribute before first paint so there's no light-mode
        flash on a dark-mode visit. Deliberately inline/blocking, not deferred to main.js — the
        whole point is this runs before the browser paints anything. *@
-    <script>
+    <script nonce="@Context.CspNonce()">
         (function () {
             var stored = localStorage.getItem("theme");
             var theme = stored || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
@@ -69,7 +69,7 @@
     <script src="~/ecomus/js/lazysize.min.js"></script>
     <script src="~/ecomus/js/wow.min.js"></script>
     <script src="~/ecomus/js/main.js"></script>
-    <script>
+    <script nonce="@Context.CspNonce()">
         (function () {
             var toggle = document.getElementById("themeToggle");
             if (!toggle) {
